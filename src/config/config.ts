@@ -3,6 +3,8 @@ export type Environment = 'development'
 export interface EnvironmentConfig {
   solverUrl: string
   backendUrl: string
+  rpcUrl: string
+  routerAddress: string
 }
 
 export interface AppConfig extends EnvironmentConfig {
@@ -13,6 +15,10 @@ const environments: Record<Environment, EnvironmentConfig> = {
   development: {
     solverUrl: 'http://52.221.184.2',
     backendUrl: 'https://api-dev.bitfi.xyz',
+    rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
+    routerAddress:
+      process.env.ROUTER_ADDRESS ||
+      '0xa66c0ebbE280CdF559AeE3a6Cf4739e69ca95bCB',
   },
 }
 
@@ -44,6 +50,14 @@ class Config {
 
   public getBackendUrl(): string {
     return this.config.backendUrl
+  }
+
+  public getRpcUrl(): string {
+    return this.config.rpcUrl
+  }
+
+  public getRouterAddress(): string {
+    return this.config.routerAddress
   }
 }
 

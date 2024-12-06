@@ -9,7 +9,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "typechain": "typechain --target=ethers-v6 ./abi/**/**.json --out-dir ./src/typechains/contract",
+    "typechain": "typechain --target=ethers-v6 ./abi/**/**.json --out-dir ./src/contracts/contract",
     "ctix": "node generate-indexes.js"
   },
   "dependencies": {
