@@ -13,7 +13,8 @@
     "ctix": "node generate-indexes.js"
   },
   "dependencies": {
-    "ethers": "^6.13.4"
+    "ethers": "^6.13.4",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@typechain/ethers-v6": "^0.5.1",
