@@ -5,8 +5,8 @@ function shouldIgnoreFile(filename) {
   return filename === 'index.ts' || filename.startsWith('.')
 }
 
-function isTypechainsDir(dirPath) {
-  return path.basename(dirPath) === 'typechains'
+function isContractsDir(dirPath) {
+  return path.basename(dirPath) === 'contracts'
 }
 
 function generateIndexContent(files) {
@@ -21,8 +21,7 @@ function generateIndexContent(files) {
 }
 
 function deleteIndexFiles(dirPath) {
-  // Don't delete anything in typechains directory
-  if (isTypechainsDir(dirPath)) {
+  if (isContractsDir(dirPath)) {
     return
   }
 
@@ -35,7 +34,7 @@ function deleteIndexFiles(dirPath) {
   entries
     .filter(
       (entry) =>
-        entry.isDirectory() && !isTypechainsDir(path.join(dirPath, entry.name))
+        entry.isDirectory() && !isContractsDir(path.join(dirPath, entry.name))
     )
     .forEach((dir) => {
       deleteIndexFiles(path.join(dirPath, dir.name))
@@ -43,14 +42,12 @@ function deleteIndexFiles(dirPath) {
 }
 
 function processModule(dirPath) {
-  // Don't process anything inside typechains directory
-  if (isTypechainsDir(dirPath)) {
+  if (isContractsDir(dirPath)) {
     return
   }
 
   const entries = fs.readdirSync(dirPath, { withFileTypes: true })
 
-  // Process regular .ts files
   const jsFiles = entries
     .filter(
       (entry) =>
@@ -60,19 +57,16 @@ function processModule(dirPath) {
     )
     .map((entry) => path.join(dirPath, entry.name))
 
-  // Handle subdirectories
   const subdirectories = entries.filter((entry) => entry.isDirectory())
 
   const subDirExports = subdirectories
     .map((dir) => {
       const subdirPath = path.join(dirPath, dir.name)
 
-      // Only process non-typechains directories
-      if (!isTypechainsDir(subdirPath)) {
+      if (!isContractsDir(subdirPath)) {
         processModule(subdirPath)
       }
 
-      // Always export directories (including typechains) in the parent index.ts
       return `export * from './${dir.name}';`
     })
     .filter(Boolean)
