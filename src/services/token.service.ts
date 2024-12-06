@@ -69,6 +69,37 @@ export class TokenService {
     const tokens = await this.getTokens()
     return tokens.filter((token) => token.networkId === networkId)
   }
+
+  /**
+   * Finds a specific token by network ID and token address
+   * @param networkId Network ID to search for
+   * @param tokenAddress Token address to search for (use 'native' for native tokens)
+   * @returns Promise<Token> Token if found
+   * @throws Error if token is not found
+   */
+  async getToken(networkId: string, tokenAddress: string): Promise<Token> {
+    try {
+      const tokens = await this.getTokens()
+      const token = tokens.find(
+        (t) =>
+          t.networkId === networkId &&
+          t.tokenAddress.toLowerCase() === tokenAddress.toLowerCase()
+      )
+
+      if (!token) {
+        throw new Error(
+          `Token not found for networkId: ${networkId} and address: ${tokenAddress}`
+        )
+      }
+
+      return token
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error
+      }
+      throw new Error(`Failed to get token: ${error}`)
+    }
+  }
 }
 
 // Export a singleton instance
