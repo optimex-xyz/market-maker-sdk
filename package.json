@@ -1,0 +1,20 @@
+{
+  "name": "bitfi-market-maker-sdk",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "typechain": "typechain --target=ethers-v6 ./abi/**/**.json --out-dir ./src/typechains/contract",
+    "ctix": "node generate-indexes.js"
+  },
+  "dependencies": {
+    "ethers": "^6.13.4"
+  },
+  "devDependencies": {
+    "@typechain/ethers-v6": "^0.5.1",
+    "@types/node": "^22.10.1",
+    "typechain": "^8.3.2",
+    "typescript": "^5.7.2"
+  }
+}
