@@ -51,13 +51,19 @@ export class TokenService {
   }
 
   /**
-   * Fetches a specific token by its ID
-   * @param id Token ID to fetch
-   * @returns Promise<Token | null> Token if found, null otherwise
+   * Fetches a specific token by its token ID
+   * @param tokenId Token ID to fetch
+   * @returns Promise<Token> Token if found, null otherwise
    */
-  async getTokenById(id: number): Promise<Token | null> {
+  async getTokenByTokenId(tokenId: string): Promise<Token> {
     const tokens = await this.getTokens()
-    return tokens.find((token) => token.id === id) ?? null
+    const token = tokens.find((token) => token.tokenId === tokenId)
+
+    if (!token) {
+      throw new Error(`Token with tokenId ${tokenId} not found`)
+    }
+
+    return token
   }
 
   /**
