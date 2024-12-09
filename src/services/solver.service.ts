@@ -1,8 +1,8 @@
-import axios from 'axios';
-import { z } from 'zod';
+import axios from 'axios'
+import { z } from 'zod'
 
-import config from '../config/config';
-import { convertToSnakeCase } from '../utils';
+import config from '../config/config'
+import { convertToSnakeCase } from '../utils'
 
 // Request validation schema
 const SubmitSettlementRequestSchema = z.object({

@@ -1,9 +1,9 @@
-import axios from 'axios';
-import { z } from 'zod';
+import axios from 'axios'
+import { z } from 'zod'
 
-import config from '../config/config';
-import { Token, TokenSchema } from '../types';
-import { convertToCamelCase } from '../utils';
+import config from '../config/config'
+import { Token, TokenSchema } from '../types'
+import { convertToCamelCase } from '../utils'
 
 // Response schema for the API
 const TokenResponseSchema = z.object({

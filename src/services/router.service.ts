@@ -1,7 +1,7 @@
-import { BytesLike, JsonRpcProvider } from 'ethers';
+import { BytesLike, JsonRpcProvider } from 'ethers'
 
-import config from '../config/config';
-import { ITypes, Router__factory } from '../contracts';
+import config from '../config/config'
+import { ITypes, Router__factory } from '../contracts'
 
 export class RouterService {
   private readonly provider: JsonRpcProvider
