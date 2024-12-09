@@ -1,10 +1,15 @@
-import axios from 'axios';
-import * as bitcoin from 'bitcoinjs-lib';
-import { ECPairFactory } from 'ecpair';
-import * as ecc from 'tiny-secp256k1';
+import axios from 'axios'
+import * as bitcoin from 'bitcoinjs-lib'
+import { ECPairFactory } from 'ecpair'
+import * as ecc from 'tiny-secp256k1'
 
-import config from '../../../config/config';
-import { InternalTransferParams, ITransferStrategy } from '../transfer-strategy.interface';
+import config from '../../../config/config'
+import { getTradeIdsHash } from '../../../signatures'
+import { Token } from '../../../types'
+import {
+  InternalTransferParams,
+  ITransferStrategy,
+} from '../transfer-strategy.interface'
 
 interface UTXO {
   txid: string
@@ -28,8 +33,8 @@ export class BTCTransferStrategy implements ITransferStrategy {
   ])
 
   private readonly rpcMap = new Map<string, string>([
-    ['bitcoin-testnet', 'https://mempool.space/testnet'],
-    ['bitcoin', 'https://mempool.space'],
+    ['bitcoin-testnet', 'https://blockstream.info/testnet'],
+    ['bitcoin', 'https://blockstream.info'],
   ])
 
   constructor() {
@@ -44,14 +49,18 @@ export class BTCTransferStrategy implements ITransferStrategy {
       const network = this.getNetwork(token.networkId)
       const rpcUrl = this.getRpcUrl(token.networkId)
 
-      console.log(`Starting BTC transfer of ${amount} satoshis to ${toAddress}`)
+      console.log(
+        `Starting transfer of ${amount} satoshis to ${toAddress} on ${token.networkName}`
+      )
 
       const txId = await this.sendBTC(
+        this.privateKey,
         toAddress,
         amount,
         network,
         rpcUrl,
-        tradeId
+        token,
+        [tradeId]
       )
 
       console.log(`BTC transfer successful: ${txId}`)
@@ -62,26 +71,41 @@ export class BTCTransferStrategy implements ITransferStrategy {
     }
   }
 
+  private createPayment(publicKey: Uint8Array, network: bitcoin.Network) {
+    const p2tr = bitcoin.payments.p2tr({
+      internalPubkey: Buffer.from(publicKey.slice(1, 33)),
+      network,
+    })
+
+    return {
+      payment: p2tr,
+      keypair: this.ECPair.fromWIF(this.privateKey, network),
+    }
+  }
+
   private async sendBTC(
+    privateKey: string,
     toAddress: string,
-    amountSats: bigint,
+    amountInSatoshis: bigint,
     network: bitcoin.Network,
     rpcUrl: string,
-    tradeId: string
+    token: Token,
+    tradeIds: string[]
   ): Promise<string> {
-    const keyPair = this.ECPair.fromWIF(this.privateKey, network)
+    const keyPair = this.ECPair.fromWIF(privateKey, network)
     const { payment, keypair } = this.createPayment(keyPair.publicKey, network)
 
     if (!payment.address) {
       throw new Error('Could not generate address')
     }
 
+    console.log(`Sender address: ${payment.address} (${token.networkSymbol})`)
+
     const utxos = await this.getUTXOs(payment.address, rpcUrl)
     if (utxos.length === 0) {
-      throw new Error('No UTXOs found')
+      throw new Error(`No UTXOs found in ${token.networkSymbol} wallet`)
     }
 
-    // Create and sign transaction
     const psbt = new bitcoin.Psbt({ network })
     let totalInput = 0n
 
@@ -105,24 +129,28 @@ export class BTCTransferStrategy implements ITransferStrategy {
       totalInput += BigInt(utxo.value)
     }
 
-    if (totalInput < amountSats) {
+    console.log(`Total input: ${totalInput.toString()} ${token.tokenSymbol}`)
+
+    if (totalInput < amountInSatoshis) {
       throw new Error(
-        `Insufficient balance. Need ${amountSats}, have ${totalInput}`
+        `Insufficient balance in ${token.networkSymbol} wallet. ` +
+          `Need ${amountInSatoshis} satoshis, but only have ${totalInput} satoshis`
       )
     }
 
-    // Add outputs
     const feeRate = await this.getFeeRate(rpcUrl)
-    const fee = BigInt(Math.ceil(utxos.length * 180 * feeRate))
-    const changeAmount = totalInput - amountSats - fee
+    const fee = BigInt(Math.ceil(200 * feeRate))
+    const changeAmount = totalInput - amountInSatoshis - fee
 
-    // Add recipient output
+    console.log(`Network fee: ${fee.toString()} satoshis`)
+    console.log(`Amount to send: ${amountInSatoshis.toString()} satoshis`)
+    console.log(`Change amount: ${changeAmount.toString()} satoshis`)
+
     psbt.addOutput({
       address: toAddress,
-      value: amountSats,
+      value: amountInSatoshis,
     })
 
-    // Add change output if significant
     if (changeAmount > 546n) {
       psbt.addOutput({
         address: payment.address,
@@ -130,40 +158,45 @@ export class BTCTransferStrategy implements ITransferStrategy {
       })
     }
 
-    // Add OP_RETURN output with trade ID
+    const tradeIdsHash = getTradeIdsHash(tradeIds)
+
     psbt.addOutput({
       script: bitcoin.script.compile([
-        bitcoin.opcodes.OP_RETURN,
-        Buffer.from(tradeId),
+        bitcoin.opcodes['OP_RETURN'],
+        Buffer.from(tradeIdsHash.slice(2), 'hex'),
       ]),
       value: 0n,
     })
 
-    // Sign all inputs
-    for (let i = 0; i < psbt.txInputs.length; i++) {
-      psbt.signInput(i, keypair)
+    const toXOnly = (pubKey: Uint8Array) =>
+      pubKey.length === 32 ? pubKey : pubKey.slice(1, 33)
+    const tweakedSigner = keyPair.tweak(
+      bitcoin.crypto.taggedHash('TapTweak', toXOnly(keyPair.publicKey))
+    )
+
+    for (let i = 0; i < psbt.data.inputs.length; i++) {
+      psbt.signInput(i, tweakedSigner, [bitcoin.Transaction.SIGHASH_DEFAULT])
+      console.log(`Input ${i} signed successfully`)
     }
 
     psbt.finalizeAllInputs()
+    console.log('All inputs finalized')
 
-    // Broadcast transaction
     const tx = psbt.extractTransaction()
-    const response = await axios.post(`${rpcUrl}/api/tx`, tx.toHex(), {
-      headers: { 'Content-Type': 'text/plain' },
-    })
+    const rawTx = tx.toHex()
 
-    return response.data
-  }
+    try {
+      const response = await axios.post(`${rpcUrl}/api/tx`, rawTx, {
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      })
 
-  private createPayment(publicKey: Uint8Array, network: bitcoin.Network) {
-    const p2tr = bitcoin.payments.p2tr({
-      internalPubkey: Buffer.from(publicKey.slice(1, 33)),
-      network,
-    })
-
-    return {
-      payment: p2tr,
-      keypair: this.ECPair.fromWIF(this.privateKey, network),
+      return response.data
+    } catch (error) {
+      console.log('🚀 ~ BTCTransferStrategy ~ error:', error)
+      console.error('Error sending transaction:', error)
+      throw error
     }
   }
 
@@ -179,10 +212,11 @@ export class BTCTransferStrategy implements ITransferStrategy {
       const response = await axios.get<{ [key: string]: number }>(
         `${rpcUrl}/api/fee-estimates`
       )
-      const smallestValue = Math.min(...Object.values(response.data))
-      return smallestValue * 1.25
+
+      return response.data[3] * 1.25
     } catch (error) {
-      return 1.54
+      console.error('Error fetching fee rate:', error)
+      return 1
     }
   }
 

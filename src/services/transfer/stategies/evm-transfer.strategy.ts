@@ -1,9 +1,12 @@
-import { ethers, JsonRpcProvider, ZeroAddress } from 'ethers';
+import { ethers, JsonRpcProvider, ZeroAddress } from 'ethers'
 
-import config from '../../../config/config';
-import { Payment__factory, Router__factory } from '../../../contracts';
-import { ensureHexPrefix } from '../../../utils';
-import { InternalTransferParams, ITransferStrategy } from '../transfer-strategy.interface';
+import config from '../../../config/config'
+import { Payment__factory, Router__factory } from '../../../contracts'
+import { ensureHexPrefix } from '../../../utils'
+import {
+  InternalTransferParams,
+  ITransferStrategy,
+} from '../transfer-strategy.interface'
 
 export class EVMTransferStrategy implements ITransferStrategy {
   private readonly privateKey: string

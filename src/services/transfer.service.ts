@@ -1,5 +1,5 @@
-import { tokenService, TokenService } from './token.service';
-import { TransferFactory } from './transfer/transfer.factory';
+import { tokenService, TokenService } from './token.service'
+import { TransferFactory } from './transfer/transfer.factory'
 
 export interface TransferParams {
   toAddress: string
