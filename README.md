@@ -1,204 +1,137 @@
 # BitFi Market Maker SDK
 
 ## Overview
-BitFi Market Maker SDK is a TypeScript library that provides a comprehensive interface for interacting with the BitFi trading platform. It facilitates token transfers across different blockchain networks, handles signature verification, and manages trade settlements.
+BitFi Market Maker SDK is a TypeScript library that provides a comprehensive interface for interacting with the BitFi decentralized trading platform. The SDK facilitates cross-chain token transfers, signature verification, and trade settlements, with built-in support for both EVM and Bitcoin networks.
+
+## Features
+- Cross-chain token transfers and settlements
+- Comprehensive signature utilities
+- Token management and information retrieval
+- Router contract interactions
+- Solver service integration
+- Type-safe implementation with TypeScript
+- Built-in error handling and validation
 
 ## Installation
 
 ```bash
-npm install bitfi-market-maker-sdk
+npm install @bitfixyz/market-maker-sdk
 # or
-yarn add bitfi-market-maker-sdk
+yarn add @bitfixyz/market-maker-sdk
 ```
 
-## Features
+## Services
 
-- Cross-chain token transfers (EVM and BTC networks)
-- Trade settlement management
-- Token information retrieval
-- Signature verification and generation
-- Router contract interactions
-- Advanced configuration management
-
-## Configuration
-
-The SDK requires several environment variables to be set:
+### RouterService
+Handles interactions with the BitFi router contract:
 
 ```typescript
-// Required Environment Variables
-PMM_EVM_PRIVATE_KEY=<your-evm-private-key>
-PMM_BTC_PRIVATE_KEY=<your-btc-private-key>
-ROUTER_ADDRESS=<router-contract-address>
+import { routerService } from '@bitfixyz/market-maker-sdk';
+
+// Get contract information
+const signer = await routerService.getSigner();
+const currentPubkey = await routerService.getCurrentPubkey();
+
+// Trade management
+const currentStage = await routerService.getCurrentStage(tradeId);
+const tradeData = await routerService.getTradeData(tradeId);
+
+// Handler and token information
+const handler = await routerService.getHandler(fromChain, toChain);
+const tokens = await routerService.getTokens(fromIdx, toIdx);
 ```
 
-## Core Services
-
-### 1. Transfer Service
-
-The TransferService handles token transfers across different blockchain networks.
+### SolverService
+Manages settlement transaction submissions:
 
 ```typescript
-import { transferService } from 'bitfi-market-maker-sdk';
+import { solverService } from '@bitfixyz/market-maker-sdk';
 
-// Example usage
-await transferService.transfer({
-  toAddress: '0x...',
-  amount: BigInt('1000000000000000000'), // 1 token with 18 decimals
-  networkId: 'ethereum-sepolia',
-  tokenAddress: '0x...',
-  tradeId: '0x...'
-});
-```
-
-### 2. Token Service
-
-The TokenService provides information about available tokens and their properties.
-
-```typescript
-import { tokenService } from 'bitfi-market-maker-sdk';
-
-// Get all available tokens
-const tokens = await tokenService.getTokens();
-
-// Get token by network and address
-const token = await tokenService.getToken('ethereum-sepolia', '0x...');
-
-// Get tokens for a specific network
-const networkTokens = await tokenService.getTokensByNetwork('ethereum-sepolia');
-```
-
-### 3. Solver Service
-
-The SolverService handles trade settlement submissions.
-
-```typescript
-import { solverService } from 'bitfi-market-maker-sdk';
-
-// Submit a single settlement
+// Single settlement
 await solverService.submitSingleSettlement(
-  'tradeId',
-  'pmmId',
-  'settlementTx',
-  'signature'
+  tradeId,
+  pmmId,
+  settlementTx,
+  signature
 );
 
-// Submit batch settlements
+// Batch settlement
 await solverService.submitBatchSettlement(
-  ['tradeId1', 'tradeId2'],
-  'pmmId',
-  'settlementTx',
-  'signature'
+  tradeIds,
+  pmmId,
+  settlementTx,
+  signature,
+  startIndex
 );
 ```
 
-### 4. Router Service
-
-The RouterService provides interfaces for interacting with the BitFi router contract.
+### TokenService
+Provides token information and management:
 
 ```typescript
-import { routerService } from 'bitfi-market-maker-sdk';
+import { tokenService } from '@bitfixyz/market-maker-sdk';
 
-// Get protocol fee
-const fee = await routerService.getProtocolFee(tradeId);
-
-// Check if network is valid
-const isValid = await routerService.isValidNetwork(networkId);
+// Retrieve token information
+const allTokens = await tokenService.getTokens();
+const token = await tokenService.getTokenByTokenId(tokenId);
+const networkTokens = await tokenService.getTokensByNetwork(networkId);
+const specificToken = await tokenService.getToken(networkId, tokenAddress);
 ```
-
-## Supported Networks
-
-### EVM Networks
-- Ethereum (Mainnet)
-- Ethereum Sepolia
-- Base Sepolia
-
-### Bitcoin Networks
-- Bitcoin (Mainnet)
-- Bitcoin Testnet
-
-## Transfer Strategies
-
-The SDK implements two main transfer strategies:
-
-### 1. EVM Transfer Strategy
-Handles transfers on EVM-compatible networks with features like:
-- Native token transfers
-- ERC20 token transfers
-- Protocol fee handling
-- Gas optimization
-
-### 2. BTC Transfer Strategy
-Manages Bitcoin transfers with features like:
-- UTXO management
-- Dynamic fee calculation
-- Transaction signing
-- OP_RETURN data inclusion
 
 ## Signature Utilities
 
-The SDK provides comprehensive signature utilities for various operations:
+The SDK includes comprehensive signature utilities:
 
 ```typescript
-import { getSignature, SignatureType } from 'bitfi-market-maker-sdk';
+import {
+  getSignature,
+  SignatureType,
+  getInfoHash
+} from '@bitfixyz/market-maker-sdk';
 
-// Generate signature
+// Generate signatures
 const signature = await getSignature(
   signer,
   provider,
   signerHelper,
   tradeId,
   infoHash,
-  SignatureType.Presign
+  SignatureType.Presign  // update type signature
 );
-```
 
-## Error Handling
-
-The SDK implements comprehensive error handling. All services throw typed errors that can be caught and handled appropriately:
-
-```typescript
-try {
-  await transferService.transfer({...});
-} catch (error) {
-  if (error instanceof Error) {
-    console.error('Transfer failed:', error.message);
-  }
-}
+// Generate various info hashes
+const presignHash = getInfoHash.getPresignHash(pmmRecvAddress, amountIn);
+const depositHash = getInfoHash.getDepositConfirmationHash(
+  amountIn,
+  fromChain,
+  depositTxId,
+  depositFromList
+);
 ```
 
 ## Best Practices
 
-1. Always initialize services with proper configuration
-2. Handle errors appropriately
-3. Monitor transaction status after transfers
-4. Validate addresses and amounts before transfers
-5. Keep private keys secure
-6. Use appropriate network endpoints for different environments
-
-## Development Setup
-
-```bash
-# Install dependencies
-npm install
-
-# Generate TypeChain contracts
-npm run typechain
-
-# Generate index files
-npm run ctix
-
-# Build the package
-npm run build
-```
+1. Always validate input data before making service calls
+2. Implement proper error handling for all operations
+3. Keep private keys secure and never expose them in code
+4. Monitor transaction status after submitting settlements
+5. Use TypeScript for better type safety
+6. Regularly update to the latest SDK version
+7. Use environment variables for configuration
+8. Test thoroughly before deploying to production
 
 ## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+3. Commit your changes (`git commit -m 'Add feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## Support
+
+For issues and feature requests, please open an issue on GitHub.
+
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See the LICENSE file for details.

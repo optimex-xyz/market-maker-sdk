@@ -1,6 +1,10 @@
 {
-  "name": "bitfi-market-maker-sdk",
-  "version": "1.1.9",
+  "name": "@bitfixyz/market-maker-sdk",
+  "version": "0.0.1",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {

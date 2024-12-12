@@ -28,7 +28,6 @@ export class TokenService {
       const response = await axios.get<any>(`${this.baseURL}/tokens`, {
         headers: {
           Accept: 'application/json',
-          'User-Agent': 'BitFi-Market-Maker-SDK',
         },
       })
 

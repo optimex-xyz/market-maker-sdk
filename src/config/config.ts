@@ -5,8 +5,6 @@ export interface EnvironmentConfig {
   backendUrl: string
   rpcUrl: string
   routerAddress: string
-  evmPrivateKey: string
-  btcPrivateKey: string
 }
 
 export interface AppConfig extends EnvironmentConfig {
@@ -18,9 +16,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     solverUrl: 'http://52.221.184.2',
     backendUrl: 'https://api-dev.bitfi.xyz',
     rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
-    routerAddress: process.env.ROUTER_ADDRESS || '',
-    evmPrivateKey: process.env.PMM_EVM_PRIVATE_KEY || '',
-    btcPrivateKey: process.env.PMM_BTC_PRIVATE_KEY || '',
+    routerAddress: '0x8abc1AB38f91927166A6b6f33De83C343293650b',
   },
 }
 
@@ -29,28 +25,13 @@ class Config {
   private readonly config: EnvironmentConfig
 
   constructor() {
-    this.env = (process.env.NODE_ENV as Environment) || 'development'
+    this.env = (process.env.SDK_ENV as Environment) || 'development'
 
     if (!environments[this.env]) {
       throw new Error(`Unsupported environment: ${this.env}`)
     }
 
     this.config = environments[this.env]
-
-    // Validate required environment variables
-    this.validateConfig()
-  }
-
-  private validateConfig() {
-    if (!this.config.evmPrivateKey) {
-      throw new Error('PMM_EVM_PRIVATE_KEY is required')
-    }
-    if (!this.config.btcPrivateKey) {
-      throw new Error('PMM_BTC_PRIVATE_KEY is required')
-    }
-    if (!this.config.routerAddress) {
-      throw new Error('ROUTER_ADDRESS is required')
-    }
   }
 
   public get(): AppConfig {
@@ -74,14 +55,6 @@ class Config {
 
   public getRouterAddress(): string {
     return this.config.routerAddress
-  }
-
-  public getEvmPrivateKey(): string {
-    return this.config.evmPrivateKey
-  }
-
-  public getBtcPrivateKey(): string {
-    return this.config.btcPrivateKey
   }
 }
 
