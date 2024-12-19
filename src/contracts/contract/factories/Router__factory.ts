@@ -29,6 +29,21 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BundlePaymentEmpty",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InconsistentCoreType",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InconsistentPMM",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "RegisteredAlready",
     type: "error",
   },
@@ -227,14 +242,24 @@ const _abi = [
             type: "bytes32[]",
           },
           {
-            internalType: "bytes[2]",
-            name: "paymentData",
-            type: "bytes[2]",
+            internalType: "uint64",
+            name: "signedAt",
+            type: "uint64",
           },
           {
-            internalType: "uint256",
+            internalType: "uint64",
             name: "startIdx",
-            type: "uint256",
+            type: "uint64",
+          },
+          {
+            internalType: "bytes",
+            name: "paymentTxId",
+            type: "bytes",
+          },
+          {
+            internalType: "bytes",
+            name: "signature",
+            type: "bytes",
           },
         ],
         internalType: "struct ITypes.BundlePayment",
@@ -418,6 +443,25 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "bytes32",
+        name: "tradeId",
+        type: "bytes32",
+      },
+    ],
+    name: "getLastSignedPayment",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "signedAt",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes",
         name: "pubkey",
         type: "bytes",
@@ -579,19 +623,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "getProtocoState",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "bytes32",
@@ -617,6 +648,19 @@ const _abi = [
         internalType: "struct ITypes.ProtocolFee",
         name: "protocolFee_",
         type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getProtocolState",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -810,9 +854,9 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
+        internalType: "enum ITypes.STAGE",
         name: "stage",
-        type: "uint256",
+        type: "uint8",
       },
     ],
     name: "isSuspended",

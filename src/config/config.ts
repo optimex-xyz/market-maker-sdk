@@ -16,7 +16,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     solverUrl: 'http://52.221.184.2',
     backendUrl: 'https://api-dev.bitfi.xyz',
     rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
-    routerAddress: '0x8abc1AB38f91927166A6b6f33De83C343293650b',
+    routerAddress: '0x67d96Bbd0Dd191525510163D753bA3FdE485f0ee',
   },
 }
 

@@ -26,15 +26,25 @@ import type {
 export declare namespace ITypes {
   export type BundlePaymentStruct = {
     tradeIds: BytesLike[];
-    paymentData: [BytesLike, BytesLike];
+    signedAt: BigNumberish;
     startIdx: BigNumberish;
+    paymentTxId: BytesLike;
+    signature: BytesLike;
   };
 
   export type BundlePaymentStructOutput = [
     tradeIds: string[],
-    paymentData: [string, string],
-    startIdx: bigint
-  ] & { tradeIds: string[]; paymentData: [string, string]; startIdx: bigint };
+    signedAt: bigint,
+    startIdx: bigint,
+    paymentTxId: string,
+    signature: string
+  ] & {
+    tradeIds: string[];
+    signedAt: bigint;
+    startIdx: bigint;
+    paymentTxId: string;
+    signature: string;
+  };
 
   export type MPCInfoStruct = { mpc: AddressLike; expireTime: BigNumberish };
 
@@ -200,13 +210,14 @@ export interface RouterInterface extends Interface {
       | "getDepositAddressList"
       | "getHandler"
       | "getHandlerByTradeId"
+      | "getLastSignedPayment"
       | "getMPCPubkeyInfo"
       | "getOwner"
       | "getPFeeRate"
       | "getPMMSelection"
       | "getPresigns"
-      | "getProtocoState"
       | "getProtocolFee"
+      | "getProtocolState"
       | "getSettledPayment"
       | "getTokens"
       | "getTradeData"
@@ -276,6 +287,10 @@ export interface RouterInterface extends Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "getLastSignedPayment",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getMPCPubkeyInfo",
     values: [BytesLike]
   ): string;
@@ -293,12 +308,12 @@ export interface RouterInterface extends Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getProtocoState",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "getProtocolFee",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getProtocolState",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getSettledPayment",
@@ -408,6 +423,10 @@ export interface RouterInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getLastSignedPayment",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getMPCPubkeyInfo",
     data: BytesLike
   ): Result;
@@ -425,11 +444,11 @@ export interface RouterInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getProtocoState",
+    functionFragment: "getProtocolFee",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getProtocolFee",
+    functionFragment: "getProtocolState",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -688,6 +707,12 @@ export interface Router extends BaseContract {
     "view"
   >;
 
+  getLastSignedPayment: TypedContractMethod<
+    [tradeId: BytesLike],
+    [bigint],
+    "view"
+  >;
+
   getMPCPubkeyInfo: TypedContractMethod<
     [pubkey: BytesLike],
     [ITypes.MPCInfoStructOutput],
@@ -710,13 +735,13 @@ export interface Router extends BaseContract {
     "view"
   >;
 
-  getProtocoState: TypedContractMethod<[], [bigint], "view">;
-
   getProtocolFee: TypedContractMethod<
     [tradeId: BytesLike],
     [ITypes.ProtocolFeeStructOutput],
     "view"
   >;
+
+  getProtocolState: TypedContractMethod<[], [bigint], "view">;
 
   getSettledPayment: TypedContractMethod<
     [tradeId: BytesLike],
@@ -857,6 +882,9 @@ export interface Router extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "getLastSignedPayment"
+  ): TypedContractMethod<[tradeId: BytesLike], [bigint], "view">;
+  getFunction(
     nameOrSignature: "getMPCPubkeyInfo"
   ): TypedContractMethod<
     [pubkey: BytesLike],
@@ -884,15 +912,15 @@ export interface Router extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "getProtocoState"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
     nameOrSignature: "getProtocolFee"
   ): TypedContractMethod<
     [tradeId: BytesLike],
     [ITypes.ProtocolFeeStructOutput],
     "view"
   >;
+  getFunction(
+    nameOrSignature: "getProtocolState"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "getSettledPayment"
   ): TypedContractMethod<

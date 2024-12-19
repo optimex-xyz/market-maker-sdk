@@ -66,8 +66,8 @@ export class RouterService {
     return await this.contract.getPresigns(tradeId)
   }
 
-  async getProtocoState(): Promise<bigint> {
-    return await this.contract.getProtocoState()
+  async getProtocolState(): Promise<bigint> {
+    return await this.contract.getProtocolState()
   }
 
   async getProtocolFee(

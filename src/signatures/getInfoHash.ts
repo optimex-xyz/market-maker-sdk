@@ -1,6 +1,6 @@
-import { AbiCoder, AddressLike, BytesLike, keccak256 } from 'ethers';
+import { AbiCoder, AddressLike, BytesLike, keccak256 } from 'ethers'
 
-const abiCoder = AbiCoder.defaultAbiCoder();
+const abiCoder = AbiCoder.defaultAbiCoder()
 
 export function getPresignHash(
   pmmRecvAddress: AddressLike,
@@ -8,9 +8,9 @@ export function getPresignHash(
 ): string {
   const infoHash: string = keccak256(
     abiCoder.encode(['address', 'uint256'], [pmmRecvAddress, amountIn])
-  );
+  )
 
-  return infoHash;
+  return infoHash
 }
 
 export function getDepositConfirmationHash(
@@ -24,12 +24,12 @@ export function getDepositConfirmationHash(
       ['uint256', 'bytes[3]', 'bytes[]'],
       [amountIn, fromChain, depositFromList]
     )
-  );
+  )
   const infoHash: string = keccak256(
     abiCoder.encode(['bytes32', 'bytes'], [depositHash, depositTxId])
-  );
+  )
 
-  return infoHash;
+  return infoHash
 }
 
 export function getSelectPMMHash(
@@ -45,39 +45,40 @@ export function getSelectPMMHash(
       ['bytes32', 'bytes', 'bytes', 'bytes', 'uint256', 'uint256'],
       [pmmId, pmmRecvAddress, toChain, toToken, amountOut, expiry]
     )
-  );
+  )
 
-  return infoHash;
+  return infoHash
 }
 
 export function getRFQHash(minAmountOut: bigint, tradeTimeout: bigint): string {
   const infoHash: string = keccak256(
     abiCoder.encode(['uint256', 'uint256'], [minAmountOut, tradeTimeout])
-  );
+  )
 
-  return infoHash;
+  return infoHash
 }
 
 export function getTradeIdsHash(tradeIds: BytesLike[]) {
-  return keccak256(abiCoder.encode(['bytes32[]'], [tradeIds]));
+  return keccak256(abiCoder.encode(['bytes32[]'], [tradeIds]))
 }
 
 export function getMakePaymentHash(
   tradeIds: BytesLike[],
+  signedAt: bigint,
   startIdx: bigint,
   paymentTxId: BytesLike
 ): string {
   const bundlerHash: string = keccak256(
     abiCoder.encode(['bytes32[]'], [tradeIds])
-  );
+  )
   const infoHash: string = keccak256(
     abiCoder.encode(
-      ['uint256', 'bytes32', 'bytes'],
-      [startIdx, bundlerHash, paymentTxId]
+      ['uint64', 'uint256', 'bytes32', 'bytes'],
+      [signedAt, startIdx, bundlerHash, paymentTxId]
     )
-  );
+  )
 
-  return infoHash;
+  return infoHash
 }
 
 export function getBTCEVMConfirmPaymentHash(
@@ -91,12 +92,12 @@ export function getBTCEVMConfirmPaymentHash(
       ['uint256', 'uint256', 'bytes[3]'],
       [protocolFee, paymentAmount, toChain]
     )
-  );
+  )
   const infoHash: string = keccak256(
     abiCoder.encode(['bytes32', 'bytes'], [paymentHash, paymentTxId])
-  );
+  )
 
-  return infoHash;
+  return infoHash
 }
 
 export function getEVMBTCConfirmPaymentHash(
@@ -106,18 +107,18 @@ export function getEVMBTCConfirmPaymentHash(
 ): string {
   const paymentHash: string = keccak256(
     abiCoder.encode(['uint256', 'bytes[3]'], [paymentAmount, toChain])
-  );
+  )
   const infoHash: string = keccak256(
     abiCoder.encode(['bytes32', 'bytes'], [paymentHash, paymentTxId])
-  );
+  )
 
-  return infoHash;
+  return infoHash
 }
 
 export function getBTCEVMConfirmSettlementHash(releaseTxId: BytesLike): string {
-  const infoHash: string = keccak256(releaseTxId);
+  const infoHash: string = keccak256(releaseTxId)
 
-  return infoHash;
+  return infoHash
 }
 
 export function getEVMBTCConfirmSettlementHash(
@@ -126,9 +127,9 @@ export function getEVMBTCConfirmSettlementHash(
 ): string {
   const infoHash: string = keccak256(
     abiCoder.encode(['uint256', 'bytes'], [protocolFee, releaseTxId])
-  );
+  )
 
-  return infoHash;
+  return infoHash
 }
 
 export function getCommitInfoHash(
@@ -144,7 +145,7 @@ export function getCommitInfoHash(
       ['bytes32', 'bytes', 'bytes', 'bytes', 'uint256', 'uint64'],
       [pmmId, pmmRecvAddr, toChain, toToken, amountOut, expiry]
     )
-  );
+  )
 
-  return infoHash;
+  return infoHash
 }
