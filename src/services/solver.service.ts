@@ -11,6 +11,7 @@ const SubmitSettlementRequestSchema = z.object({
   settlementTx: z.string(),
   signature: z.string(),
   startIndex: z.number(),
+  signedAt: z.number(),
 })
 
 // Response validation schema
@@ -82,7 +83,8 @@ export class SolverService {
     tradeId: string,
     pmmId: string,
     settlementTx: string,
-    signature: string
+    signature: string,
+    signedAt: number
   ): Promise<SubmitSettlementResponse> {
     return this.submitSettlementTx({
       tradeIds: [tradeId],
@@ -90,6 +92,7 @@ export class SolverService {
       settlementTx,
       signature,
       startIndex: 0,
+      signedAt,
     })
   }
 
@@ -106,6 +109,7 @@ export class SolverService {
     pmmId: string,
     settlementTx: string,
     signature: string,
+    signedAt: number,
     startIndex: number = 0
   ): Promise<SubmitSettlementResponse> {
     return this.submitSettlementTx({
@@ -114,6 +118,7 @@ export class SolverService {
       settlementTx,
       signature,
       startIndex,
+      signedAt,
     })
   }
 }

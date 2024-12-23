@@ -52,7 +52,8 @@ await solverService.submitSingleSettlement(
   tradeId,
   pmmId,
   settlementTx,
-  signature
+  signature,
+  timestamp
 );
 
 // Batch settlement
@@ -61,7 +62,8 @@ await solverService.submitBatchSettlement(
   pmmId,
   settlementTx,
   signature,
-  startIndex
+  startIndex,
+  timestamp
 );
 ```
 
