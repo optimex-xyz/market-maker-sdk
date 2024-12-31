@@ -3,3 +3,4 @@
 /* eslint-disable */
 export { Payment__factory } from "./Payment__factory";
 export { Router__factory } from "./Router__factory";
+export { Signer__factory } from "./Signer__factory";

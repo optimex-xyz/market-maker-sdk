@@ -14,13 +14,11 @@ import {
   confirmPaymentType,
   confirmSettlementType,
   makePaymentType,
-  presignType,
   rfqAuthenticationTypes,
   selectionType,
 } from './types'
 
 export enum SignatureType {
-  Presign,
   ConfirmDeposit,
   SelectPMM,
   RFQ,
@@ -31,8 +29,7 @@ export enum SignatureType {
 }
 
 function getSignatureType(type: SignatureType): any {
-  if (type === SignatureType.Presign) return presignType
-  else if (type === SignatureType.ConfirmDeposit) return confirmDepositType
+  if (type === SignatureType.ConfirmDeposit) return confirmDepositType
   else if (type === SignatureType.SelectPMM) return selectionType
   else if (type === SignatureType.VerifyingContract) return selectionType
   else if (type === SignatureType.RFQ) return rfqAuthenticationTypes

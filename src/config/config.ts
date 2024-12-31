@@ -1,4 +1,4 @@
-export type Environment = 'development'
+export type Environment = 'development' | 'staging'
 
 export interface EnvironmentConfig {
   solverUrl: string
@@ -18,6 +18,12 @@ const environments: Record<Environment, EnvironmentConfig> = {
     rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
     routerAddress: '0x67d96Bbd0Dd191525510163D753bA3FdE485f0ee',
   },
+  staging: {
+    solverUrl: 'http://52.221.184.2',
+    backendUrl: 'https://api-stg.bitdex.xyz',
+    rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
+    routerAddress: '0x67d96Bbd0Dd191525510163D753bA3FdE485f0ee',
+  },
 }
 
 class Config {
@@ -25,7 +31,7 @@ class Config {
   private readonly config: EnvironmentConfig
 
   constructor() {
-    this.env = (process.env.SDK_ENV as Environment) || 'development'
+    this.env = (process.env.SDK_ENV as Environment) || 'staging'
 
     if (!environments[this.env]) {
       throw new Error(`Unsupported environment: ${this.env}`)

@@ -3,6 +3,8 @@
 /* eslint-disable */
 export type { Payment } from "./Payment";
 export type { Router } from "./Router";
+export type { Signer } from "./Signer";
 export * as factories from "./factories";
 export { Payment__factory } from "./factories/Payment__factory";
 export { Router__factory } from "./factories/Router__factory";
+export { Signer__factory } from "./factories/Signer__factory";
