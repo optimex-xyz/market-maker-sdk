@@ -34,7 +34,14 @@ export interface PaymentInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "payment",
-    values: [BytesLike, AddressLike, AddressLike, BigNumberish, BigNumberish]
+    values: [
+      BytesLike,
+      AddressLike,
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(functionFragment: "protocol", values?: undefined): string;
   encodeFunctionData(
@@ -146,7 +153,8 @@ export interface Payment extends BaseContract {
       token: AddressLike,
       toUser: AddressLike,
       amount: BigNumberish,
-      protocolFee: BigNumberish
+      protocolFee: BigNumberish,
+      deadline: BigNumberish
     ],
     [void],
     "payable"
@@ -172,7 +180,8 @@ export interface Payment extends BaseContract {
       token: AddressLike,
       toUser: AddressLike,
       amount: BigNumberish,
-      protocolFee: BigNumberish
+      protocolFee: BigNumberish,
+      deadline: BigNumberish
     ],
     [void],
     "payable"

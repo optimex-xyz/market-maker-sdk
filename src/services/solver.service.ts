@@ -45,6 +45,7 @@ export class SolverService {
 
       // Convert params to snake_case for API
       const snakeCaseParams = convertToSnakeCase(params)
+      console.log('🚀 ~ SolverService ~ snakeCaseParams:', snakeCaseParams)
 
       const response = await axios.post<SubmitSettlementResponse>(
         `${this.baseURL}/submit-settlement-tx`,

@@ -10,34 +10,12 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "protocol_",
+        name: "pAddress",
         type: "address",
       },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "target",
-        type: "address",
-      },
-    ],
-    name: "AddressEmptyCode",
-    type: "error",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "AddressInsufficientBalance",
-    type: "error",
   },
   {
     inputs: [],
@@ -46,7 +24,33 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "FailedInnerCall",
+    name: "DeadlineExceeded",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "FailedCall",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "balance",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "needed",
+        type: "uint256",
+      },
+    ],
+    name: "InsufficientBalance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidPaymentAmount",
     type: "error",
   },
   {
@@ -168,6 +172,11 @@ const _abi = [
       {
         internalType: "uint256",
         name: "protocolFee",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "deadline",
         type: "uint256",
       },
     ],
