@@ -1,7 +1,6 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const TokenSchema = z.object({
-  id: z.number(),
   networkId: z.string(),
   tokenId: z.string(),
   networkName: z.string(),
@@ -13,8 +12,6 @@ export const TokenSchema = z.object({
   tokenDecimals: z.number(),
   tokenLogoUri: z.string(),
   networkLogoUri: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
 })
 
 export type Token = z.infer<typeof TokenSchema>
