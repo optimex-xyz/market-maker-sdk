@@ -39,48 +39,55 @@ sequenceDiagram
 
 - [PMM Integration API Documentation](#pmm-integration-api-documentation)
   - [Table of Contents](#table-of-contents)
-  - [PMM Endpoints](#pmm-endpoints)
-    - [1. Endpoint: `/indicative-quote`](#1-endpoint-indicative-quote)
+  - [API endpoint](#api-endpoint)
+    - [1. Endpoint: `/tokens`](#1-endpoint-tokens)
       - [Description](#description)
       - [Request Parameters](#request-parameters)
       - [Example Request](#example-request)
       - [Expected Response](#expected-response)
       - [Example code](#example-code)
-    - [2. Endpoint: `/commitment-quote`](#2-endpoint-commitment-quote)
+  - [PMM Endpoints](#pmm-endpoints)
+    - [1. Endpoint: `/indicative-quote`](#1-endpoint-indicative-quote)
       - [Description](#description-1)
       - [Request Parameters](#request-parameters-1)
       - [Example Request](#example-request-1)
       - [Expected Response](#expected-response-1)
-      - [Example](#example)
-    - [3. Endpoint: `/settlement-signature`](#3-endpoint-settlement-signature)
+      - [Example code](#example-code-1)
+    - [2. Endpoint: `/commitment-quote`](#2-endpoint-commitment-quote)
       - [Description](#description-2)
       - [Request Parameters](#request-parameters-2)
       - [Example Request](#example-request-2)
       - [Expected Response](#expected-response-2)
-      - [Example](#example-1)
-    - [4. Endpoint: `/ack-settlement`](#4-endpoint-ack-settlement)
+      - [Example](#example)
+    - [3. Endpoint: `/settlement-signature`](#3-endpoint-settlement-signature)
       - [Description](#description-3)
       - [Request Parameters](#request-parameters-3)
       - [Example Request](#example-request-3)
       - [Expected Response](#expected-response-3)
-      - [Example](#example-2)
-    - [5. Endpoint: `/signal-payment`](#5-endpoint-signal-payment)
+      - [Example](#example-1)
+    - [4. Endpoint: `/ack-settlement`](#4-endpoint-ack-settlement)
       - [Description](#description-4)
       - [Request Parameters](#request-parameters-4)
       - [Example Request](#example-request-4)
       - [Expected Response](#expected-response-4)
-      - [Example](#example-3)
-  - [Solver Backend Endpoints for PMMs](#solver-backend-endpoints-for-pmms)
-    - [1. Endpoint: `/tokens`](#1-endpoint-tokens)
+      - [Example](#example-2)
+    - [5. Endpoint: `/signal-payment`](#5-endpoint-signal-payment)
       - [Description](#description-5)
       - [Request Parameters](#request-parameters-5)
       - [Example Request](#example-request-5)
       - [Expected Response](#expected-response-5)
-    - [2. Endpoint: `/submit-settlement-tx`](#2-endpoint-submit-settlement-tx)
+      - [Example](#example-3)
+  - [Solver Backend Endpoints for PMMs](#solver-backend-endpoints-for-pmms)
+    - [1. Endpoint: `/tokens`](#1-endpoint-tokens-1)
       - [Description](#description-6)
       - [Request Parameters](#request-parameters-6)
       - [Example Request](#example-request-6)
       - [Expected Response](#expected-response-6)
+    - [2. Endpoint: `/submit-settlement-tx`](#2-endpoint-submit-settlement-tx)
+      - [Description](#description-7)
+      - [Request Parameters](#request-parameters-7)
+      - [Example Request](#example-request-7)
+      - [Expected Response](#expected-response-7)
       - [Example](#example-4)
       - [Notes](#notes)
   - [PMM transfer](#pmm-transfer)
@@ -90,6 +97,64 @@ sequenceDiagram
     - [Request Format](#request-format)
     - [Response Format](#response-format)
     - [Important Notes](#important-notes)
+
+---
+
+## API endpoint
+### 1. Endpoint: `/tokens`
+
+#### Description
+Returns a list of all supported tokens across different networks.
+
+s an indicative quote for the given token pair and trade amount. The quote is used for informational purposes before a commitment is made.
+
+#### Request Parameters
+
+- **HTTP Method**: `GET`
+
+#### Example Request
+
+```
+GET /tokens
+```
+
+#### Expected Response
+
+- **HTTP Status**: `200 OK`
+- **Response Body** (JSON):
+
+```json
+{
+  "data": [
+    {
+      "id": 2,
+      "network_id": "bitcoin-testnet",
+      "token_id": "tBTC",
+      "network_name": "Bitcoin Testnet",
+      "network_symbol": "tBTC",
+      "network_type": "TBTC",
+      "token_name": "Bitcoin Testnet",
+      "token_symbol": "tBTC",
+      "token_address": "native",
+      "token_decimals": 8,
+      "token_logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/tbtc.svg",
+      "network_logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/tbtc.svg",
+      "active": true,
+      "created_at": "2024-10-28T07:24:33.179Z",
+      "updated_at": "2024-11-07T04:40:46.454Z"
+    }
+  ],
+  "traceId": "5382118cf5571c3d48187bee826f8379"
+}
+```
+#### Example code
+
+```ts
+import { Token, tokenService } from '@bitfixyz/market-maker-sdk'
+
+tokenService.getTokens()
+
+```
 
 ---
 
@@ -121,19 +186,19 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 - **HTTP Status**: `200 OK`
 - **Response Body** (JSON):
 
-  ```json
-  {
-    "session_id": "12345",
-    "pmm_receiving_address": "0xReceivingAddress",
-    "indicative_quote": "123456789000000000",
-    "error": "" // Empty if no error
-  }
-  ```
+```json
+{
+  "session_id": "12345",
+  "pmm_receiving_address": "0xReceivingAddress",
+  "indicative_quote": "123456789000000000",
+  "error": "" // Empty if no error
+}
+```
 
-  - `session_id` (string): The session ID associated with the request.
-  - `pmm_receiving_address` (string): The receiving address where the user will send the `from_token`.
-  - `indicative_quote` (string): The indicative quote value, represented as a string.
-  - `error` (string): Error message, if any (empty if no error).
+- `session_id` (string): The session ID associated with the request.
+- `pmm_receiving_address` (string): The receiving address where the user will send the `from_token`.
+- `indicative_quote` (string): The indicative quote value, represented as a string.
+- `error` (string): Error message, if any (empty if no error).
 
 #### Example code
 
@@ -223,13 +288,13 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
 - **HTTP Status**: `200 OK`
 - **Response Body** (JSON):
 
-  ```json
-  {
-    "trade_id": "abcd1234",
-    "commitment_quote": "987654321000000000",
-    "error": "" // Empty if no error
-  }
-  ```
+```json
+{
+  "trade_id": "abcd1234",
+  "commitment_quote": "987654321000000000",
+  "error": "" // Empty if no error
+}
+```
 
   - `trade_id` (string): The trade ID associated with the request.
   - `commitment_quote` (string): The committed quote value, represented as a string.
@@ -336,14 +401,14 @@ GET /settlement-signature?trade_id=abcd1234&committed_quote=987654321000000000&s
 - **HTTP Status**: `200 OK`
 - **Response Body** (JSON):
 
-  ```json
-  {
-    "trade_id": "abcd1234",
-    "signature": "0xSignatureData",
-    "deadline": 1696012800,
-    "error": "" // Empty if no error
-  }
-  ```
+```json
+{
+  "trade_id": "abcd1234",
+  "signature": "0xSignatureData",
+  "deadline": 1696012800,
+  "error": "" // Empty if no error
+}
+```
 
   - `trade_id` (string): The trade ID associated with the request.
   - `signature` (string): The signature provided by the PMM.
@@ -450,10 +515,10 @@ Used by the solver to acknowledge to the PMM about a successful settlement, indi
 
 - **HTTP Method**: `POST`
 - **Form Parameters**:
-  - `trade_id` (string): The unique identifier for the trade.
-  - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
-  - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
-  - `chosen` (string): `"true"` if the PMM is selected, `"false"` otherwise.
+- `trade_id` (string): The unique identifier for the trade.
+- `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
+- `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
+- `chosen` (string): `"true"` if the PMM is selected, `"false"` otherwise.
 
 #### Example Request
 
@@ -469,17 +534,17 @@ trade_id=abcd1234&trade_deadline=1696012800&script_deadline=1696016400&chosen=tr
 - **HTTP Status**: `200 OK`
 - **Response Body** (JSON):
 
-  ```json
-  {
-    "trade_id": "abcd1234",
-    "status": "acknowledged",
-    "error": "" // Empty if no error
-  }
-  ```
+```json
+{
+  "trade_id": "abcd1234",
+  "status": "acknowledged",
+  "error": "" // Empty if no error
+}
+```
 
-  - `trade_id` (string): The trade ID associated with the request.
-  - `status` (string): Status of the acknowledgment (always `"acknowledged"`).
-  - `error` (string): Error message, if any (empty if no error).
+- `trade_id` (string): The trade ID associated with the request.
+- `status` (string): Status of the acknowledgment (always `"acknowledged"`).
+- `error` (string): Error message, if any (empty if no error).
 
 #### Example
 
@@ -542,17 +607,17 @@ trade_id=abcd1234&protocol_fee_amount=1000000000000000&trade_deadline=1696012800
 - **HTTP Status**: `200 OK`
 - **Response Body** (JSON):
 
-  ```json
-  {
-    "trade_id": "abcd1234",
-    "status": "acknowledged",
-    "error": "" // Empty if no error
-  }
-  ```
+```json
+{
+  "trade_id": "abcd1234",
+  "status": "acknowledged",
+  "error": "" // Empty if no error
+}
+```
 
-  - `trade_id` (string): The trade ID associated with the request.
-  - `status` (string): Status of the acknowledgment (always `"acknowledged"`).
-  - `error` (string): Error message, if any (empty if no error).
+- `trade_id` (string): The trade ID associated with the request.
+- `status` (string): Status of the acknowledgment (always `"acknowledged"`).
+- `error` (string): Error message, if any (empty if no error).
 
 #### Example
 
@@ -608,28 +673,28 @@ GET /tokens
 - **HTTP Status**: `200 OK`
 - **Response Body** (JSON):
 
-  ```json
-  {
-    "tokens": [
-      {
-        "id": "ETH",
-        "chain_id": "1",
-        "address": "0xAddress",
-        "name": "Ethereum",
-        "decimal": 18
-      },
-      {
-        "id": "BTC",
-        "chain_id": "bitcoin",
-        "address": "native",
-        "name": "Bitcoin",
-        "decimal": 8
-      }
-    ]
-  }
-  ```
+```json
+{
+  "tokens": [
+    {
+      "id": "ETH",
+      "chain_id": "1",
+      "address": "0xAddress",
+      "name": "Ethereum",
+      "decimal": 18
+    },
+    {
+      "id": "BTC",
+      "chain_id": "bitcoin",
+      "address": "native",
+      "name": "Bitcoin",
+      "decimal": 8
+    }
+  ]
+}
+```
 
-  - `tokens` (array): A list of supported tokens with their information.
+- `tokens` (array): A list of supported tokens with their information.
 
 ---
 
@@ -644,23 +709,23 @@ Allows the PMM to submit the settlement transaction hash for one or more trades.
 - **HTTP Method**: `POST`
 - **Request Body** (JSON):
 
-  ```json
-  {
-    "trade_ids": ["0xTradeID1", "0xTradeID2", "..."],
-    "pmm_id": "pmm001",
-    "settlement_tx": "0xSettlementTransactionData",
-    "signature": "0xSignatureData",
-    "start_index": 0,
-    "signed_at": 1719158400 // unix timestamp in seconds
-  }
-  ```
+```json
+{
+  "trade_ids": ["0xTradeID1", "0xTradeID2", "..."],
+  "pmm_id": "pmm001",
+  "settlement_tx": "0xSettlementTransactionData",
+  "signature": "0xSignatureData",
+  "start_index": 0,
+  "signed_at": 1719158400 // unix timestamp in seconds
+}
+```
 
-  - `trade_ids` (array of strings): An array of trade IDs associated with the settlement transaction.
-  - `pmm_id` (string): The PMM's ID, which must match the one committed for the trade(s).
-  - `settlement_tx` (string): The raw transaction data (in hex) representing the settlement.
-  - `signature` (string): The PMM's signature on the settlement transaction.
-  - `start_index` (integer): The index indicating the starting point for settlement processing (used for batch settlements).
-  - `signed_at` (integer): The UNIX timestamp (in seconds) when the PMM signed the settlement transaction.
+- `trade_ids` (array of strings): An array of trade IDs associated with the settlement transaction.
+- `pmm_id` (string): The PMM's ID, which must match the one committed for the trade(s).
+- `settlement_tx` (string): The raw transaction data (in hex) representing the settlement.
+- `signature` (string): The PMM's signature on the settlement transaction.
+- `start_index` (integer): The index indicating the starting point for settlement processing (used for batch settlements).
+- `signed_at` (integer): The UNIX timestamp (in seconds) when the PMM signed the settlement transaction.
 
 #### Example Request
 
@@ -683,13 +748,13 @@ Content-Type: application/json
 - **HTTP Status**: `200 OK`
 - **Response Body** (JSON):
 
-  ```json
-  {
-    "message": "Settlement transaction submitted successfully"
-  }
-  ```
+```json
+{
+  "message": "Settlement transaction submitted successfully"
+}
+```
 
-  - `message` (string): Confirmation message indicating successful submission.
+- `message` (string): Confirmation message indicating successful submission.
 
 #### Example
 
@@ -791,16 +856,6 @@ async submit(job: Job<string>) {
 ---
 ## PMM transfer
 
-MPC will confirm for the trade by the flowing steps
-1. Have `MakePayment` event from router contract on L2
-2. The trade is in the correct state (PMM_SETTLED state 4)
-3. Validate the payment transaction
-   - The payment transaction should be available on chain
-   - The payment transaction should be confirmed by the required number of confirmations
-   1. Incase toChain is BTC. Transaction should have at least N + 1 output. with the first N output is the settle utxo for bitfi trade, and one of them is the change utxo for user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds
-   2. Incase toChain is EVM. Transaction should emit the event from the `l1 payment contract` with the correct value of pmmAmountOut and protocolFee
-
-
 ```ts
 import { Token } from '@bitfixyz/market-maker-sdk'
 
@@ -817,6 +872,7 @@ export interface ITransferStrategy {
 ```
 
 ### EVM
+Incase toChain is EVM. Transaction should emit the event from the `l1 payment contract` with the correct value of pmmAmountOut and protocolFee
 Example code transfer
 you could get paymentAddress at `https://github.com/bitfixyz/bitfi-smartcontract?tab=readme-ov-file#deployed-contracts`
 
@@ -927,6 +983,7 @@ export class EVMTransferStrategy implements ITransferStrategy {
 ---
 ### Bitcoin
 
+Incase toChain is BTC. Transaction should have at least N + 1 output. with the first N output is the settle utxo for bitfi trade, and one of them is the change utxo for user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds
 
 ```ts
 import axios from 'axios'
