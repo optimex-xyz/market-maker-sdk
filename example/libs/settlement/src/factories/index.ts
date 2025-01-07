@@ -1,1 +1,1 @@
-export * from './transfer.factory';
+export * from './transfer.factory'

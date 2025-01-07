@@ -1,3 +1,11 @@
 {
-  "singleQuote": true
+  "bracketSpacing": true,
+  "endOfLine": "auto",
+  "printWidth": 120,
+  "semi": false,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "plugins": ["eslint-config-prettier"]
 }

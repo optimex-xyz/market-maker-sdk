@@ -11,9 +11,6 @@ export const SETTLEMENT_QUEUE = {
       PROCESS: 'process_submit',
     },
   },
-} as const;
+} as const
 
-export const SETTLEMENT_QUEUE_NAMES = [
-  SETTLEMENT_QUEUE.TRANSFER.NAME,
-  SETTLEMENT_QUEUE.SUBMIT.NAME,
-] as const;
+export const SETTLEMENT_QUEUE_NAMES = [SETTLEMENT_QUEUE.TRANSFER.NAME, SETTLEMENT_QUEUE.SUBMIT.NAME] as const

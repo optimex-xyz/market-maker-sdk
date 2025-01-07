@@ -1,10 +1,10 @@
 export interface ReqModuleConfig {
-  baseUrl?: string;
-  defaultHeaders?: Record<string, string>;
-  shouldConvertCase?: boolean;
-  timeout?: number;
-  maxRedirects?: number;
-  enableLogging?: boolean;
+  baseUrl?: string
+  defaultHeaders?: Record<string, string>
+  shouldConvertCase?: boolean
+  timeout?: number
+  maxRedirects?: number
+  enableLogging?: boolean
 }
 
 export const defaultReqConfig: ReqModuleConfig = {
@@ -15,6 +15,6 @@ export const defaultReqConfig: ReqModuleConfig = {
   },
   maxRedirects: 5,
   enableLogging: false,
-};
+}
 
-export const REQ_CONFIG_KEY = 'REQ_CONFIG' as const;
+export const REQ_CONFIG_KEY = 'REQ_CONFIG' as const

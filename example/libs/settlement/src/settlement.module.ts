@@ -1,27 +1,27 @@
-import { redisStore } from 'cache-manager-redis-yet';
-import { RedisClientOptions } from 'redis';
+import { redisStore } from 'cache-manager-redis-yet'
+import { RedisClientOptions } from 'redis'
 
-import { TokenModule } from '@bitfi-mock-pmm/token';
-import { TradeModule } from '@bitfi-mock-pmm/trade';
-import { BullAdapter } from '@bull-board/api/bullAdapter';
-import { BullBoardModule } from '@bull-board/nestjs';
-import { BullModule } from '@nestjs/bull';
-import { CacheModule } from '@nestjs/cache-manager';
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TokenModule } from '@bitfi-mock-pmm/token'
+import { TradeModule } from '@bitfi-mock-pmm/trade'
+import { BullAdapter } from '@bull-board/api/bullAdapter'
+import { BullBoardModule } from '@bull-board/nestjs'
+import { BullModule } from '@nestjs/bull'
+import { CacheModule } from '@nestjs/cache-manager'
+import { Module } from '@nestjs/common'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 
-import { SETTLEMENT_QUEUE, SETTLEMENT_QUEUE_NAMES } from './const';
-import { TransferFactory } from './factories';
-import { SubmitSettlementProcessor } from './processors/submit-settlement.processor';
-import { TransferSettlementProcessor } from './processors/transfer-settlement.processor';
-import { SettlementController } from './settlement.controller';
-import { SettlementService } from './settlement.service';
-import { BTCTransferStrategy, EVMTransferStrategy } from './strategies';
+import { SETTLEMENT_QUEUE, SETTLEMENT_QUEUE_NAMES } from './const'
+import { TransferFactory } from './factories'
+import { SubmitSettlementProcessor } from './processors/submit-settlement.processor'
+import { TransferSettlementProcessor } from './processors/transfer-settlement.processor'
+import { SettlementController } from './settlement.controller'
+import { SettlementService } from './settlement.service'
+import { BTCTransferStrategy, EVMTransferStrategy } from './strategies'
 
 const QUEUE_BOARDS = Object.values(SETTLEMENT_QUEUE).map((queue) => ({
   name: queue.NAME,
   adapter: BullAdapter,
-}));
+}))
 
 @Module({
   imports: [
@@ -35,9 +35,7 @@ const QUEUE_BOARDS = Object.values(SETTLEMENT_QUEUE).map((queue) => ({
       }),
       inject: [ConfigService],
     }),
-    BullModule.registerQueue(
-      ...SETTLEMENT_QUEUE_NAMES.map((name) => ({ name }))
-    ),
+    BullModule.registerQueue(...SETTLEMENT_QUEUE_NAMES.map((name) => ({ name }))),
     BullBoardModule.forFeature(...QUEUE_BOARDS),
     TradeModule,
     TokenModule,

@@ -1,14 +1,14 @@
-import { ReqService } from '@bitfi-mock-pmm/req';
-import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ReqService } from '@bitfi-mock-pmm/req'
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common'
 
-import { CoinGeckoToken, TokenPrice } from './type';
+import { CoinGeckoToken, TokenPrice } from './type'
 
 @Injectable()
 export class TokenRepository {
-  private readonly CACHE_KEY = 'token_data';
-  private readonly TTL = 60 * 1000;
-  private readonly logger = new Logger(TokenRepository.name);
+  private readonly CACHE_KEY = 'token_data'
+  private readonly TTL = 60 * 1000
+  private readonly logger = new Logger(TokenRepository.name)
 
   constructor(
     @Inject('COINGECKO_REQ_SERVICE') private readonly reqService: ReqService,
@@ -22,19 +22,15 @@ export class TokenRepository {
    */
   async getTokenPrice(symbol: string): Promise<TokenPrice> {
     if (symbol === 'tBTC') {
-      symbol = 'BTC';
+      symbol = 'BTC'
     }
 
-    const tokens = await this.getTokens();
+    const tokens = await this.getTokens()
 
-    const token = tokens.find(
-      (t) => t.symbol.toLowerCase() === symbol.toLowerCase()
-    );
+    const token = tokens.find((t) => t.symbol.toLowerCase() === symbol.toLowerCase())
 
     if (!token) {
-      throw new NotFoundException(
-        `cannot find token info for symbol ${symbol}`
-      );
+      throw new NotFoundException(`cannot find token info for symbol ${symbol}`)
     }
 
     return {
@@ -44,20 +40,20 @@ export class TokenRepository {
       image: token.image,
       currentPrice: token.currentPrice,
       marketCap: token.marketCap,
-    };
+    }
   }
 
   async getTokens(): Promise<CoinGeckoToken[]> {
-    let tokens = await this.getFromCache();
+    let tokens = await this.getFromCache()
     if (!tokens) {
-      tokens = await this.fetchAndCacheTokens();
+      tokens = await this.fetchAndCacheTokens()
     }
-    return tokens;
+    return tokens
   }
 
   private async getFromCache(): Promise<CoinGeckoToken[] | null> {
-    const cachedData = await this.cacheManager.get<string>(this.CACHE_KEY);
-    return cachedData ? JSON.parse(cachedData) : null;
+    const cachedData = await this.cacheManager.get<string>(this.CACHE_KEY)
+    return cachedData ? JSON.parse(cachedData) : null
   }
 
   private async fetchAndCacheTokens(): Promise<CoinGeckoToken[]> {
@@ -71,18 +67,14 @@ export class TokenRepository {
           page: 1,
           sparkline: false,
         },
-      });
+      })
 
-      await this.cacheManager.set(
-        this.CACHE_KEY,
-        JSON.stringify(response),
-        this.TTL
-      );
+      await this.cacheManager.set(this.CACHE_KEY, JSON.stringify(response), this.TTL)
 
-      return response;
+      return response
     } catch (error) {
-      this.logger.error('Error fetching tokens:', error);
-      return [];
+      this.logger.error('Error fetching tokens:', error)
+      return []
     }
   }
 }

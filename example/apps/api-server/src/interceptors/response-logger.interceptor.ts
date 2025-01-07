@@ -1,21 +1,15 @@
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs'
+import { tap } from 'rxjs/operators'
 
-import {
-  CallHandler,
-  ExecutionContext,
-  Injectable,
-  Logger,
-  NestInterceptor,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from '@nestjs/common'
 
 @Injectable()
 export class ResponseLoggerInterceptor implements NestInterceptor {
-  private readonly logger = new Logger(ResponseLoggerInterceptor.name);
+  private readonly logger = new Logger(ResponseLoggerInterceptor.name)
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
-    const { method, url, body, query, params } = request;
+    const request = context.switchToHttp().getRequest()
+    const { method, url, body, query, params } = request
 
     // Log the request with body, query params, and route params if they exist
     this.logger.log({
@@ -32,15 +26,15 @@ export class ResponseLoggerInterceptor implements NestInterceptor {
       ...(Object.keys(params || {}).length > 0 && {
         params: this.sanitizeData(params),
       }),
-    });
+    })
 
-    const startTime = Date.now();
+    const startTime = Date.now()
 
     return next.handle().pipe(
       tap({
         next: (response) => {
-          const endTime = Date.now();
-          const duration = endTime - startTime;
+          const endTime = Date.now()
+          const duration = endTime - startTime
 
           // Log successful response
           this.logger.log({
@@ -54,11 +48,11 @@ export class ResponseLoggerInterceptor implements NestInterceptor {
               requestBody: this.sanitizeData(body),
             }),
             response: this.sanitizeData(response),
-          });
+          })
         },
         error: (error) => {
-          const endTime = Date.now();
-          const duration = endTime - startTime;
+          const endTime = Date.now()
+          const duration = endTime - startTime
 
           // Log error response
           this.logger.error({
@@ -76,17 +70,17 @@ export class ResponseLoggerInterceptor implements NestInterceptor {
               message: error.message,
               stack: error.stack,
             },
-          });
+          })
         },
       })
-    );
+    )
   }
 
   private sanitizeData(data: any): any {
-    if (!data) return data;
+    if (!data) return data
 
     // Deep clone the data to avoid modifying the original
-    const clonedData = JSON.parse(JSON.stringify(data));
+    const clonedData = JSON.parse(JSON.stringify(data))
 
     // Add your sanitization logic here
     // For example, remove sensitive fields
@@ -100,21 +94,21 @@ export class ResponseLoggerInterceptor implements NestInterceptor {
       'key',
       'private_key',
       'privatekey',
-    ];
+    ]
 
     const sanitize = (obj: any) => {
       if (obj && typeof obj === 'object') {
         Object.keys(obj).forEach((key) => {
           if (sensitiveFields.includes(key.toLowerCase())) {
-            obj[key] = '***REDACTED***';
+            obj[key] = '***REDACTED***'
           } else if (typeof obj[key] === 'object') {
-            sanitize(obj[key]);
+            sanitize(obj[key])
           }
-        });
+        })
       }
-      return obj;
-    };
+      return obj
+    }
 
-    return sanitize(clonedData);
+    return sanitize(clonedData)
   }
 }

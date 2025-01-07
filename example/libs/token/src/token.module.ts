@@ -1,12 +1,12 @@
-import { redisStore } from 'cache-manager-redis-yet';
-import { RedisClientOptions } from 'redis';
+import { redisStore } from 'cache-manager-redis-yet'
+import { RedisClientOptions } from 'redis'
 
-import { ReqModule } from '@bitfi-mock-pmm/req';
-import { CacheModule } from '@nestjs/cache-manager';
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ReqModule } from '@bitfi-mock-pmm/req'
+import { CacheModule } from '@nestjs/cache-manager'
+import { Module } from '@nestjs/common'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 
-import { TokenRepository } from './token.repository';
+import { TokenRepository } from './token.repository'
 
 @Module({
   imports: [

@@ -5,6 +5,7 @@
   "scripts": {
     "start": "nx serve api-server",
     "build": "nx build api-server",
+    "format": "prettier --write \"**/*.ts\"",
     "migrate:dev": "prisma migrate dev --preview-feature",
     "migrate:dev:create": "prisma migrate dev --create-only --preview-feature",
     "migrate:reset": "prisma migrate reset --preview-feature",

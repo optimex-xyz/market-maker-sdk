@@ -1,14 +1,6 @@
-import { SnakeToCamelInterceptor } from '@bitfi-mock-pmm/shared';
-import { TradeExistsGuard } from '@bitfi-mock-pmm/trade';
-import {
-  Controller,
-  Get,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import { SnakeToCamelInterceptor } from '@bitfi-mock-pmm/shared'
+import { TradeExistsGuard } from '@bitfi-mock-pmm/trade'
+import { Controller, Get, Post, Query, Req, UseGuards, UseInterceptors } from '@nestjs/common'
 
 import {
   AckSettlementDto,
@@ -16,8 +8,8 @@ import {
   SignalPaymentDto,
   SignalPaymentResponseDto,
   SubmitTxDTO,
-} from './settlement.dto';
-import { SettlementService } from './settlement.service';
+} from './settlement.dto'
+import { SettlementService } from './settlement.service'
 
 @Controller()
 @UseInterceptors(SnakeToCamelInterceptor)
@@ -26,31 +18,25 @@ export class SettlementController {
 
   @Get('settlement-signature')
   @UseGuards(TradeExistsGuard)
-  getSettlementSignature(
-    @Query() query: GetSettlementSignatureDto,
-    @Req() req: any
-  ) {
-    return this.settlementService.getSettlementSignature(query, req.trade);
+  getSettlementSignature(@Query() query: GetSettlementSignatureDto, @Req() req: any) {
+    return this.settlementService.getSettlementSignature(query, req.trade)
   }
 
   @Get('ack-settlement')
   @UseGuards(TradeExistsGuard)
   ackSettlement(@Query() query: AckSettlementDto, @Req() req: any) {
-    return this.settlementService.ackSettlement(query, req.trade);
+    return this.settlementService.ackSettlement(query, req.trade)
   }
 
   @Post('signal-payment')
   @UseGuards(TradeExistsGuard)
-  signalPayment(
-    @Query() body: SignalPaymentDto,
-    @Req() req: any
-  ): Promise<SignalPaymentResponseDto> {
-    return this.settlementService.signalPayment(body, req.trade);
+  signalPayment(@Query() body: SignalPaymentDto, @Req() req: any): Promise<SignalPaymentResponseDto> {
+    return this.settlementService.signalPayment(body, req.trade)
   }
 
   @Get('submit-tx')
   @UseGuards(TradeExistsGuard)
   submitTx(@Query() body: SubmitTxDTO) {
-    return this.settlementService.submitTx(body);
+    return this.settlementService.submitTx(body)
   }
 }

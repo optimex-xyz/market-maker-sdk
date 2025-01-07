@@ -1,1 +1,1 @@
-export * from './transfer-strategy.interface';
+export * from './transfer-strategy.interface'

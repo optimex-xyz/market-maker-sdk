@@ -61,4 +61,4 @@ export const paymentErrorABI = [
     name: 'Unauthorized',
     type: 'error',
   },
-];
+]

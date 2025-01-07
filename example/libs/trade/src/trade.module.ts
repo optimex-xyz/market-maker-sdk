@@ -1,8 +1,8 @@
-import { DatabaseModule } from '@bitfi-mock-pmm/database';
-import { Module } from '@nestjs/common';
+import { DatabaseModule } from '@bitfi-mock-pmm/database'
+import { Module } from '@nestjs/common'
 
-import { TradeExistsGuard } from './trade.guard';
-import { TradeService } from './trade.service';
+import { TradeExistsGuard } from './trade.guard'
+import { TradeService } from './trade.service'
 
 @Module({
   imports: [DatabaseModule],
