@@ -64,6 +64,7 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 #### Example code
 
 ```ts
+import { Token, tokenService } from '@bitfixyz/market-maker-sdk'
 
 export const IndicativeQuoteResponseSchema = z.object({
   sessionId: z.string(),
@@ -81,12 +82,11 @@ async getIndicativeQuote(dto: GetIndicativeQuoteDto): Promise<IndicativeQuoteRes
 
   try {
     const [fromToken, toToken] = await Promise.all([
-      this.tokenService.getTokenByTokenId(dto.fromTokenId),
-      this.tokenService.getTokenByTokenId(dto.toTokenId),
+      tokenService.getTokenByTokenId(dto.fromTokenId),
+      tokenService.getTokenByTokenId(dto.toTokenId),
     ]).catch((error) => {
       throw new BadRequestException(`Failed to fetch tokens: ${error.message}`)
     })
-
 
     const quote = this.calculateBestQuote(...)
 
@@ -164,6 +164,7 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
 #### Example
 
 ```ts
+import { Token, tokenService } from '@bitfixyz/market-maker-sdk'
 
 export const GetCommitmentQuoteSchema = z.object({
   sessionId: z.string(),
@@ -191,8 +192,8 @@ async getCommitmentQuote(dto: GetCommitmentQuoteDto): Promise<CommitmentQuoteRes
     }
 
     const [fromToken, toToken] = await Promise.all([
-      this.tokenService.getTokenByTokenId(dto.fromTokenId),
-      this.tokenService.getTokenByTokenId(dto.toTokenId),
+      tokenService.getTokenByTokenId(dto.fromTokenId),
+      tokenService.getTokenByTokenId(dto.toTokenId),
     ]).catch((error) => {
       throw new BadRequestException(`Failed to fetch tokens: ${error.message}`)
     })
