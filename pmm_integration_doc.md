@@ -76,44 +76,40 @@ export type IndicativeQuoteResponse = z.infer<
   typeof IndicativeQuoteResponseSchema
 >;
 
-async getIndicativeQuote(
-  dto: GetIndicativeQuoteDto
-): Promise<IndicativeQuoteResponse> {
-  const sessionId = dto.sessionId || this.generateSessionId();
+async getIndicativeQuote(dto: GetIndicativeQuoteDto): Promise<IndicativeQuoteResponse> {
+  const sessionId = dto.sessionId || this.generateSessionId()
 
   try {
     const [fromToken, toToken] = await Promise.all([
       this.tokenService.getTokenByTokenId(dto.fromTokenId),
       this.tokenService.getTokenByTokenId(dto.toTokenId),
     ]).catch((error) => {
-      throw new BadRequestException(
-        `Failed to fetch tokens: ${error.message}`
-      );
-    });
+      throw new BadRequestException(`Failed to fetch tokens: ${error.message}`)
+    })
 
-    const quote = this.calculateBestQuote(...);
 
-    const pmmAddress = this.getPmmAddressByNetworkType(fromToken);
+    const quote = this.calculateBestQuote(...)
+
+    const pmmAddress = this.getPmmAddressByNetworkType(fromToken)
 
     await this.sessionRepo.save(sessionId, {
       fromToken: dto.fromTokenId,
       toToken: dto.toTokenId,
       amount: dto.amount,
-      pmmReceivingAddress: pmmAddress,
       indicativeQuote: quote,
-    });
+    })
 
     return {
       sessionId,
       pmmReceivingAddress: pmmAddress,
       indicativeQuote: quote,
       error: '',
-    };
+    }
   } catch (error: any) {
     if (error instanceof HttpException) {
-      throw error;
+      throw error
     }
-    throw new BadRequestException(error.message);
+    throw new BadRequestException(error.message)
   }
 }
 
@@ -187,71 +183,54 @@ export class GetCommitmentQuoteDto extends createZodDto(
   GetCommitmentQuoteSchema
 ) {}
 
-async getCommitmentQuote(
-  dto: GetCommitmentQuoteDto
-): Promise<CommitmentQuoteResponse> {
+async getCommitmentQuote(dto: GetCommitmentQuoteDto): Promise<CommitmentQuoteResponse> {
   try {
-    const session = await this.sessionRepo.findById(dto.sessionId);
+    const session = await this.sessionRepo.findById(dto.sessionId)
     if (!session) {
-      throw new BadRequestException('Session expired during processing');
+      throw new BadRequestException('Session expired during processing')
     }
 
     const [fromToken, toToken] = await Promise.all([
       this.tokenService.getTokenByTokenId(dto.fromTokenId),
       this.tokenService.getTokenByTokenId(dto.toTokenId),
     ]).catch((error) => {
-      throw new BadRequestException(
-        `Failed to fetch tokens: ${error.message}`
-      );
-    });
+      throw new BadRequestException(`Failed to fetch tokens: ${error.message}`)
+    })
 
-    await this.tradeService.deleteTrade(dto.tradeId);
+    await this.tradeService.deleteTrade(dto.tradeId)
 
-    const quote = this.calculateBestQuote(...);
+    const quote = this.calculateBestQuote(...)
 
     const trade = await this.tradeService
       .createTrade({
         tradeId: dto.tradeId,
-        fromTokenId: dto.fromTokenId,
-        toTokenId: dto.toTokenId,
-        fromUser: dto.fromUserAddress,
-        toUser: dto.toUserAddress,
-        amount: dto.amount,
-        fromNetworkId: fromToken.networkId,
-        toNetworkId: toToken.networkId,
-        userDepositTx: dto.userDepositTx,
-        userDepositVault: dto.userDepositVault,
-        tradeDeadline: dto.tradeDeadline,
-        scriptDeadline: dto.scriptDeadline,
+        ...
       })
       .catch((error) => {
-        throw new BadRequestException(
-          `Failed to create trade: ${error.message}`
-        );
-      });
+        throw new BadRequestException(`Failed to create trade: ${error.message}`)
+      })
 
     await this.tradeService
       .updateTradeQuote(trade.tradeId, {
         commitmentQuote: quote,
       })
       .catch((error) => {
-        throw new BadRequestException(
-          `Failed to update trade quote: ${error.message}`
-        );
-      });
+        throw new BadRequestException(`Failed to update trade quote: ${error.message}`)
+      })
 
     return {
       tradeId: dto.tradeId,
       commitmentQuote: quote,
       error: '',
-    };
+    }
   } catch (error: any) {
     if (error instanceof HttpException) {
-      throw error;
+      throw error
     }
-    throw new BadRequestException(error.message);
+    throw new BadRequestException(error.message)
   }
 }
+
 ```
 ---
 
