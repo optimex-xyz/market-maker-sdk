@@ -275,6 +275,93 @@ GET /settlement-signature?trade_id=abcd1234&committed_quote=987654321000000000&s
   - `deadline` (integer): The UNIX timestamp (in seconds) indicating the PMM's expected payment deadline.
   - `error` (string): Error message, if any (empty if no error).
 
+#### Example
+
+```ts
+import {
+  getCommitInfoHash,
+  getSignature,
+  routerService,
+  SignatureType,
+  signerService,
+} from '@bitfixyz/market-maker-sdk'
+
+export const GetSettlementSignatureSchema = z.object({
+  tradeId: z.string(),
+  committedQuote: z.string(),
+  solverFee: z.string(),
+  tradeDeadline: z.string(),
+  scriptDeadline: z.string(),
+})
+
+export class GetSettlementSignatureDto extends createZodDto(GetSettlementSignatureSchema) {}
+
+async getSettlementSignature(dto: GetSettlementSignatureDto, trade: Trade): Promise<SettlementSignatureResponseDto> {
+  try {
+    const { tradeId } = trade
+
+    // Get data directly from l2 contract or using routerService ( wrapper of l2 contract )
+    const [presigns, tradeData] = await Promise.all([
+      this.routerService.getPresigns(tradeId),
+      this.routerService.getTradeData(tradeId),
+    ])
+
+    const { toChain } = tradeData.tradeInfo
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 1800)
+
+    const pmmPresign = presigns.find((t) => t.pmmId === this.pmmId)
+    if (!pmmPresign) {
+      throw new BadRequestException('pmmPresign not found')
+    }
+
+    // calculate amountOut
+    const amountOut = BigInt(dto.committedQuote) - BigInt(dto.solverFee)
+
+    const commitInfoHash = getCommitInfoHash(
+      pmmPresign.pmmId,
+      pmmPresign.pmmRecvAddress,
+      toChain[1],
+      toChain[2],
+      amountOut,
+      deadline
+    )
+
+    const signerAddress = await this.routerService.getSigner()
+
+    const domainData = await signerService.getDomain(signerAddress)
+    const domain = {
+      name: domainData.name,
+      version: domainData.version,
+      chainId: domainData.chainId,
+      verifyingContract: domainData.verifyingContract,
+    }
+
+    const signature = await getSignature(
+      this.pmmWallet,
+      this.provider,
+      signerAddress,
+      tradeId,
+      commitInfoHash,
+      SignatureType.VerifyingContract,
+      domain
+    )
+
+    await this.tradeService.updateTradeStatus(tradeId, TradeStatus.COMMITTED)
+
+    return {
+      tradeId: tradeId,
+      signature,
+      deadline: Number(deadline),
+      error: '',
+    }
+  } catch (error: any) {
+    if (error instanceof HttpException) {
+      throw error
+    }
+    throw new BadRequestException(error.message)
+  }
+}
+```
 ---
 
 ### 4. Endpoint: `/ack-settlement`
@@ -318,6 +405,36 @@ trade_id=abcd1234&trade_deadline=1696012800&script_deadline=1696016400&chosen=tr
   - `status` (string): Status of the acknowledgment (always `"acknowledged"`).
   - `error` (string): Error message, if any (empty if no error).
 
+#### Example
+
+```ts
+export const AckSettlementSchema = z.object({
+  tradeId: z.string(),
+  tradeDeadline: z.string(),
+  scriptDeadline: z.string(),
+  chosen: z.string().refine((val) => val === 'true' || val === 'false', {
+    message: "chosen must be 'true' or 'false'",
+  }),
+})
+
+export class AckSettlementDto extends createZodDto(AckSettlementSchema) {}
+
+async ackSettlement(dto: AckSettlementDto, trade: Trade): Promise<AckSettlementResponseDto> {
+  try {
+
+    return {
+      tradeId: dto.tradeId,
+      status: 'acknowledged',
+      error: '',
+    }
+  } catch (error: any) {
+    if (error instanceof HttpException) {
+      throw error
+    }
+    throw new BadRequestException(error.message)
+  }
+}
+```
 ---
 
 ### 5. Endpoint: `/signal-payment`
@@ -361,6 +478,35 @@ trade_id=abcd1234&protocol_fee_amount=1000000000000000&trade_deadline=1696012800
   - `status` (string): Status of the acknowledgment (always `"acknowledged"`).
   - `error` (string): Error message, if any (empty if no error).
 
+#### Example
+
+```ts
+export const SignalPaymentSchema = z.object({
+  tradeId: z.string(),
+  protocolFeeAmount: z.string(),
+  tradeDeadline: z.string(),
+  scriptDeadline: z.string(),
+})
+
+export class SignalPaymentDto extends createZodDto(SignalPaymentSchema) {}
+
+async signalPayment(dto: SignalPaymentDto, trade: Trade): Promise<SignalPaymentResponseDto> {
+  try {
+    // enqueue tranfer with dto and trade
+
+    return {
+      tradeId: dto.tradeId,
+      status: 'acknowledged',
+      error: '',
+    }
+  } catch (error: any) {
+    if (error instanceof HttpException) {
+      throw error
+    }
+    throw new BadRequestException(error.message)
+  }
+}
+```
 ---
 
 ## Solver Backend Endpoints for PMMs
