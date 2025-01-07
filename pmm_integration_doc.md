@@ -61,6 +61,72 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
   - `indicative_quote` (string): The indicative quote value, represented as a string.
   - `error` (string): Error message, if any (empty if no error).
 
+#### Example code
+
+```ts
+
+export const IndicativeQuoteResponseSchema = z.object({
+  sessionId: z.string(),
+  pmmReceivingAddress: z.string(),
+  indicativeQuote: z.string(),
+  error: z.string().optional(),
+});
+
+export type IndicativeQuoteResponse = z.infer<
+  typeof IndicativeQuoteResponseSchema
+>;
+
+async getIndicativeQuote(
+  dto: GetIndicativeQuoteDto
+): Promise<IndicativeQuoteResponse> {
+  const sessionId = dto.sessionId || this.generateSessionId();
+
+  try {
+    const [fromToken, toToken] = await Promise.all([
+      this.tokenService.getTokenByTokenId(dto.fromTokenId),
+      this.tokenService.getTokenByTokenId(dto.toTokenId),
+    ]).catch((error) => {
+      throw new BadRequestException(
+        `Failed to fetch tokens: ${error.message}`
+      );
+    });
+
+    const [fromTokenPrice, toTokenPrice] = await Promise.all([
+      this.tokenRepo.getTokenPrice(fromToken.tokenSymbol),
+      this.tokenRepo.getTokenPrice(toToken.tokenSymbol),
+    ]).catch((error) => {
+      throw new BadRequestException(
+        `Failed to fetch token prices: ${error.message}`
+      );
+    });
+
+    const quote = this.calculateBestQuote(...);
+
+    const pmmAddress = this.getPmmAddressByNetworkType(fromToken);
+
+    await this.sessionRepo.save(sessionId, {
+      fromToken: dto.fromTokenId,
+      toToken: dto.toTokenId,
+      amount: dto.amount,
+      pmmReceivingAddress: pmmAddress,
+      indicativeQuote: quote,
+    });
+
+    return {
+      sessionId,
+      pmmReceivingAddress: pmmAddress,
+      indicativeQuote: quote,
+      error: '',
+    };
+  } catch (error: any) {
+    if (error instanceof HttpException) {
+      throw error;
+    }
+    throw new BadRequestException(error.message);
+  }
+}
+
+```
 ---
 
 ### 2. Endpoint: `/commitment-quote`
