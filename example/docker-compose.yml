@@ -1,0 +1,23 @@
+services:
+  redis-db:
+    image: redis:7.2-alpine
+    ports:
+      - '16379:6379'
+
+  postgres-db:
+    image: postgres:16.2-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123123123
+      POSTGRES_DB: bitfi-pmm
+
+  # api-server:
+  #   build:
+  #     dockerfile: ./apps/api-server/Dockerfile
+  #   environment:
+  #     APP_PORT: ${APP_PORT}
+  #     NODE_ENV: ${NODE_ENV}
+  #   ports:
+  #     - '3000:3000'

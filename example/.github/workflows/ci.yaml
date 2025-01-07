@@ -1,0 +1,67 @@
+name: Deploy To Develop
+on:
+  push:
+    branches:
+      - 'main'
+
+env:
+  SERVICE: bitfi-fe
+  IMAGE_REPOSITORY: asia-southeast1-docker.pkg.dev/bfproject-dd95c/bitfi-repo/pmm
+
+jobs:
+  build-develop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: prepare
+        id: prepare
+        run: |
+          #!/bin/bash
+
+          if [[ "$IMAGE_REPOSITORY" == "" ]]; then
+            echo "IMAGE_REPOSITORY must be define."
+            exit 1
+          fi
+
+          COMMIT_SHORT_SHA="$(git rev-parse --short HEAD)"
+
+          echo "::set-output name=COMMIT_SHORT_SHA::${COMMIT_SHORT_SHA}"
+          echo "::set-output name=IMAGE_TAG::${IMAGE_REPOSITORY}:main-${COMMIT_SHORT_SHA}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Gcloud Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${{ secrets.GCR_CREDENTIALS }}"
+
+      - name: Setup Gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure docker
+        run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-${{ env.SERVICE }}-buildx
+
+      - name: Docker build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.prepare.outputs.IMAGE_TAG }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          build-args: |
+            GITHUB_TOKEN=${{ secrets.GH_TOKEN }}
+
+      - name: Move Docker cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache

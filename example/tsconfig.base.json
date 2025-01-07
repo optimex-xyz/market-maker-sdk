@@ -1,0 +1,28 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@bitfi-mock-pmm/database": ["libs/database/src/index.ts"],
+      "@bitfi-mock-pmm/quote": ["libs/quote/src/index.ts"],
+      "@bitfi-mock-pmm/req": ["libs/req/src/index.ts"],
+      "@bitfi-mock-pmm/settlement": ["libs/settlement/src/index.ts"],
+      "@bitfi-mock-pmm/shared": ["libs/shared/src/index.ts"],
+      "@bitfi-mock-pmm/token": ["libs/token/src/index.ts"],
+      "@bitfi-mock-pmm/trade": ["libs/trade/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
