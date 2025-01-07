@@ -1149,6 +1149,8 @@ export class BTCTransferStrategy implements ITransferStrategy {
 ---
 ## General Notes for PMMs
 
+in example, we already convert from snake_case to camelCase, you should do it by yourself or working with snake_case
+
 ### Request Format
 - Convert field names from snake_case to camelCase
   - Example: `user_account_details` → `userAccountDetails`
