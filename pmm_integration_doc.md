@@ -169,6 +169,24 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
 
 ```ts
 
+export const GetCommitmentQuoteSchema = z.object({
+  sessionId: z.string(),
+  tradeId: z.string(),
+  fromTokenId: z.string(),
+  toTokenId: z.string(),
+  amount: z.string(),
+  fromUserAddress: z.string(),
+  toUserAddress: z.string(),
+  userDepositTx: z.string(),
+  userDepositVault: z.string(),
+  tradeDeadline: z.string(),
+  scriptDeadline: z.string(),
+});
+
+export class GetCommitmentQuoteDto extends createZodDto(
+  GetCommitmentQuoteSchema
+) {}
+
 async getCommitmentQuote(
   dto: GetCommitmentQuoteDto
 ): Promise<CommitmentQuoteResponse> {
