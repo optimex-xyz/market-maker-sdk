@@ -91,15 +91,6 @@ async getIndicativeQuote(
       );
     });
 
-    const [fromTokenPrice, toTokenPrice] = await Promise.all([
-      this.tokenRepo.getTokenPrice(fromToken.tokenSymbol),
-      this.tokenRepo.getTokenPrice(toToken.tokenSymbol),
-    ]).catch((error) => {
-      throw new BadRequestException(
-        `Failed to fetch token prices: ${error.message}`
-      );
-    });
-
     const quote = this.calculateBestQuote(...);
 
     const pmmAddress = this.getPmmAddressByNetworkType(fromToken);
@@ -174,6 +165,76 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
   - `commitment_quote` (string): The committed quote value, represented as a string.
   - `error` (string): Error message, if any (empty if no error).
 
+#### Example
+
+```ts
+
+async getCommitmentQuote(
+  dto: GetCommitmentQuoteDto
+): Promise<CommitmentQuoteResponse> {
+  try {
+    const session = await this.sessionRepo.findById(dto.sessionId);
+    if (!session) {
+      throw new BadRequestException('Session expired during processing');
+    }
+
+    const [fromToken, toToken] = await Promise.all([
+      this.tokenService.getTokenByTokenId(dto.fromTokenId),
+      this.tokenService.getTokenByTokenId(dto.toTokenId),
+    ]).catch((error) => {
+      throw new BadRequestException(
+        `Failed to fetch tokens: ${error.message}`
+      );
+    });
+
+    await this.tradeService.deleteTrade(dto.tradeId);
+
+    const quote = this.calculateBestQuote(...);
+
+    const trade = await this.tradeService
+      .createTrade({
+        tradeId: dto.tradeId,
+        fromTokenId: dto.fromTokenId,
+        toTokenId: dto.toTokenId,
+        fromUser: dto.fromUserAddress,
+        toUser: dto.toUserAddress,
+        amount: dto.amount,
+        fromNetworkId: fromToken.networkId,
+        toNetworkId: toToken.networkId,
+        userDepositTx: dto.userDepositTx,
+        userDepositVault: dto.userDepositVault,
+        tradeDeadline: dto.tradeDeadline,
+        scriptDeadline: dto.scriptDeadline,
+      })
+      .catch((error) => {
+        throw new BadRequestException(
+          `Failed to create trade: ${error.message}`
+        );
+      });
+
+    await this.tradeService
+      .updateTradeQuote(trade.tradeId, {
+        commitmentQuote: quote,
+      })
+      .catch((error) => {
+        throw new BadRequestException(
+          `Failed to update trade quote: ${error.message}`
+        );
+      });
+
+    return {
+      tradeId: dto.tradeId,
+      commitmentQuote: quote,
+      error: '',
+    };
+  } catch (error: any) {
+    if (error instanceof HttpException) {
+      throw error;
+    }
+    throw new BadRequestException(error.message);
+  }
+}
+```
 ---
 
 ### 3. Endpoint: `/settlement-signature`
