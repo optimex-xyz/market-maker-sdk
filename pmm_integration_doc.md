@@ -48,6 +48,7 @@ sequenceDiagram
       - [Expected Response](#expected-response)
       - [Example code](#example-code)
   - [PMM Endpoints](#pmm-endpoints)
+    - [Env](#env-1)
     - [1. Endpoint: `/indicative-quote`](#1-endpoint-indicative-quote)
       - [Description](#description-1)
       - [Request Parameters](#request-parameters-1)
@@ -93,7 +94,7 @@ sequenceDiagram
     - [Request Format](#request-format)
     - [Response Format](#response-format)
     - [Important Notes](#important-notes)
-    - [Env](#env-1)
+    - [Env](#env-2)
 
 ---
 
@@ -102,6 +103,12 @@ sequenceDiagram
 | Variable | Development                  | Production            |
 | -------- | -----------------------------| ----------------------|
 | host     | https://api-stg.bitdex.xyz   | https://api.bitfi.xyz |
+
+```ts
+import { config } from '@bitfixyz/market-maker-sdk'
+
+config.getBackendUrl()
+```
 
 ### 1. Endpoint: `/tokens`
 
@@ -163,9 +170,16 @@ tokenService.getTokens()
 
 ## PMM Endpoints
 
+### Env
 | Variable | Development                | Production                               |
 | -------- | -------------------------- | ---------------------------------------- |
 | host     | http://52.221.184.2        | https://bitfi-solver.kyberengineering.io |
+
+```ts
+import { config } from '@bitfixyz/market-maker-sdk'
+
+config.getSolverUrl()
+```
 
 ### 1. Endpoint: `/indicative-quote`
 
@@ -466,10 +480,10 @@ Used by the solver to acknowledge to the PMM about a successful settlement, indi
 
 - **HTTP Method**: `POST`
 - **Form Parameters**:
-- `trade_id` (string): The unique identifier for the trade.
-- `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
-- `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
-- `chosen` (string): `"true"` if the PMM is selected, `"false"` otherwise.
+  - `trade_id` (string): The unique identifier for the trade.
+  - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
+  - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
+  - `chosen` (string): `"true"` if the PMM is selected, `"false"` otherwise.
 
 #### Example Request
 
