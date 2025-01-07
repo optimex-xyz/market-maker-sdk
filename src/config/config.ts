@@ -1,10 +1,11 @@
-export type Environment = 'development' | 'staging'
+export type Environment = 'dev' | 'production'
 
 export interface EnvironmentConfig {
   solverUrl: string
   backendUrl: string
   rpcUrl: string
   routerAddress: string
+  paymentAddressMap: Record<string, string>
 }
 
 export interface AppConfig extends EnvironmentConfig {
@@ -12,17 +13,23 @@ export interface AppConfig extends EnvironmentConfig {
 }
 
 const environments: Record<Environment, EnvironmentConfig> = {
-  development: {
-    solverUrl: 'http://52.221.184.2',
-    backendUrl: 'https://api-dev.bitdex.xyz',
-    rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
-    routerAddress: '0x67d96Bbd0Dd191525510163D753bA3FdE485f0ee',
-  },
-  staging: {
+  dev: {
     solverUrl: 'http://52.221.184.2',
     backendUrl: 'https://api-stg.bitdex.xyz',
     rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
     routerAddress: '0x67d96Bbd0Dd191525510163D753bA3FdE485f0ee',
+    paymentAddressMap: {
+      'ethereum-sepolia': '0x40b1C28197be3016D0db9Bad5efaF415244f0A73',
+    },
+  },
+  production: {
+    solverUrl: 'https://bitfi-solver.kyberengineering.io',
+    backendUrl: 'https://api.bitfi.xyz',
+    rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
+    routerAddress: '0x07468dF194817257e73cA71E938C1ef977Be032F',
+    paymentAddressMap: {
+      ethereum: '0x05d60d78ec4896c041268b68fcef2294b16123c3',
+    },
   },
 }
 
@@ -31,7 +38,7 @@ class Config {
   private readonly config: EnvironmentConfig
 
   constructor() {
-    this.env = (process.env.SDK_ENV as Environment) || 'staging'
+    this.env = (process.env.SDK_ENV as Environment) || 'production'
 
     if (!environments[this.env]) {
       throw new Error(`Unsupported environment: ${this.env}`)
@@ -62,12 +69,11 @@ class Config {
   public getRouterAddress(): string {
     return this.config.routerAddress
   }
+
+  public getPaymentAddress(networkId: string): string | undefined {
+    return this.config.paymentAddressMap[networkId]
+  }
 }
 
 // Create singleton instance
-const config = new Config()
-
-// Freeze the configuration to prevent modifications
-Object.freeze(config)
-
-export default config
+export const config = new Config()

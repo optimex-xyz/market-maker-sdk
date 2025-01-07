@@ -2,7 +2,7 @@ import { ethers, ZeroAddress } from 'ethers'
 import { DecodedError } from 'ethers-decode-error'
 
 import { errorDecoder } from '@bitfi-mock-pmm/shared'
-import { ensureHexPrefix, ERC20__factory, Payment__factory, Router, Router__factory } from '@bitfixyz/market-maker-sdk'
+import { config, ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@bitfixyz/market-maker-sdk'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
@@ -11,24 +11,13 @@ import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strate
 @Injectable()
 export class EVMTransferStrategy implements ITransferStrategy {
   private pmmPrivateKey: string
-  private contract: Router
   private readonly logger = new Logger(EVMTransferStrategy.name)
 
+  private routerService = routerService
   private readonly rpcMap = new Map<string, string>([['ethereum-sepolia', 'https://eth-sepolia.public.blastapi.io']])
-
-  private readonly paymentAddressMap = new Map<string, string>([
-    ['ethereum-sepolia', '0x40b1C28197be3016D0db9Bad5efaF415244f0A73'],
-  ])
 
   constructor(private configService: ConfigService) {
     this.pmmPrivateKey = this.configService.getOrThrow<string>('PMM_EVM_PRIVATE_KEY')
-
-    const rpcUrl = this.configService.getOrThrow<string>('RPC_URL')
-    const contractAddress = this.configService.getOrThrow<string>('ROUTER_ADDRESS')
-
-    const provider = new ethers.JsonRpcProvider(rpcUrl)
-
-    this.contract = Router__factory.connect(contractAddress, provider)
   }
 
   async transfer(params: TransferParams): Promise<string> {
@@ -53,7 +42,7 @@ export class EVMTransferStrategy implements ITransferStrategy {
 
     const paymentContract = Payment__factory.connect(paymentAddress, signer)
 
-    const protocolFee = await this.contract.getProtocolFee(tradeId)
+    const protocolFee = await this.routerService.getProtocolFee(tradeId)
 
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 30 * 60)
 
@@ -96,7 +85,7 @@ export class EVMTransferStrategy implements ITransferStrategy {
   }
 
   private getPaymentAddress(networkId: string) {
-    const paymentAddress = this.paymentAddressMap.get(networkId)
+    const paymentAddress = config.getPaymentAddress(networkId)
     if (!paymentAddress) {
       throw new Error(`Unsupported networkId: ${networkId}`)
     }

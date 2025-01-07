@@ -82,13 +82,7 @@ export class SettlementService {
 
       const signerAddress = await this.routerService.getSigner()
 
-      const domainData = await signerService.getDomain(signerAddress)
-      const domain = {
-        name: domainData.name,
-        version: domainData.version,
-        chainId: domainData.chainId,
-        verifyingContract: domainData.verifyingContract,
-      }
+      const domain = await signerService.getDomain()
 
       const signature = await getSignature(
         this.pmmWallet,

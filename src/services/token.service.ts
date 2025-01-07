@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { z } from 'zod'
 
-import config from '../config/config'
+import { config } from '../config'
 import { Token, TokenSchema } from '../types'
 import { convertToCamelCase } from '../utils'
 

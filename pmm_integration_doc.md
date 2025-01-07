@@ -40,6 +40,7 @@ sequenceDiagram
 - [PMM Integration API Documentation](#pmm-integration-api-documentation)
   - [Table of Contents](#table-of-contents)
   - [API Dapp endpoint](#api-dapp-endpoint)
+    - [Env](#env)
     - [1. Endpoint: `/tokens`](#1-endpoint-tokens)
       - [Description](#description)
       - [Request Parameters](#request-parameters)
@@ -78,35 +79,35 @@ sequenceDiagram
       - [Expected Response](#expected-response-5)
       - [Example](#example-3)
   - [Solver Backend Endpoints for PMMs](#solver-backend-endpoints-for-pmms)
-    - [1. Endpoint: `/tokens`](#1-endpoint-tokens-1)
+    - [1. Endpoint: `/submit-settlement-tx`](#1-endpoint-submit-settlement-tx)
       - [Description](#description-6)
       - [Request Parameters](#request-parameters-6)
       - [Example Request](#example-request-6)
       - [Expected Response](#expected-response-6)
-    - [2. Endpoint: `/submit-settlement-tx`](#2-endpoint-submit-settlement-tx)
-      - [Description](#description-7)
-      - [Request Parameters](#request-parameters-7)
-      - [Example Request](#example-request-7)
-      - [Expected Response](#expected-response-7)
       - [Example](#example-4)
       - [Notes](#notes)
-  - [PMM transfer](#pmm-transfer)
+  - [PMM making payment](#pmm-making-payment)
     - [EVM](#evm)
     - [Bitcoin](#bitcoin)
   - [General Notes for PMMs](#general-notes-for-pmms)
     - [Request Format](#request-format)
     - [Response Format](#response-format)
     - [Important Notes](#important-notes)
+    - [Env](#env-1)
 
 ---
 
 ## API Dapp endpoint
+### Env
+| Variable | Development                  | Production            |
+| -------- | -----------------------------| ----------------------|
+| host     | https://api-stg.bitdex.xyz   | https://api.bitfi.xyz |
+
 ### 1. Endpoint: `/tokens`
 
 #### Description
-Returns a list of all supported tokens across different networks.
 
-s an indicative quote for the given token pair and trade amount. The quote is used for informational purposes before a commitment is made.
+Returns a list of all supported tokens across different networks.
 
 #### Request Parameters
 
@@ -149,6 +150,8 @@ GET /tokens
 ```
 #### Example code
 
+For ease of integration, BitFi team has wrapped the above /tokens endpoint within '@bitfixyz/market-maker-sdk' package.
+Below is an example on how to utilise our market-maker-sdk to get /tokens
 ```ts
 import { Token, tokenService } from '@bitfixyz/market-maker-sdk'
 
@@ -159,6 +162,10 @@ tokenService.getTokens()
 ---
 
 ## PMM Endpoints
+
+| Variable | Development                | Production                               |
+| -------- | -------------------------- | ---------------------------------------- |
+| host     | http://52.221.184.2        | https://bitfi-solver.kyberengineering.io |
 
 ### 1. Endpoint: `/indicative-quote`
 
@@ -202,7 +209,7 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 
 #### Example code
 
-```ts
+```js
 import { Token, tokenService } from '@bitfixyz/market-maker-sdk'
 
 export const IndicativeQuoteResponseSchema = z.object({
@@ -219,36 +226,18 @@ export type IndicativeQuoteResponse = z.infer<
 async getIndicativeQuote(dto: GetIndicativeQuoteDto): Promise<IndicativeQuoteResponse> {
   const sessionId = dto.sessionId || this.generateSessionId()
 
-  try {
-    const [fromToken, toToken] = await Promise.all([
-      tokenService.getTokenByTokenId(dto.fromTokenId),
-      tokenService.getTokenByTokenId(dto.toTokenId),
-    ]).catch((error) => {
-      throw new BadRequestException(`Failed to fetch tokens: ${error.message}`)
-    })
+  const [fromToken, toToken] = Promise.all([
+    this.tokenService.getTokenByTokenId(dto.fromTokenId),
+    this.tokenService.getTokenByTokenId(dto.toTokenId),
+  ])
 
-    const quote = this.calculateBestQuote(...)
+  const quote = this.calculateBestQuote()
 
-    const pmmAddress = this.getPmmAddressByNetworkType(fromToken)
-
-    await this.sessionRepo.save(sessionId, {
-      fromToken: dto.fromTokenId,
-      toToken: dto.toTokenId,
-      amount: dto.amount,
-      indicativeQuote: quote,
-    })
-
-    return {
-      sessionId,
-      pmmReceivingAddress: pmmAddress,
-      indicativeQuote: quote,
-      error: '',
-    }
-  } catch (error: any) {
-    if (error instanceof HttpException) {
-      throw error
-    }
-    throw new BadRequestException(error.message)
+  return {
+    sessionId,
+    pmmReceivingAddress,
+    indicativeQuote: quote,
+    error: '',
   }
 }
 
@@ -302,7 +291,7 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
 
 #### Example
 
-```ts
+```js
 import { Token, tokenService } from '@bitfixyz/market-maker-sdk'
 
 export const GetCommitmentQuoteSchema = z.object({
@@ -324,50 +313,23 @@ export class GetCommitmentQuoteDto extends createZodDto(
 ) {}
 
 async getCommitmentQuote(dto: GetCommitmentQuoteDto): Promise<CommitmentQuoteResponse> {
-  try {
-    const session = await this.sessionRepo.findById(dto.sessionId)
-    if (!session) {
-      throw new BadRequestException('Session expired during processing')
-    }
+  const session = await this.sessionRepo.findById(dto.sessionId)
 
-    const [fromToken, toToken] = await Promise.all([
-      tokenService.getTokenByTokenId(dto.fromTokenId),
-      tokenService.getTokenByTokenId(dto.toTokenId),
-    ]).catch((error) => {
-      throw new BadRequestException(`Failed to fetch tokens: ${error.message}`)
-    })
+  const [fromToken, toToken] = await Promise.all([
+    tokenService.getTokenByTokenId(dto.fromTokenId),
+    tokenService.getTokenByTokenId(dto.toTokenId),
+  ])
 
-    await this.tradeService.deleteTrade(dto.tradeId)
+  const quote = this.calculateBestQuote(...)
 
-    const quote = this.calculateBestQuote(...)
+  await this.tradeService.createTrade({ tradeId: dto.tradeId })
 
-    const trade = await this.tradeService
-      .createTrade({
-        tradeId: dto.tradeId,
-        ...
-      })
-      .catch((error) => {
-        throw new BadRequestException(`Failed to create trade: ${error.message}`)
-      })
+  await this.tradeService.updateTradeQuote(dto.tradeId, { commitmentQuote: quote })
 
-    await this.tradeService
-      .updateTradeQuote(trade.tradeId, {
-        commitmentQuote: quote,
-      })
-      .catch((error) => {
-        throw new BadRequestException(`Failed to update trade quote: ${error.message}`)
-      })
-
-    return {
-      tradeId: dto.tradeId,
-      commitmentQuote: quote,
-      error: '',
-    }
-  } catch (error: any) {
-    if (error instanceof HttpException) {
-      throw error
-    }
-    throw new BadRequestException(error.message)
+  return {
+    tradeId: dto.tradeId,
+    commitmentQuote: quote,
+    error: '',
   }
 }
 
@@ -442,8 +404,8 @@ async getSettlementSignature(dto: GetSettlementSignatureDto, trade: Trade): Prom
 
     // Get data directly from l2 contract or using routerService ( wrapper of l2 contract )
     const [presigns, tradeData] = await Promise.all([
-      this.routerService.getPresigns(tradeId),
-      this.routerService.getTradeData(tradeId),
+      routerService.getPresigns(tradeId),
+      routerService.getTradeData(tradeId),
     ])
 
     const { toChain } = tradeData.tradeInfo
@@ -469,13 +431,7 @@ async getSettlementSignature(dto: GetSettlementSignatureDto, trade: Trade): Prom
 
     const signerAddress = await this.routerService.getSigner()
 
-    const domainData = await signerService.getDomain(signerAddress)
-    const domain = {
-      name: domainData.name,
-      version: domainData.version,
-      chainId: domainData.chainId,
-      verifyingContract: domainData.verifyingContract,
-    }
+    const domain = await signerService.getDomain()
 
     const signature = await getSignature(
       this.pmmWallet,
@@ -487,8 +443,6 @@ async getSettlementSignature(dto: GetSettlementSignatureDto, trade: Trade): Prom
       domain
     )
 
-    await this.tradeService.updateTradeStatus(tradeId, TradeStatus.COMMITTED)
-
     return {
       tradeId: tradeId,
       signature,
@@ -496,10 +450,7 @@ async getSettlementSignature(dto: GetSettlementSignatureDto, trade: Trade): Prom
       error: '',
     }
   } catch (error: any) {
-    if (error instanceof HttpException) {
-      throw error
-    }
-    throw new BadRequestException(error.message)
+
   }
 }
 ```
@@ -562,7 +513,6 @@ export class AckSettlementDto extends createZodDto(AckSettlementSchema) {}
 
 async ackSettlement(dto: AckSettlementDto, trade: Trade): Promise<AckSettlementResponseDto> {
   try {
-
     return {
       tradeId: dto.tradeId,
       status: 'acknowledged',
@@ -652,53 +602,7 @@ async signalPayment(dto: SignalPaymentDto, trade: Trade): Promise<SignalPaymentR
 
 ## Solver Backend Endpoints for PMMs
 
-### 1. Endpoint: `/tokens`
-
-#### Description
-
-Returns a list of tokens supported by the Solver Backend.
-
-#### Request Parameters
-
-- **HTTP Method**: `GET`
-
-#### Example Request
-
-```
-GET /tokens
-```
-
-#### Expected Response
-
-- **HTTP Status**: `200 OK`
-- **Response Body** (JSON):
-
-```json
-{
-  "tokens": [
-    {
-      "id": "ETH",
-      "chain_id": "1",
-      "address": "0xAddress",
-      "name": "Ethereum",
-      "decimal": 18
-    },
-    {
-      "id": "BTC",
-      "chain_id": "bitcoin",
-      "address": "native",
-      "name": "Bitcoin",
-      "decimal": 8
-    }
-  ]
-}
-```
-
-- `tokens` (array): A list of supported tokens with their information.
-
----
-
-### 2. Endpoint: `/submit-settlement-tx`
+### 1. Endpoint: `/submit-settlement-tx`
 
 #### Description
 
@@ -784,13 +688,7 @@ async submit(job: Job<string>) {
 
     const makePaymentInfoHash = getMakePaymentHash(tradeIds, BigInt(signedAt), startIdx, ensureHexPrefix(paymentTxId))
 
-    const domainData = await signerService.getDomain(signerAddress)
-    const domain = {
-      name: domainData.name,
-      version: domainData.version,
-      chainId: domainData.chainId,
-      verifyingContract: domainData.verifyingContract,
-    }
+    const domain = await signerService.getDomain()
 
     const signature = await getSignature(
       this.pmmWallet,
@@ -813,33 +711,10 @@ async submit(job: Job<string>) {
       signedAt: signedAt,
     }
 
-    this.logger.log(`Sending request to solver with payload: ${JSON.stringify(requestPayload)}`)
 
-    try {
-      const response = await this.solverSerivce.submitSettlementTx(requestPayload)
+    const response = await this.solverSerivce.submitSettlementTx(requestPayload)
 
-      this.logger.log(`Solver response for trade ${tradeId}:`)
-      this.logger.log(`Response data: ${JSON.stringify(response)}`)
-      this.logger.log(`Submit settlement for trade ${tradeId} completed successfully`)
-
-      return response
-    } catch (axiosError) {
-      if (axiosError instanceof AxiosError) {
-        this.logger.error(`API Request failed for trade ${tradeId}:`)
-        this.logger.error(`Status: ${axiosError.response?.status}`)
-        this.logger.error(`Error message: ${axiosError.message}`)
-        this.logger.error(`Response data: ${JSON.stringify(axiosError.response?.data)}`)
-        this.logger.error(
-          `Request config: ${JSON.stringify({
-            method: axiosError.config?.method,
-            url: axiosError.config?.url,
-            headers: axiosError.config?.headers,
-            data: axiosError.config?.data,
-          })}`
-        )
-      }
-      throw axiosError // Re-throw to be caught by outer catch block
-    }
+    return response
   } catch (error: any) {
     this.logger.error('submit settlement error', error.stack)
 
@@ -854,7 +729,7 @@ async submit(job: Job<string>) {
 - **Signature**: Must be valid and verifiable by the solver backend.
 
 ---
-## PMM transfer
+## PMM making payment
 
 ```ts
 import { Token } from '@bitfixyz/market-maker-sdk'
@@ -877,28 +752,16 @@ Example code transfer
 you could get paymentAddress at `https://github.com/bitfixyz/bitfi-smartcontract?tab=readme-ov-file#deployed-contracts`
 
 ```ts
-import { ethers, ZeroAddress } from 'ethers'
-import { DecodedError } from 'ethers-decode-error'
-
-import { errorDecoder } from '@bitfi-mock-pmm/shared'
-import { ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@bitfixyz/market-maker-sdk'
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { config, ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@bitfixyz/market-maker-sdk'
 
 import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
 
 @Injectable()
 export class EVMTransferStrategy implements ITransferStrategy {
   private pmmPrivateKey: string
-  private readonly logger = new Logger(EVMTransferStrategy.name)
 
   private routerService = routerService
   private readonly rpcMap = new Map<string, string>([['ethereum-sepolia', 'https://eth-sepolia.public.blastapi.io']])
-
-  // FOCUS HERE, should take address from env
-  private readonly paymentAddressMap = new Map<string, string>([
-    ['ethereum-sepolia', '0x40b1C28197be3016D0db9Bad5efaF415244f0A73'],
-  ])
 
   constructor(private configService: ConfigService) {
     this.pmmPrivateKey = this.configService.getOrThrow<string>('PMM_EVM_PRIVATE_KEY')
@@ -913,15 +776,7 @@ export class EVMTransferStrategy implements ITransferStrategy {
     const paymentAddress = this.getPaymentAddress(networkId)
 
     if (tokenAddress !== 'native') {
-      const tokenContract = ERC20__factory.connect(tokenAddress, signer)
-
-      const allowance = await tokenContract.allowance(signer.address, paymentAddress)
-
-      if (amount > allowance) {
-        const approveTx = await tokenContract.approve(paymentAddress, amount)
-
-        await approveTx.wait()
-      }
+      // allowance with ERC20
     }
 
     const paymentContract = Payment__factory.connect(paymentAddress, signer)
@@ -932,29 +787,22 @@ export class EVMTransferStrategy implements ITransferStrategy {
 
     const decoder = errorDecoder()
 
-    try {
-      const tx = await paymentContract.payment(
-        tradeId,
-        tokenAddress === 'native' ? ZeroAddress : tokenAddress,
-        toAddress,
-        amount,
-        protocolFee.amount,
-        deadline,
-        {
-          value: tokenAddress === 'native' ? amount : 0n,
-        }
-      )
+    const tx = await paymentContract.payment(
+      tradeId,
+      tokenAddress === 'native' ? ZeroAddress : tokenAddress,
+      toAddress,
+      amount,
+      protocolFee.amount,
+      deadline,
+      {
+        value: tokenAddress === 'native' ? amount : 0n,
+      }
+    )
 
-      this.logger.log(`Transfer transaction sent: ${tx.hash}`)
+    this.logger.log(`Transfer transaction sent: ${tx.hash}`)
 
-      return ensureHexPrefix(tx.hash)
-    } catch (error) {
-      const decodedError: DecodedError = await decoder.decode(error)
+    return ensureHexPrefix(tx.hash)
 
-      this.logger.error(`Processing transfer tradeId ${tradeId} Execution reverted!\nReason: ${decodedError.reason}`)
-
-      throw error
-    }
   }
 
   private getSigner(networkId: string) {
@@ -969,7 +817,7 @@ export class EVMTransferStrategy implements ITransferStrategy {
   }
 
   private getPaymentAddress(networkId: string) {
-    const paymentAddress = this.paymentAddressMap.get(networkId)
+    const paymentAddress = config.getPaymentAddress(networkId)
     if (!paymentAddress) {
       throw new Error(`Unsupported networkId: ${networkId}`)
     }
@@ -977,7 +825,6 @@ export class EVMTransferStrategy implements ITransferStrategy {
     return paymentAddress
   }
 }
-
 ```
 
 ---
@@ -986,15 +833,11 @@ export class EVMTransferStrategy implements ITransferStrategy {
 Incase toChain is BTC. Transaction should have at least N + 1 output. with the first N output is the settle utxo for bitfi trade, and one of them is the change utxo for user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds
 
 ```ts
-import axios from 'axios'
 import * as bitcoin from 'bitcoinjs-lib'
 import { ECPairFactory } from 'ecpair'
 import * as ecc from 'tiny-secp256k1'
 
-import { ensureHexPrefix } from '@bitfi-mock-pmm/shared'
 import { getTradeIdsHash, Token } from '@bitfixyz/market-maker-sdk'
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 
 import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
 
@@ -1012,7 +855,6 @@ interface UTXO {
 
 @Injectable()
 export class BTCTransferStrategy implements ITransferStrategy {
-  private readonly logger = new Logger(BTCTransferStrategy.name)
   private readonly privateKey: string
   private readonly ECPair = ECPairFactory(ecc)
 
@@ -1034,21 +876,12 @@ export class BTCTransferStrategy implements ITransferStrategy {
   async transfer(params: TransferParams): Promise<string> {
     const { toAddress, amount, token, tradeId } = params
 
-    try {
-      const network = this.getNetwork(token.networkId)
-      const rpcUrl = this.getRpcUrl(token.networkId)
+    const network = this.getNetwork(token.networkId)
+    const rpcUrl = this.getRpcUrl(token.networkId)
 
-      this.logger.log(`Starting transfer of ${amount} satoshis to ${toAddress} on ${token.networkName}`)
+    const txId = await this.sendBTC(this.privateKey, toAddress, amount, network, rpcUrl, token, [tradeId])
 
-      const txId = await this.sendBTC(this.privateKey, toAddress, amount, network, rpcUrl, token, [tradeId])
-
-      this.logger.log(`Transfer successful with txId: ${txId}`)
-
-      return ensureHexPrefix(txId)
-    } catch (error) {
-      this.logger.error('BTC transfer failed:', error)
-      throw error
-    }
+    return ensureHexPrefix(txId)
   }
 
   private createPayment(publicKey: Uint8Array, network: bitcoin.Network) {
@@ -1078,8 +911,6 @@ export class BTCTransferStrategy implements ITransferStrategy {
     if (!payment.address) {
       throw new Error('Could not generate address')
     }
-
-    this.logger.log(`Sender address: ${payment.address} (${token.networkSymbol})`)
 
     const utxos = await this.getUTXOs(payment.address, rpcUrl)
     if (utxos.length === 0) {
@@ -1122,10 +953,6 @@ export class BTCTransferStrategy implements ITransferStrategy {
     const fee = BigInt(Math.ceil(200 * feeRate))
     const changeAmount = totalInput - amountInSatoshis - fee
 
-    this.logger.log(`Network fee: ${fee.toString()} satoshis`)
-    this.logger.log(`Amount to send: ${amountInSatoshis.toString()} satoshis`)
-    this.logger.log(`Change amount: ${changeAmount.toString()} satoshis`)
-
     psbt.addOutput({
       address: toAddress,
       value: amountInSatoshis,
@@ -1155,7 +982,6 @@ export class BTCTransferStrategy implements ITransferStrategy {
     }
 
     psbt.finalizeAllInputs()
-    this.logger.log('All inputs finalized')
 
     const tx = psbt.extractTransaction()
     const rawTx = tx.toHex()
@@ -1177,7 +1003,7 @@ export class BTCTransferStrategy implements ITransferStrategy {
   private async getFeeRate(rpcUrl: string): Promise<number> {
     try {
       const response = await axios.get<{ [key: string]: number }>(`${rpcUrl}/api/fee-estimates`)
-      return response.data[3]
+      return response.data[0]
     } catch (error) {
       console.error(`Error fetching fee rate from ${rpcUrl}:`, error)
 
@@ -1223,3 +1049,8 @@ in example, we already convert from snake_case to camelCase, you should do it by
 - Other requests use request body as normal
 - Field name conversion rules apply to both request and response parameters
 - Maintain consistent casing throughout the request/response cycle
+
+### Env
+| Variable | Development | Production |
+| -------- | ----------- | ---------- |
+| SDK_ENV  | dev         | production |
