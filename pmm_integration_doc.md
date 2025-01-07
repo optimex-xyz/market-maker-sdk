@@ -39,7 +39,7 @@ sequenceDiagram
 
 - [PMM Integration API Documentation](#pmm-integration-api-documentation)
   - [Table of Contents](#table-of-contents)
-  - [API endpoint](#api-endpoint)
+  - [API Dapp endpoint](#api-dapp-endpoint)
     - [1. Endpoint: `/tokens`](#1-endpoint-tokens)
       - [Description](#description)
       - [Request Parameters](#request-parameters)
@@ -100,7 +100,7 @@ sequenceDiagram
 
 ---
 
-## API endpoint
+## API Dapp endpoint
 ### 1. Endpoint: `/tokens`
 
 #### Description
