@@ -2,20 +2,94 @@
 
 This document provides detailed information about the endpoints that your PMM (Private Market Maker) will need to implement to interact with our solver backend. The endpoints are used to provide indicative quotes, commitment quotes, settlement signatures, and to submit settlement transactions. Each endpoint's expected request parameters and response formats are described below.
 
+```mermaid
+
+sequenceDiagram
+    participant User
+    participant Solver
+    participant PMM
+    participant Chain
+
+    Note over User,Chain: Phase 1: Indicative Quote
+    User->>Solver: Request quote
+    Solver->>PMM: GET /indicative-quote
+    PMM-->>Solver: Return indicative quote
+    Solver-->>User: Show quote
+
+    Note over User,Chain: Phase 2: Commitment
+    User->>Solver: Accept quote
+    Solver->>PMM: GET /commitment-quote
+    PMM-->>Solver: Return commitment quote
+
+    Note over User,Chain: Phase 3: Settlement
+    Solver->>PMM: GET /settlement-signature
+    PMM-->>Solver: Return signature
+    Solver->>PMM: POST /ack-settlement
+    PMM-->>Solver: Acknowledge settlement
+    Solver->>PMM: POST /signal-payment
+    PMM-->>Solver: Acknowledge signal
+    PMM->>Chain: Execute settlement (transfer)
+    PMM->>Solver: POST /submit-settlement-tx
+    Solver-->>PMM: Confirm settlement submission
+```
+
 ---
 
 ## Table of Contents
 
-1. [PMM Endpoints](#pmm-endpoints)
-   - [1. `/indicative-quote`](#1-endpoint-indicative-quote)
-   - [2. `/commitment-quote`](#2-endpoint-commitment-quote)
-   - [3. `/settlement-signature`](#3-endpoint-settlement-signature)
-   - [4. `/ack-settlement`](#4-endpoint-ack-settlement)
-   - [5. `/signal-payment`](#5-endpoint-signal-payment)
-2. [Solver Backend Endpoints for PMMs](#solver-backend-endpoints-for-pmms)
-   - [1. `/tokens`](#1-endpoint-tokens)
-   - [2. `/submit-settlement-tx`](#2-endpoint-submit-settlement-tx)
-3. [General Notes for PMMs](#general-notes-for-pmms)
+- [PMM Integration API Documentation](#pmm-integration-api-documentation)
+  - [Table of Contents](#table-of-contents)
+  - [PMM Endpoints](#pmm-endpoints)
+    - [1. Endpoint: `/indicative-quote`](#1-endpoint-indicative-quote)
+      - [Description](#description)
+      - [Request Parameters](#request-parameters)
+      - [Example Request](#example-request)
+      - [Expected Response](#expected-response)
+      - [Example code](#example-code)
+    - [2. Endpoint: `/commitment-quote`](#2-endpoint-commitment-quote)
+      - [Description](#description-1)
+      - [Request Parameters](#request-parameters-1)
+      - [Example Request](#example-request-1)
+      - [Expected Response](#expected-response-1)
+      - [Example](#example)
+    - [3. Endpoint: `/settlement-signature`](#3-endpoint-settlement-signature)
+      - [Description](#description-2)
+      - [Request Parameters](#request-parameters-2)
+      - [Example Request](#example-request-2)
+      - [Expected Response](#expected-response-2)
+      - [Example](#example-1)
+    - [4. Endpoint: `/ack-settlement`](#4-endpoint-ack-settlement)
+      - [Description](#description-3)
+      - [Request Parameters](#request-parameters-3)
+      - [Example Request](#example-request-3)
+      - [Expected Response](#expected-response-3)
+      - [Example](#example-2)
+    - [5. Endpoint: `/signal-payment`](#5-endpoint-signal-payment)
+      - [Description](#description-4)
+      - [Request Parameters](#request-parameters-4)
+      - [Example Request](#example-request-4)
+      - [Expected Response](#expected-response-4)
+      - [Example](#example-3)
+  - [Solver Backend Endpoints for PMMs](#solver-backend-endpoints-for-pmms)
+    - [1. Endpoint: `/tokens`](#1-endpoint-tokens)
+      - [Description](#description-5)
+      - [Request Parameters](#request-parameters-5)
+      - [Example Request](#example-request-5)
+      - [Expected Response](#expected-response-5)
+    - [2. Endpoint: `/submit-settlement-tx`](#2-endpoint-submit-settlement-tx)
+      - [Description](#description-6)
+      - [Request Parameters](#request-parameters-6)
+      - [Example Request](#example-request-6)
+      - [Expected Response](#expected-response-6)
+      - [Example](#example-4)
+      - [Notes](#notes)
+  - [PMM transfer](#pmm-transfer)
+    - [EVM](#evm)
+    - [Bitcoin](#bitcoin)
+  - [General Notes for PMMs](#general-notes-for-pmms)
+    - [Request Format](#request-format)
+    - [Response Format](#response-format)
+    - [Important Notes](#important-notes)
 
 ---
 
@@ -1072,3 +1146,21 @@ export class BTCTransferStrategy implements ITransferStrategy {
 }
 
 ```
+---
+## General Notes for PMMs
+
+### Request Format
+- Convert field names from snake_case to camelCase
+  - Example: `user_account_details` → `userAccountDetails`
+  - Example: `order_tracking_info` → `orderTrackingInfo`
+
+### Response Format
+- Convert field names from camelCase to snake_case
+  - Example: `orderStatusUpdate` → `order_status_update`
+  - Example: `userProfileData` → `user_profile_data`
+
+### Important Notes
+- Only requests from solver use query parameters for data transmission (including POST method)
+- Other requests use request body as normal
+- Field name conversion rules apply to both request and response parameters
+- Maintain consistent casing throughout the request/response cycle
