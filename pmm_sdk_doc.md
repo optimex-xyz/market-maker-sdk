@@ -6,10 +6,10 @@ This document provides detailed information about the endpoints that your PMM (P
   - [Setup](#setup)
     - [Env](#env)
   - [Solver Backend Endpoints for PMMs](#solver-backend-endpoints-for-pmms)
-    - [1. Endpoint: `/tokens`](#1-endpoint-tokens)
+    - [1. Function getTokens](#1-function-gettokens)
       - [Description](#description)
       - [Example code](#example-code)
-    - [2. Endpoint: `/submit-settlement-tx`](#2-endpoint-submit-settlement-tx)
+    - [2. Function submitSettlementTx](#2-function-submitsettlementtx)
       - [Description](#description-1)
       - [Example](#example)
       - [Notes](#notes)
@@ -59,7 +59,7 @@ This document provides detailed information about the endpoints that your PMM (P
 
 ## Solver Backend Endpoints for PMMs
 
-### 1. Endpoint: `/tokens`
+### 1. Function getTokens
 
 #### Description
 
@@ -75,7 +75,7 @@ tokenService.getTokens()
 ```
 
 ---
-### 2. Endpoint: `/submit-settlement-tx`
+### 2. Function submitSettlementTx
 
 #### Description
 
