@@ -1,6 +1,10 @@
 # PMM SDK Integration Documentation
 
-This document provides detailed information about the endpoints that your PMM (Private Market Maker) will need to implement to interact with our solver backend. The endpoints are used to provide indicative quotes, commitment quotes, settlement signatures, and to submit settlement transactions. Each endpoint's expected request parameters and response formats are described below.
+A comprehensive toolkit for implementing Private Market Makers (PMMs) in the BitFi cross-chain trading network. This guide covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
+
+## Overview 
+
+This repository contains everything needed to integrate your PMM with BitFi's solver network:
 
 ```mermaid
 
@@ -33,65 +37,25 @@ sequenceDiagram
     Solver-->>PMM: Confirm settlement submission
 ```
 
-- [PMM Integration SDK Documentation](#pmm-integration-api-documentation)
-  - [Setup](#setup)
-    - [Installation](#install)
-    - [Env](#env)
-  - [Solver Functions for PMMs](#solver-backend-endpoints-for-pmms)
-    - [1. Function getTokens](#1-function-gettokens)
-      - [Description](#description)
-      - [Example code](#example-code)
-    - [2. Function submitSettlementTx](#2-function-submitsettlementtx)
-      - [Description](#description-1)
-      - [Example](#example)
-      - [Notes](#notes)
-  - [PMM Backend APIs](#pmm-backend-apis)
-    - [1. Endpoint: `/indicative-quote`](#1-endpoint-indicative-quote)
-      - [Description](#description-2)
-      - [Request Parameters](#request-parameters)
-      - [Example Request](#example-request)
-      - [Expected Response](#expected-response)
-      - [Example code](#example-code-1)
-    - [2. Endpoint: `/commitment-quote`](#2-endpoint-commitment-quote)
-      - [Description](#description-3)
-      - [Request Parameters](#request-parameters-1)
-      - [Example Request](#example-request-1)
-      - [Expected Response](#expected-response-1)
-      - [Example](#example-1)
-    - [3. Endpoint: `/settlement-signature`](#3-endpoint-settlement-signature)
-      - [Description](#description-4)
-      - [Request Parameters](#request-parameters-2)
-      - [Example Request](#example-request-2)
-      - [Expected Response](#expected-response-2)
-      - [Example](#example-2)
-    - [4. Endpoint: `/ack-settlement`](#4-endpoint-ack-settlement)
-      - [Description](#description-5)
-      - [Request Parameters](#request-parameters-3)
-      - [Example Request](#example-request-3)
-      - [Expected Response](#expected-response-3)
-      - [Example](#example-3)
-    - [5. Endpoint: `/signal-payment`](#5-endpoint-signal-payment)
-      - [Description](#description-6)
-      - [Request Parameters](#request-parameters-4)
-      - [Example Request](#example-request-4)
-      - [Expected Response](#expected-response-4)
-      - [Example](#example-4)
-  - [PMM making payment](#pmm-making-payment)
-    - [EVM](#evm)
-    - [Bitcoin](#bitcoin)
+### Repository Structure
 
----
+├── abi/            # Smart contract ABIs
+├── example/        # Mock PMM implementation using @bitfixyz/market-maker-sdk
+├── src/            # SDK source code
+└── docs/          
+    ├── pmm_integration_doc.md     # Detailed API specifications
+    └── pmm_sdk_services.md        # SDK function reference
 
-## Setup
+### Example Implementation
+The [Example](example/) directory contains a fully functional mock PMM. Use this implementation as a reference while integrating the `@bitfixyz/market-maker-sdk` into your own PMM service.
 
-### Install
+## Quick Start
 
 ```bash
 npm install @bitfixyz/market-maker-sdk
 # or
 yarn add @bitfixyz/market-maker-sdk
 ```
-
 ### Env
 | Variable | Development | Production |
 | -------- | ----------- | ---------- |
