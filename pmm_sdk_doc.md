@@ -1,4 +1,4 @@
-# PMM Integration API Documentation
+# PMM SDK Integration Documentation
 
 This document provides detailed information about the endpoints that your PMM (Private Market Maker) will need to implement to interact with our solver backend. The endpoints are used to provide indicative quotes, commitment quotes, settlement signatures, and to submit settlement transactions. Each endpoint's expected request parameters and response formats are described below.
 
