@@ -170,17 +170,6 @@ tokenService.getTokens()
 
 ## PMM Endpoints
 
-### Env
-| Variable | Development                | Production                               |
-| -------- | -------------------------- | ---------------------------------------- |
-| host     | http://52.221.184.2        | https://bitfi-solver.kyberengineering.io |
-
-```ts
-import { config } from '@bitfixyz/market-maker-sdk'
-
-config.getSolverUrl()
-```
-
 ### 1. Endpoint: `/indicative-quote`
 
 #### Description
@@ -615,6 +604,18 @@ async signalPayment(dto: SignalPaymentDto, trade: Trade): Promise<SignalPaymentR
 ---
 
 ## Solver Backend Endpoints for PMMs
+
+### Env
+| Variable | Development                | Production                               |
+| -------- | -------------------------- | ---------------------------------------- |
+| host     | http://52.221.184.2        | https://bitfi-solver.kyberengineering.io |
+
+```ts
+import { config } from '@bitfixyz/market-maker-sdk'
+
+config.getSolverUrl()
+```
+
 
 ### 1. Endpoint: `/submit-settlement-tx`
 
