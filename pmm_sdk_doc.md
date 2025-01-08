@@ -2,6 +2,37 @@
 
 This document provides detailed information about the endpoints that your PMM (Private Market Maker) will need to implement to interact with our solver backend. The endpoints are used to provide indicative quotes, commitment quotes, settlement signatures, and to submit settlement transactions. Each endpoint's expected request parameters and response formats are described below.
 
+```mermaid
+
+sequenceDiagram
+    participant User
+    participant Solver
+    participant PMM
+    participant Chain
+
+    Note over User,Chain: Phase 1: Indicative Quote
+    User->>Solver: Request quote
+    Solver->>PMM: GET /indicative-quote
+    PMM-->>Solver: Return indicative quote
+    Solver-->>User: Show quote
+
+    Note over User,Chain: Phase 2: Commitment
+    User->>Solver: Accept quote
+    Solver->>PMM: GET /commitment-quote
+    PMM-->>Solver: Return commitment quote
+
+    Note over User,Chain: Phase 3: Settlement
+    Solver->>PMM: GET /settlement-signature
+    PMM-->>Solver: Return signature
+    Solver->>PMM: POST /ack-settlement
+    PMM-->>Solver: Acknowledge settlement
+    Solver->>PMM: POST /signal-payment
+    PMM-->>Solver: Acknowledge signal
+    PMM->>Chain: Execute settlement (transfer)
+    PMM->>Solver: POST /submit-settlement-tx
+    Solver-->>PMM: Confirm settlement submission
+```
+
 - [PMM Integration API Documentation](#pmm-integration-api-documentation)
   - [Setup](#setup)
     - [Env](#env)
