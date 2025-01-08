@@ -38,13 +38,10 @@ sequenceDiagram
 ```
 
 ### Repository Structure
-
-├── abi/            # Smart contract ABIs
-├── example/        # Mock PMM implementation using @bitfixyz/market-maker-sdk
-├── src/            # SDK source code
-└── docs/          
-    ├── pmm_integration_doc.md     # Detailed API specifications
-    └── pmm_sdk_services.md        # SDK function reference
+The repository consists of:
+- `abi/`: Smart contract ABIs and interfaces
+- `example/`: A complete mock PMM implementation showing how to integrate the SDK
+- `src/`: Source code for the market maker SDK
 
 ### Example Implementation
 The [Example](example/) directory contains a fully functional mock PMM. Use this implementation as a reference while integrating the `@bitfixyz/market-maker-sdk` into your own PMM service.
