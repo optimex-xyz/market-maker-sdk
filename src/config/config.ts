@@ -14,7 +14,7 @@ export interface AppConfig extends EnvironmentConfig {
 
 const environments: Record<Environment, EnvironmentConfig> = {
   dev: {
-    solverUrl: 'http://52.221.184.2',
+    solverUrl: 'https://pre-bitfi-solver.kyberengineering.io',
     backendUrl: 'https://api-stg.bitdex.xyz',
     rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
     routerAddress: '0x67d96Bbd0Dd191525510163D753bA3FdE485f0ee',

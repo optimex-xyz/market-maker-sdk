@@ -5,9 +5,10 @@ import { config } from '../config'
 import { Token, TokenSchema } from '../types'
 import { convertToCamelCase } from '../utils'
 
-// Response schema for the API
 const TokenResponseSchema = z.object({
-  data: z.array(TokenSchema),
+  data: z.object({
+    tokens: z.array(TokenSchema),
+  }),
   traceId: z.string(),
 })
 
@@ -25,7 +26,7 @@ export class TokenService {
    */
   async getTokens(): Promise<Token[]> {
     try {
-      const response = await axios.get<any>(`${this.baseURL}/tokens`, {
+      const response = await axios.get<any>(`${this.baseURL}/v1/tokens`, {
         headers: {
           Accept: 'application/json',
         },
@@ -37,7 +38,7 @@ export class TokenService {
       // Validate the converted data against our schema
       const validatedResponse = TokenResponseSchema.parse(camelCaseData)
 
-      return validatedResponse.data
+      return validatedResponse.data.tokens
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new Error(`Failed to fetch tokens: ${error.message}`)
