@@ -1046,19 +1046,6 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@bitfixyz/market-maker-sdk@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@bitfixyz/market-maker-sdk/-/market-maker-sdk-0.1.4.tgz#26ddaf1419873fcbf8a177cdbbd19e318ea50bc8"
-  integrity sha512-+JqYwHdtB5A3PkpvmBXW5aUkD1vmKrDEENtNpx8z3PUzgODVZhA1quLxOoLA5YydMuFx8nT8eP1PONyav9RbLA==
-  dependencies:
-    axios "^1.7.9"
-    bip174 "^3.0.0-rc.1"
-    bitcoinjs-lib "^7.0.0-rc.0"
-    ecpair "^3.0.0-rc.0"
-    ethers "^6.13.4"
-    tiny-secp256k1 "^2.2.3"
-    zod "^3.23.8"
-
 "@bull-board/api@6.5.3", "@bull-board/api@^6.5.3":
   version "6.5.3"
   resolved "https://registry.yarnpkg.com/@bull-board/api/-/api-6.5.3.tgz#07fccb2b25e1e36bf3f4759013b9d5c647a6c1ea"
@@ -2190,6 +2177,19 @@
     "@parcel/watcher-win32-arm64" "2.5.0"
     "@parcel/watcher-win32-ia32" "2.5.0"
     "@parcel/watcher-win32-x64" "2.5.0"
+
+"@petafixyz/market-maker-sdk@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@petafixyz/market-maker-sdk/-/market-maker-sdk-0.1.0.tgz#d7d8de6dd76ab56a5f914c21cf09d25b5f0be543"
+  integrity sha512-q4Sfr1xrD81BwCsa+60kt30TKpPv7jc1yWJPeWQDlAWBlF+v6VXSSsSrIWdGv7/V3oWkCYj3wgeLHtBJXpwOjA==
+  dependencies:
+    axios "^1.7.9"
+    bip174 "^3.0.0-rc.1"
+    bitcoinjs-lib "^7.0.0-rc.0"
+    ecpair "^3.0.0-rc.0"
+    ethers "^6.13.4"
+    tiny-secp256k1 "^2.2.3"
+    zod "^3.23.8"
 
 "@phenomnomnominal/tsquery@~5.0.1":
   version "5.0.1"

@@ -1,31 +1,22 @@
-import { Queue } from 'bull'
-import * as ethers from 'ethers'
+import { Queue } from 'bull';
+import * as ethers from 'ethers';
 
-import { stringToHex, toString } from '@bitfi-mock-pmm/shared'
-import { TradeService } from '@bitfi-mock-pmm/trade'
+import { stringToHex, toString } from '@bitfi-mock-pmm/shared';
+import { TradeService } from '@bitfi-mock-pmm/trade';
+import { InjectQueue } from '@nestjs/bull';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
-  getCommitInfoHash,
-  getSignature,
-  routerService,
-  SignatureType,
-  signerService,
-} from '@bitfixyz/market-maker-sdk'
-import { InjectQueue } from '@nestjs/bull'
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { Trade, TradeStatus } from '@prisma/client'
+    getCommitInfoHash, getSignature, routerService, SignatureType, signerService
+} from '@petafixyz/market-maker-sdk';
+import { Trade, TradeStatus } from '@prisma/client';
 
-import { SETTLEMENT_QUEUE } from './const'
+import { SETTLEMENT_QUEUE } from './const';
 import {
-  AckSettlementDto,
-  AckSettlementResponseDto,
-  GetSettlementSignatureDto,
-  SettlementSignatureResponseDto,
-  SignalPaymentDto,
-  SignalPaymentResponseDto,
-  SubmitTxDTO,
-} from './settlement.dto'
-import { SubmitSettlementEvent, TransferSettlementEvent } from './types'
+    AckSettlementDto, AckSettlementResponseDto, GetSettlementSignatureDto,
+    SettlementSignatureResponseDto, SignalPaymentDto, SignalPaymentResponseDto, SubmitTxDTO
+} from './settlement.dto';
+import { SubmitSettlementEvent, TransferSettlementEvent } from './types';
 
 @Injectable()
 export class SettlementService {

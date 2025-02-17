@@ -1,22 +1,17 @@
-import { AxiosError } from 'axios'
-import { Job } from 'bull'
-import { BytesLike, ethers } from 'ethers'
+import { AxiosError } from 'axios';
+import { Job } from 'bull';
+import { BytesLike, ethers } from 'ethers';
 
-import { ensureHexPrefix, toObject } from '@bitfi-mock-pmm/shared'
+import { ensureHexPrefix, toObject } from '@bitfi-mock-pmm/shared';
+import { Process, Processor } from '@nestjs/bull';
+import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
-  getMakePaymentHash,
-  getSignature,
-  routerService,
-  SignatureType,
-  signerService,
-  solverService,
-} from '@bitfixyz/market-maker-sdk'
-import { Process, Processor } from '@nestjs/bull'
-import { Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+    getMakePaymentHash, getSignature, routerService, SignatureType, signerService, solverService
+} from '@petafixyz/market-maker-sdk';
 
-import { SETTLEMENT_QUEUE } from '../const'
-import { SubmitSettlementEvent } from '../types'
+import { SETTLEMENT_QUEUE } from '../const';
+import { SubmitSettlementEvent } from '../types';
 
 @Processor(SETTLEMENT_QUEUE.SUBMIT.NAME)
 export class SubmitSettlementProcessor {
