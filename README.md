@@ -1,10 +1,10 @@
 # PMM SDK Integration Documentation
 
-A comprehensive toolkit for implementing Private Market Makers (PMMs) in the BitFi cross-chain trading network. This guide covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
+A comprehensive toolkit for implementing Private Market Makers (PMMs) in the PetaFi cross-chain trading network. This guide covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
 
-## Overview 
+## Overview
 
-This repository contains everything needed to integrate your PMM with BitFi's solver network:
+This repository contains everything needed to integrate your PMM with PetaFi's solver network:
 
 ```mermaid
 
@@ -44,14 +44,14 @@ The repository consists of:
 - `src/`: Source code for the market maker SDK
 
 ### Example Implementation
-The [Example](example/) directory contains a fully functional mock PMM. Use this implementation as a reference while integrating the `@bitfixyz/market-maker-sdk` into your own PMM service.
+The [Example](example/) directory contains a fully functional mock PMM. Use this implementation as a reference while integrating the `@petafixyz/market-maker-sdk` into your own PMM service.
 
 ## Quick Start
 
 ```bash
-npm install @bitfixyz/market-maker-sdk
+npm install @petafixyz/market-maker-sdk
 # or
-yarn add @bitfixyz/market-maker-sdk
+yarn add @petafixyz/market-maker-sdk
 ```
 ### Env
 | Variable | Development | Production |
@@ -71,7 +71,7 @@ Returns a list of all supported tokens across different networks.
 #### Example code
 
 ```ts
-import { tokenService } from '@bitfixyz/market-maker-sdk'
+import { tokenService } from '@petafixyz/market-maker-sdk'
 
 tokenService.getTokens()
 
@@ -101,7 +101,7 @@ import {
   SignatureType,
   signerService,
   solverService,
-} from '@bitfixyz/market-maker-sdk'
+} from '@petafixyz/market-maker-sdk'
 
 async submit(job: Job<string>) {
   const { tradeId, paymentTxId } = toObject(job.data) as SubmitSettlementEvent
@@ -205,7 +205,7 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 #### Example code
 
 ```js
-import { Token, tokenService } from '@bitfixyz/market-maker-sdk'
+import { Token, tokenService } from '@petafixyz/market-maker-sdk'
 
 export const IndicativeQuoteResponseSchema = z.object({
   sessionId: z.string(),
@@ -287,7 +287,7 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
 #### Example
 
 ```js
-import { Token, tokenService } from '@bitfixyz/market-maker-sdk'
+import { Token, tokenService } from '@petafixyz/market-maker-sdk'
 
 export const GetCommitmentQuoteSchema = z.object({
   sessionId: z.string(),
@@ -381,7 +381,7 @@ import {
   routerService,
   SignatureType,
   signerService,
-} from '@bitfixyz/market-maker-sdk'
+} from '@petafixyz/market-maker-sdk'
 
 export const GetSettlementSignatureSchema = z.object({
   tradeId: z.string(),
@@ -598,7 +598,7 @@ async signalPayment(dto: SignalPaymentDto, trade: Trade): Promise<SignalPaymentR
 ## PMM making payment
 
 ```ts
-import { Token } from '@bitfixyz/market-maker-sdk'
+import { Token } from '@petafixyz/market-maker-sdk'
 
 export interface TransferParams {
   toAddress: string
@@ -618,7 +618,7 @@ Example code transfer
 you could get paymentAddress at `https://github.com/bitfixyz/bitfi-smartcontract?tab=readme-ov-file#deployed-contracts`
 
 ```ts
-import { config, ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@bitfixyz/market-maker-sdk'
+import { config, ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@petafixyz/market-maker-sdk'
 
 import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
 
@@ -696,14 +696,14 @@ export class EVMTransferStrategy implements ITransferStrategy {
 ---
 ### Bitcoin
 
-Incase toChain is BTC. Transaction should have at least N + 1 output. with the first N output is the settle utxo for bitfi trade, and one of them is the change utxo for user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds
+Incase toChain is BTC. Transaction should have at least N + 1 output. with the first N output is the settle utxo for PetaFi trade, and one of them is the change utxo for user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds
 
 ```ts
 import * as bitcoin from 'bitcoinjs-lib'
 import { ECPairFactory } from 'ecpair'
 import * as ecc from 'tiny-secp256k1'
 
-import { getTradeIdsHash, Token } from '@bitfixyz/market-maker-sdk'
+import { getTradeIdsHash, Token } from '@petafixyz/market-maker-sdk'
 
 import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
 

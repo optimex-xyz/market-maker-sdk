@@ -1,6 +1,6 @@
 {
-  "name": "@bitfixyz/market-maker-sdk",
-  "version": "0.1.6",
+  "name": "@petafixyz/market-maker-sdk",
+  "version": "0.1.0",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -17,7 +17,7 @@
     "README.md"
   ],
   "keywords": [
-    "bitfi",
+    "PetaFi",
     "maker",
     "market",
     "sdk"

@@ -24,7 +24,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
   },
   production: {
     solverUrl: 'https://bitfi-solver.kyberengineering.io',
-    backendUrl: 'https://api.bitfi.xyz',
+    backendUrl: 'https://api.petafi.xyz',
     rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
     routerAddress: '0x07468dF194817257e73cA71E938C1ef977Be032F',
     paymentAddressMap: {
