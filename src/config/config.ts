@@ -16,10 +16,10 @@ const environments: Record<Environment, EnvironmentConfig> = {
   dev: {
     solverUrl: 'https://pre-bitfi-solver.kyberengineering.io',
     backendUrl: 'https://api-stg.bitdex.xyz',
-    rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
-    routerAddress: '0x67d96Bbd0Dd191525510163D753bA3FdE485f0ee',
+    rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
+    routerAddress: '0xc0B01A53B15bacAF6f81aF1F6B001E8c8130256e',
     paymentAddressMap: {
-      'ethereum-sepolia': '0x40b1C28197be3016D0db9Bad5efaF415244f0A73',
+      'ethereum-sepolia': '0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2',
     },
   },
   production: {

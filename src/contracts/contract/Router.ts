@@ -46,11 +46,57 @@ export declare namespace ITypes {
     signature: string;
   };
 
-  export type MPCInfoStruct = { mpc: AddressLike; expireTime: BigNumberish };
+  export type AffiliateStruct = {
+    aggregatedValue: BigNumberish;
+    schema: string;
+    data: BytesLike;
+  };
 
-  export type MPCInfoStructOutput = [mpc: string, expireTime: bigint] & {
-    mpc: string;
+  export type AffiliateStructOutput = [
+    aggregatedValue: bigint,
+    schema: string,
+    data: string
+  ] & { aggregatedValue: bigint; schema: string; data: string };
+
+  export type FeeDetailsStruct = {
+    totalAmount: BigNumberish;
+    pFeeAmount: BigNumberish;
+    aFeeAmount: BigNumberish;
+    pFeeRate: BigNumberish;
+    aFeeRate: BigNumberish;
+  };
+
+  export type FeeDetailsStructOutput = [
+    totalAmount: bigint,
+    pFeeAmount: bigint,
+    aFeeAmount: bigint,
+    pFeeRate: bigint,
+    aFeeRate: bigint
+  ] & {
+    totalAmount: bigint;
+    pFeeAmount: bigint;
+    aFeeAmount: bigint;
+    pFeeRate: bigint;
+    aFeeRate: bigint;
+  };
+
+  export type MPCInfoStruct = {
+    mpcL2Address: AddressLike;
+    expireTime: BigNumberish;
+    mpcL2Pubkey: BytesLike;
+    mpcAssetPubkey: BytesLike;
+  };
+
+  export type MPCInfoStructOutput = [
+    mpcL2Address: string,
+    expireTime: bigint,
+    mpcL2Pubkey: string,
+    mpcAssetPubkey: string
+  ] & {
+    mpcL2Address: string;
     expireTime: bigint;
+    mpcL2Pubkey: string;
+    mpcAssetPubkey: string;
   };
 
   export type RFQInfoStruct = {
@@ -108,16 +154,6 @@ export declare namespace ITypes {
     pmmRecvAddress: string,
     presigns: string[]
   ] & { pmmId: string; pmmRecvAddress: string; presigns: string[] };
-
-  export type ProtocolFeeStruct = {
-    feeRate: BigNumberish;
-    amount: BigNumberish;
-  };
-
-  export type ProtocolFeeStructOutput = [feeRate: bigint, amount: bigint] & {
-    feeRate: bigint;
-    amount: bigint;
-  };
 
   export type SettledPaymentStruct = {
     bundlerHash: BytesLike;
@@ -205,18 +241,21 @@ export interface RouterInterface extends Interface {
       | "confirmDeposit"
       | "confirmPayment"
       | "confirmSettlement"
-      | "getCurrentPubkey"
+      | "getAffiliateInfo"
       | "getCurrentStage"
       | "getDepositAddressList"
+      | "getFeeDetails"
       | "getHandler"
-      | "getHandlerByTradeId"
+      | "getHandlerOf"
       | "getLastSignedPayment"
-      | "getMPCPubkeyInfo"
-      | "getOwner"
+      | "getLatestMPCInfo"
+      | "getMPCInfo"
+      | "getManagementOwner"
+      | "getMaxAffiliateFeeRate"
       | "getPFeeRate"
+      | "getPMMAccounts"
       | "getPMMSelection"
       | "getPresigns"
-      | "getProtocolFee"
       | "getProtocolState"
       | "getSettledPayment"
       | "getTokens"
@@ -230,11 +269,12 @@ export interface RouterInterface extends Interface {
       | "isValidPubkey"
       | "isValidToken"
       | "management"
+      | "numOfPMMAccounts"
       | "numOfSupportedTokens"
       | "selectPMM"
       | "setManagement"
       | "setRoute"
-      | "submitTradeInfoAndPresign"
+      | "submitTrade"
       | "version"
   ): FunctionFragment;
 
@@ -267,8 +307,8 @@ export interface RouterInterface extends Interface {
     values: [BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getCurrentPubkey",
-    values?: undefined
+    functionFragment: "getAffiliateInfo",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getCurrentStage",
@@ -279,11 +319,15 @@ export interface RouterInterface extends Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "getFeeDetails",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getHandler",
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getHandlerByTradeId",
+    functionFragment: "getHandlerOf",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
@@ -291,13 +335,28 @@ export interface RouterInterface extends Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getMPCPubkeyInfo",
+    functionFragment: "getLatestMPCInfo",
     values: [BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "getOwner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getMPCInfo",
+    values: [BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getManagementOwner",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getMaxAffiliateFeeRate",
+    values: [BytesLike, BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "getPFeeRate",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPMMAccounts",
+    values: [BytesLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getPMMSelection",
@@ -305,10 +364,6 @@ export interface RouterInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getPresigns",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getProtocolFee",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
@@ -353,7 +408,7 @@ export interface RouterInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "isValidPubkey",
-    values: [BytesLike]
+    values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isValidToken",
@@ -362,6 +417,10 @@ export interface RouterInterface extends Interface {
   encodeFunctionData(
     functionFragment: "management",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "numOfPMMAccounts",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "numOfSupportedTokens",
@@ -380,8 +439,13 @@ export interface RouterInterface extends Interface {
     values: [AddressLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "submitTradeInfoAndPresign",
-    values: [BytesLike, ITypes.TradeDataStruct, ITypes.PresignStruct[]]
+    functionFragment: "submitTrade",
+    values: [
+      BytesLike,
+      ITypes.TradeDataStruct,
+      ITypes.AffiliateStruct,
+      ITypes.PresignStruct[]
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "version",
@@ -406,7 +470,7 @@ export interface RouterInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getCurrentPubkey",
+    functionFragment: "getAffiliateInfo",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -417,9 +481,13 @@ export interface RouterInterface extends Interface {
     functionFragment: "getDepositAddressList",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getFeeDetails",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getHandler", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getHandlerByTradeId",
+    functionFragment: "getHandlerOf",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -427,12 +495,24 @@ export interface RouterInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getMPCPubkeyInfo",
+    functionFragment: "getLatestMPCInfo",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getMPCInfo", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getManagementOwner",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getMaxAffiliateFeeRate",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getPFeeRate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPMMAccounts",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -441,10 +521,6 @@ export interface RouterInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPresigns",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getProtocolFee",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -485,6 +561,10 @@ export interface RouterInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "management", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "numOfPMMAccounts",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "numOfSupportedTokens",
     data: BytesLike
   ): Result;
@@ -495,7 +575,7 @@ export interface RouterInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "setRoute", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "submitTradeInfoAndPresign",
+    functionFragment: "submitTrade",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
@@ -506,18 +586,21 @@ export namespace ConfirmDepositEvent {
     mpc: AddressLike,
     tradeId: BytesLike,
     pFeeRate: BigNumberish,
+    aFeeRate: BigNumberish,
     list: BytesLike[]
   ];
   export type OutputTuple = [
     mpc: string,
     tradeId: string,
     pFeeRate: bigint,
+    aFeeRate: bigint,
     list: string[]
   ];
   export interface OutputObject {
     mpc: string;
     tradeId: string;
     pFeeRate: bigint;
+    aFeeRate: bigint;
     list: string[];
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
@@ -553,10 +636,10 @@ export namespace ConfirmSettlementEvent {
 }
 
 export namespace MakePaymentEvent {
-  export type InputTuple = [solver: AddressLike, tradeId: BytesLike];
-  export type OutputTuple = [solver: string, tradeId: string];
+  export type InputTuple = [operator: AddressLike, tradeId: BytesLike];
+  export type OutputTuple = [operator: string, tradeId: string];
   export interface OutputObject {
-    solver: string;
+    operator: string;
     tradeId: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
@@ -685,7 +768,11 @@ export interface Router extends BaseContract {
     "nonpayable"
   >;
 
-  getCurrentPubkey: TypedContractMethod<[], [string], "view">;
+  getAffiliateInfo: TypedContractMethod<
+    [tradeId: BytesLike],
+    [ITypes.AffiliateStructOutput],
+    "view"
+  >;
 
   getCurrentStage: TypedContractMethod<[tradeId: BytesLike], [bigint], "view">;
 
@@ -695,13 +782,19 @@ export interface Router extends BaseContract {
     "view"
   >;
 
+  getFeeDetails: TypedContractMethod<
+    [tradeId: BytesLike],
+    [ITypes.FeeDetailsStructOutput],
+    "view"
+  >;
+
   getHandler: TypedContractMethod<
     [fromChain: BytesLike, toChain: BytesLike],
     [[string, string] & { handler: string; handlerType: string }],
     "view"
   >;
 
-  getHandlerByTradeId: TypedContractMethod<
+  getHandlerOf: TypedContractMethod<
     [tradeId: BytesLike],
     [[string, string] & { handler: string; handlerType: string }],
     "view"
@@ -713,15 +806,33 @@ export interface Router extends BaseContract {
     "view"
   >;
 
-  getMPCPubkeyInfo: TypedContractMethod<
-    [pubkey: BytesLike],
+  getLatestMPCInfo: TypedContractMethod<
+    [networkId: BytesLike],
     [ITypes.MPCInfoStructOutput],
     "view"
   >;
 
-  getOwner: TypedContractMethod<[], [string], "view">;
+  getMPCInfo: TypedContractMethod<
+    [networkId: BytesLike, pubkey: BytesLike],
+    [ITypes.MPCInfoStructOutput],
+    "view"
+  >;
+
+  getManagementOwner: TypedContractMethod<[], [string], "view">;
+
+  getMaxAffiliateFeeRate: TypedContractMethod<
+    [fromChain: BytesLike, toChain: BytesLike],
+    [bigint],
+    "view"
+  >;
 
   getPFeeRate: TypedContractMethod<[], [bigint], "view">;
+
+  getPMMAccounts: TypedContractMethod<
+    [pmmId: BytesLike, fromIdx: BigNumberish, toIdx: BigNumberish],
+    [string[]],
+    "view"
+  >;
 
   getPMMSelection: TypedContractMethod<
     [tradeId: BytesLike],
@@ -732,12 +843,6 @@ export interface Router extends BaseContract {
   getPresigns: TypedContractMethod<
     [tradeId: BytesLike],
     [ITypes.PresignStructOutput[]],
-    "view"
-  >;
-
-  getProtocolFee: TypedContractMethod<
-    [tradeId: BytesLike],
-    [ITypes.ProtocolFeeStructOutput],
     "view"
   >;
 
@@ -781,7 +886,11 @@ export interface Router extends BaseContract {
     "view"
   >;
 
-  isValidPubkey: TypedContractMethod<[pubkey: BytesLike], [string], "view">;
+  isValidPubkey: TypedContractMethod<
+    [networkId: BytesLike, pubkey: BytesLike],
+    [boolean],
+    "view"
+  >;
 
   isValidToken: TypedContractMethod<
     [networkId: BytesLike, tokenId: BytesLike],
@@ -790,6 +899,8 @@ export interface Router extends BaseContract {
   >;
 
   management: TypedContractMethod<[], [string], "view">;
+
+  numOfPMMAccounts: TypedContractMethod<[pmmId: BytesLike], [bigint], "view">;
 
   numOfSupportedTokens: TypedContractMethod<[], [bigint], "view">;
 
@@ -811,11 +922,12 @@ export interface Router extends BaseContract {
     "nonpayable"
   >;
 
-  submitTradeInfoAndPresign: TypedContractMethod<
+  submitTrade: TypedContractMethod<
     [
       tradeId: BytesLike,
-      data: ITypes.TradeDataStruct,
-      presigns: ITypes.PresignStruct[]
+      tradeData: ITypes.TradeDataStruct,
+      affiliateInfo: ITypes.AffiliateStruct,
+      presignList: ITypes.PresignStruct[]
     ],
     [void],
     "nonpayable"
@@ -859,14 +971,25 @@ export interface Router extends BaseContract {
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "getCurrentPubkey"
-  ): TypedContractMethod<[], [string], "view">;
+    nameOrSignature: "getAffiliateInfo"
+  ): TypedContractMethod<
+    [tradeId: BytesLike],
+    [ITypes.AffiliateStructOutput],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "getCurrentStage"
   ): TypedContractMethod<[tradeId: BytesLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "getDepositAddressList"
   ): TypedContractMethod<[tradeId: BytesLike], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "getFeeDetails"
+  ): TypedContractMethod<
+    [tradeId: BytesLike],
+    [ITypes.FeeDetailsStructOutput],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "getHandler"
   ): TypedContractMethod<
@@ -875,7 +998,7 @@ export interface Router extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "getHandlerByTradeId"
+    nameOrSignature: "getHandlerOf"
   ): TypedContractMethod<
     [tradeId: BytesLike],
     [[string, string] & { handler: string; handlerType: string }],
@@ -885,18 +1008,39 @@ export interface Router extends BaseContract {
     nameOrSignature: "getLastSignedPayment"
   ): TypedContractMethod<[tradeId: BytesLike], [bigint], "view">;
   getFunction(
-    nameOrSignature: "getMPCPubkeyInfo"
+    nameOrSignature: "getLatestMPCInfo"
   ): TypedContractMethod<
-    [pubkey: BytesLike],
+    [networkId: BytesLike],
     [ITypes.MPCInfoStructOutput],
     "view"
   >;
   getFunction(
-    nameOrSignature: "getOwner"
+    nameOrSignature: "getMPCInfo"
+  ): TypedContractMethod<
+    [networkId: BytesLike, pubkey: BytesLike],
+    [ITypes.MPCInfoStructOutput],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getManagementOwner"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getMaxAffiliateFeeRate"
+  ): TypedContractMethod<
+    [fromChain: BytesLike, toChain: BytesLike],
+    [bigint],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "getPFeeRate"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getPMMAccounts"
+  ): TypedContractMethod<
+    [pmmId: BytesLike, fromIdx: BigNumberish, toIdx: BigNumberish],
+    [string[]],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "getPMMSelection"
   ): TypedContractMethod<
@@ -909,13 +1053,6 @@ export interface Router extends BaseContract {
   ): TypedContractMethod<
     [tradeId: BytesLike],
     [ITypes.PresignStructOutput[]],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getProtocolFee"
-  ): TypedContractMethod<
-    [tradeId: BytesLike],
-    [ITypes.ProtocolFeeStructOutput],
     "view"
   >;
   getFunction(
@@ -966,7 +1103,11 @@ export interface Router extends BaseContract {
   >;
   getFunction(
     nameOrSignature: "isValidPubkey"
-  ): TypedContractMethod<[pubkey: BytesLike], [string], "view">;
+  ): TypedContractMethod<
+    [networkId: BytesLike, pubkey: BytesLike],
+    [boolean],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "isValidToken"
   ): TypedContractMethod<
@@ -977,6 +1118,9 @@ export interface Router extends BaseContract {
   getFunction(
     nameOrSignature: "management"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "numOfPMMAccounts"
+  ): TypedContractMethod<[pmmId: BytesLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "numOfSupportedTokens"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -998,12 +1142,13 @@ export interface Router extends BaseContract {
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "submitTradeInfoAndPresign"
+    nameOrSignature: "submitTrade"
   ): TypedContractMethod<
     [
       tradeId: BytesLike,
-      data: ITypes.TradeDataStruct,
-      presigns: ITypes.PresignStruct[]
+      tradeData: ITypes.TradeDataStruct,
+      affiliateInfo: ITypes.AffiliateStruct,
+      presignList: ITypes.PresignStruct[]
     ],
     [void],
     "nonpayable"
@@ -1063,7 +1208,7 @@ export interface Router extends BaseContract {
   >;
 
   filters: {
-    "ConfirmDeposit(address,bytes32,uint256,bytes[])": TypedContractEvent<
+    "ConfirmDeposit(address,bytes32,uint256,uint256,bytes[])": TypedContractEvent<
       ConfirmDepositEvent.InputTuple,
       ConfirmDepositEvent.OutputTuple,
       ConfirmDepositEvent.OutputObject

@@ -65,7 +65,7 @@ export namespace PaymentTransferredEvent {
     pFeeAddr: AddressLike,
     token: AddressLike,
     payToUser: BigNumberish,
-    protocolFee: BigNumberish
+    totalFee: BigNumberish
   ];
   export type OutputTuple = [
     tradeId: string,
@@ -74,7 +74,7 @@ export namespace PaymentTransferredEvent {
     pFeeAddr: string,
     token: string,
     payToUser: bigint,
-    protocolFee: bigint
+    totalFee: bigint
   ];
   export interface OutputObject {
     tradeId: string;
@@ -83,7 +83,7 @@ export namespace PaymentTransferredEvent {
     pFeeAddr: string;
     token: string;
     payToUser: bigint;
-    protocolFee: bigint;
+    totalFee: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -153,7 +153,7 @@ export interface Payment extends BaseContract {
       token: AddressLike,
       toUser: AddressLike,
       amount: BigNumberish,
-      protocolFee: BigNumberish,
+      totalFee: BigNumberish,
       deadline: BigNumberish
     ],
     [void],
@@ -180,7 +180,7 @@ export interface Payment extends BaseContract {
       token: AddressLike,
       toUser: AddressLike,
       amount: BigNumberish,
-      protocolFee: BigNumberish,
+      totalFee: BigNumberish,
       deadline: BigNumberish
     ],
     [void],

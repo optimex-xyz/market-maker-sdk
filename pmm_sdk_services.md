@@ -30,7 +30,7 @@ import { routerService } from '@petafixyz/market-maker-sdk';
 
 // Get contract information
 const signer = await routerService.getSigner();
-const currentPubkey = await routerService.getCurrentPubkey();
+const currentPubkey = await routerService.getCurrentPubkey(network);
 
 // Trade management
 const currentStage = await routerService.getCurrentStage(tradeId);
