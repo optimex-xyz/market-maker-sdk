@@ -647,7 +647,7 @@ export class EVMTransferStrategy implements ITransferStrategy {
 
     const paymentContract = Payment__factory.connect(paymentAddress, signer)
 
-    const protocolFee = await this.routerService.getProtocolFee(tradeId)
+    const feeDetail = await this.routerService.getFeeDetails(tradeId)
 
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 30 * 60)
 
@@ -658,7 +658,7 @@ export class EVMTransferStrategy implements ITransferStrategy {
       tokenAddress === 'native' ? ZeroAddress : tokenAddress,
       toAddress,
       amount,
-      protocolFee.amount,
+      feeDetail.totalAmount,
       deadline,
       {
         value: tokenAddress === 'native' ? amount : 0n,

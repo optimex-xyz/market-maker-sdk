@@ -56,7 +56,7 @@ export class RouterService {
     return await this.contract.getProtocolState()
   }
 
-  async getProtocolFee(
+  async getFeeDetails(
     tradeId: BytesLike
   ): Promise<ITypes.FeeDetailsStructOutput> {
     return await this.contract.getFeeDetails(tradeId)
