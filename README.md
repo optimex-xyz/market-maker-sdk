@@ -627,7 +627,7 @@ export class EVMTransferStrategy implements ITransferStrategy {
   private pmmPrivateKey: string
 
   private routerService = routerService
-  private readonly rpcMap = new Map<string, string>([['ethereum-sepolia', 'https://eth-sepolia.public.blastapi.io']])
+  private readonly rpcMap = new Map<string, string>([['ethereum_sepolia', 'https://eth-sepolia.public.blastapi.io']])
 
   constructor(private configService: ConfigService) {
     this.pmmPrivateKey = this.configService.getOrThrow<string>('PMM_EVM_PRIVATE_KEY')
@@ -725,12 +725,12 @@ export class BTCTransferStrategy implements ITransferStrategy {
   private readonly ECPair = ECPairFactory(ecc)
 
   private readonly networkMap = new Map<string, bitcoin.Network>([
-    ['bitcoin-testnet', bitcoin.networks.testnet],
+    ['bitcoin_testnet', bitcoin.networks.testnet],
     ['bitcoin', bitcoin.networks.bitcoin],
   ])
 
   private readonly rpcMap = new Map<string, string>([
-    ['bitcoin-testnet', 'https://blockstream.info/testnet'],
+    ['bitcoin_testnet', 'https://blockstream.info/testnet'],
     ['bitcoin', 'https://blockstream.info'],
   ])
 
