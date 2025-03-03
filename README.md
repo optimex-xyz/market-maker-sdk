@@ -2,12 +2,32 @@
 
 A comprehensive toolkit for implementing Private Market Makers (PMMs) in the PetaFi cross-chain trading network. This guide covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
 
+## Table of Contents
+
+1. [Overview](#overview)
+   - [Repository Structure](#repository-structure)
+   - [Example Implementation](#example-implementation)
+2. [Quick Start](#quick-start)
+   - [Installation](#installation)
+   - [Environment Setup](#environment-setup)
+3. [PMM Backend APIs](#pmm-backend-apis)
+   - [Endpoint: /indicative-quote](#1-endpoint-indicative-quote)
+   - [Endpoint: /commitment-quote](#2-endpoint-commitment-quote)
+   - [Endpoint: /settlement-signature](#3-endpoint-settlement-signature)
+   - [Endpoint: /ack-settlement](#4-endpoint-ack-settlement)
+   - [Endpoint: /signal-payment](#5-endpoint-signal-payment)
+4. [SDK Functions for PMMs](#sdk-functions-for-pmms)
+   - [Function: getTokens](#1-function-gettokens)
+   - [Function: submitSettlementTx](#2-function-submitsettlementtx)
+5. [PMM Making Payment](#pmm-making-payment)
+   - [EVM Payment](#evm)
+   - [Bitcoin Payment](#bitcoin)
+
 ## Overview
 
 This repository contains everything needed to integrate your PMM with PetaFi's solver network:
 
 ```mermaid
-
 sequenceDiagram
     participant User
     participant Solver
@@ -48,119 +68,23 @@ The [Example](example/) directory contains a fully functional mock PMM. Use this
 
 ## Quick Start
 
+### Installation
+
 ```bash
 npm install @petafixyz/market-maker-sdk
 # or
 yarn add @petafixyz/market-maker-sdk
 ```
-### Env
+
+### Environment Setup
+
 | Variable | Development | Production |
 | -------- | ----------- | ---------- |
 | SDK_ENV  | dev         | production |
 
-## SDK Functions for PMMs
-
-SDK functions for PMM-Solver communication. See PMM Services for full documentation [PMM Services](pmm_sdk_services.md)
-
-### 1. Function getTokens
-
-#### Description
-
-Returns a list of all supported tokens across different networks.
-
-#### Example code
-
-```ts
-import { tokenService } from '@petafixyz/market-maker-sdk'
-
-tokenService.getTokens()
-
-```
-
----
-### 2. Function submitSettlementTx
-
-#### Description
-
-Allows the PMM to submit the settlement transaction hash for one or more trades. This step is necessary to complete the trade settlement process.
-
-- `trade_ids` (array of strings): An array of trade IDs associated with the settlement transaction.
-- `pmm_id` (string): The PMM's ID, which must match the one committed for the trade(s).
-- `settlement_tx` (string): The raw transaction data (in hex) representing the settlement.
-- `signature` (string): The PMM's signature on the settlement transaction.
-- `start_index` (integer): The index indicating the starting point for settlement processing (used for batch settlements).
-- `signed_at` (integer): The UNIX timestamp (in seconds) when the PMM signed the settlement transaction.
-
-#### Example
-
-```ts
-import {
-  getMakePaymentHash,
-  getSignature,
-  routerService,
-  SignatureType,
-  signerService,
-  solverService,
-} from '@petafixyz/market-maker-sdk'
-
-async submit(job: Job<string>) {
-  const { tradeId, paymentTxId } = toObject(job.data) as SubmitSettlementEvent
-
-  try {
-    const tradeIds: BytesLike[] = [tradeId]
-    const startIdx = BigInt(tradeIds.indexOf(tradeId))
-
-    const signerAddress = await this.routerService.getSigner()
-
-    const signedAt = Math.floor(Date.now() / 1000)
-
-    const makePaymentInfoHash = getMakePaymentHash(tradeIds, BigInt(signedAt), startIdx, ensureHexPrefix(paymentTxId))
-
-    const domain = await signerService.getDomain()
-
-    const signature = await getSignature(
-      this.pmmWallet,
-      this.provider,
-      signerAddress,
-      tradeId,
-      makePaymentInfoHash,
-      SignatureType.MakePayment,
-      domain
-    )
-
-    const pmmId = ... // string
-    const requestPayload = {
-      tradeIds: [tradeId],
-      pmmId: pmmId,
-      settlementTx: ensureHexPrefix(paymentTxId),
-      signature: signature,
-      startIndex: 0,
-      signedAt: signedAt,
-    }
-
-
-    const response = await this.solverSerivce.submitSettlementTx(requestPayload)
-
-    return response
-  } catch (error: any) {
-    this.logger.error('submit settlement error', error.stack)
-
-    throw error // Re-throw the error for the queue to handle
-  }
-}
-```
-#### Notes
-
-- **Trade IDs**: Provide all trade IDs included in the settlement transaction.
-- **Start Index**: Used when submitting a batch of settlements to indicate the position within the batch.
-- **Signature**: Must be valid and verifiable by the solver backend.
-
----
-
-
 ## PMM Backend APIs
 
-APIs that PMMs must implement for Solver integration. These endpoints allow Solvers to communicate with your PMM service.
+These are the APIs that PMMs must implement for Solver integration. These endpoints allow Solvers to communicate with your PMM service.
 
 ### 1. Endpoint: `/indicative-quote`
 
@@ -202,7 +126,7 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 - `indicative_quote` (string): The indicative quote value, represented as a string.
 - `error` (string): Error message, if any (empty if no error).
 
-#### Example code
+#### Example Implementation
 
 ```js
 import { Token, tokenService } from '@petafixyz/market-maker-sdk'
@@ -235,9 +159,7 @@ async getIndicativeQuote(dto: GetIndicativeQuoteDto): Promise<IndicativeQuoteRes
     error: '',
   }
 }
-
 ```
----
 
 ### 2. Endpoint: `/commitment-quote`
 
@@ -280,11 +202,11 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
 }
 ```
 
-  - `trade_id` (string): The trade ID associated with the request.
-  - `commitment_quote` (string): The committed quote value, represented as a string.
-  - `error` (string): Error message, if any (empty if no error).
+- `trade_id` (string): The trade ID associated with the request.
+- `commitment_quote` (string): The committed quote value, represented as a string.
+- `error` (string): Error message, if any (empty if no error).
 
-#### Example
+#### Example Implementation
 
 ```js
 import { Token, tokenService } from '@petafixyz/market-maker-sdk'
@@ -327,9 +249,7 @@ async getCommitmentQuote(dto: GetCommitmentQuoteDto): Promise<CommitmentQuoteRes
     error: '',
   }
 }
-
 ```
----
 
 ### 3. Endpoint: `/settlement-signature`
 
@@ -342,15 +262,14 @@ Returns a signature from the PMM to confirm the settlement quote, required to fi
 - **HTTP Method**: `GET`
 - **Query Parameters**:
   - `trade_id` (string): The unique identifier for the trade.
-  - `committed_quote` (string): The committed quote value in base 10.
-  - `solver_fee` (string): The fee amount for the solver in base 10.
+  - `committed_quote` (string): The committed quote value in base 10.  
   - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
   - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
 
 #### Example Request
 
 ```
-GET /settlement-signature?trade_id=abcd1234&committed_quote=987654321000000000&solver_fee=5000000000000000&trade_deadline=1696012800&script_deadline=1696016400
+GET /settlement-signature?trade_id=abcd1234&committed_quote=987654321000000000&trade_deadline=1696012800&script_deadline=1696016400
 ```
 
 #### Expected Response
@@ -367,12 +286,12 @@ GET /settlement-signature?trade_id=abcd1234&committed_quote=987654321000000000&s
 }
 ```
 
-  - `trade_id` (string): The trade ID associated with the request.
-  - `signature` (string): The signature provided by the PMM.
-  - `deadline` (integer): The UNIX timestamp (in seconds) indicating the PMM's expected payment deadline.
-  - `error` (string): Error message, if any (empty if no error).
+- `trade_id` (string): The trade ID associated with the request.
+- `signature` (string): The signature provided by the PMM.
+- `deadline` (integer): The UNIX timestamp (in seconds) indicating the PMM's expected payment deadline.
+- `error` (string): Error message, if any (empty if no error).
 
-#### Example
+#### Example Implementation
 
 ```ts
 import {
@@ -445,11 +364,10 @@ async getSettlementSignature(dto: GetSettlementSignatureDto, trade: Trade): Prom
       error: '',
     }
   } catch (error: any) {
-
+    // Handle error
   }
 }
 ```
----
 
 ### 4. Endpoint: `/ack-settlement`
 
@@ -492,7 +410,7 @@ trade_id=abcd1234&trade_deadline=1696012800&script_deadline=1696016400&chosen=tr
 - `status` (string): Status of the acknowledgment (always `"acknowledged"`).
 - `error` (string): Error message, if any (empty if no error).
 
-#### Example
+#### Example Implementation
 
 ```ts
 export const AckSettlementSchema = z.object({
@@ -521,7 +439,6 @@ async ackSettlement(dto: AckSettlementDto, trade: Trade): Promise<AckSettlementR
   }
 }
 ```
----
 
 ### 5. Endpoint: `/signal-payment`
 
@@ -564,7 +481,7 @@ trade_id=abcd1234&protocol_fee_amount=1000000000000000&trade_deadline=1696012800
 - `status` (string): Status of the acknowledgment (always `"acknowledged"`).
 - `error` (string): Error message, if any (empty if no error).
 
-#### Example
+#### Example Implementation
 
 ```ts
 export const SignalPaymentSchema = z.object({
@@ -578,7 +495,7 @@ export class SignalPaymentDto extends createZodDto(SignalPaymentSchema) {}
 
 async signalPayment(dto: SignalPaymentDto, trade: Trade): Promise<SignalPaymentResponseDto> {
   try {
-    // enqueue tranfer with dto and trade
+    // enqueue transfer with dto and trade
 
     return {
       tradeId: dto.tradeId,
@@ -593,9 +510,104 @@ async signalPayment(dto: SignalPaymentDto, trade: Trade): Promise<SignalPaymentR
   }
 }
 ```
----
 
-## PMM making payment
+## SDK Functions for PMMs
+
+These SDK functions facilitate PMM-Solver communication and are essential for implementing the required backend APIs.
+
+### 1. Function: getTokens
+
+#### Description
+
+Returns a list of all supported tokens across different networks.
+
+#### Example Code
+
+```ts
+import { tokenService } from '@petafixyz/market-maker-sdk'
+
+tokenService.getTokens()
+```
+
+### 2. Function: submitSettlementTx
+
+#### Description
+
+Allows the PMM to submit the settlement transaction hash for one or more trades. This step is necessary to complete the trade settlement process.
+
+Parameters:
+- `trade_ids` (array of strings): An array of trade IDs associated with the settlement transaction.
+- `pmm_id` (string): The PMM's ID, which must match the one committed for the trade(s).
+- `settlement_tx` (string): The raw transaction data (in hex) representing the settlement.
+- `signature` (string): The PMM's signature on the settlement transaction.
+- `start_index` (integer): The index indicating the starting point for settlement processing (used for batch settlements).
+- `signed_at` (integer): The UNIX timestamp (in seconds) when the PMM signed the settlement transaction.
+
+#### Example Implementation
+
+```ts
+import {
+  getMakePaymentHash,
+  getSignature,
+  routerService,
+  SignatureType,
+  signerService,
+  solverService,
+} from '@petafixyz/market-maker-sdk'
+
+async submit(job: Job<string>) {
+  const { tradeId, paymentTxId } = toObject(job.data) as SubmitSettlementEvent
+
+  try {
+    const tradeIds: BytesLike[] = [tradeId]
+    const startIdx = BigInt(tradeIds.indexOf(tradeId))
+
+    const signerAddress = await this.routerService.getSigner()
+
+    const signedAt = Math.floor(Date.now() / 1000)
+
+    const makePaymentInfoHash = getMakePaymentHash(tradeIds, BigInt(signedAt), startIdx, ensureHexPrefix(paymentTxId))
+
+    const domain = await signerService.getDomain()
+
+    const signature = await getSignature(
+      this.pmmWallet,
+      this.provider,
+      signerAddress,
+      tradeId,
+      makePaymentInfoHash,
+      SignatureType.MakePayment,
+      domain
+    )
+
+    const pmmId = ... // string
+    const requestPayload = {
+      tradeIds: [tradeId],
+      pmmId: pmmId,
+      settlementTx: ensureHexPrefix(paymentTxId),
+      signature: signature,
+      startIndex: 0,
+      signedAt: signedAt,
+    }
+
+    const response = await this.solverSerivce.submitSettlementTx(requestPayload)
+
+    return response
+  } catch (error: any) {
+    this.logger.error('submit settlement error', error.stack)
+
+    throw error // Re-throw the error for the queue to handle
+  }
+}
+```
+
+#### Notes
+
+- **Trade IDs**: Provide all trade IDs included in the settlement transaction.
+- **Start Index**: Used when submitting a batch of settlements to indicate the position within the batch.
+- **Signature**: Must be valid and verifiable by the solver backend.
+
+## PMM Making Payment
 
 ```ts
 import { Token } from '@petafixyz/market-maker-sdk'
@@ -613,9 +625,10 @@ export interface ITransferStrategy {
 ```
 
 ### EVM
-Incase toChain is EVM. Transaction should emit the event from the `l1 payment contract` with the correct value of pmmAmountOut and protocolFee
-Example code transfer
-you could get paymentAddress at `https://github.com/bitfixyz/bitfi-smartcontract?tab=readme-ov-file#deployed-contracts`
+
+In case the target chain is EVM-based, the transaction should emit the event from the `l1 payment contract` with the correct values for pmmAmountOut and protocolFee.
+
+Example implementation:
 
 ```ts
 import { config, ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@petafixyz/market-maker-sdk'
@@ -668,7 +681,6 @@ export class EVMTransferStrategy implements ITransferStrategy {
     this.logger.log(`Transfer transaction sent: ${tx.hash}`)
 
     return ensureHexPrefix(tx.hash)
-
   }
 
   private getSigner(networkId: string) {
@@ -693,10 +705,11 @@ export class EVMTransferStrategy implements ITransferStrategy {
 }
 ```
 
----
 ### Bitcoin
 
-Incase toChain is BTC. Transaction should have at least N + 1 output. with the first N output is the settle utxo for PetaFi trade, and one of them is the change utxo for user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds
+In case the target chain is Bitcoin, the transaction should have at least N + 1 outputs, with the first N outputs being the settlement UTXOs for PetaFi trades, and one of them being the change UTXO for the user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds.
+
+Example implementation:
 
 ```ts
 import * as bitcoin from 'bitcoinjs-lib'
@@ -833,7 +846,7 @@ export class BTCTransferStrategy implements ITransferStrategy {
 
     const tradeIdsHash = getTradeIdsHash(tradeIds)
 
-    // FOCUS HERE
+    // Add OP_RETURN output with tradeIds hash
     psbt.addOutput({
       script: bitcoin.script.compile([bitcoin.opcodes['OP_RETURN'], Buffer.from(tradeIdsHash.slice(2), 'hex')]),
       value: 0n,
@@ -871,28 +884,4 @@ export class BTCTransferStrategy implements ITransferStrategy {
       const response = await axios.get<{ [key: string]: number }>(`${rpcUrl}/api/fee-estimates`)
       return response.data[0]
     } catch (error) {
-      console.error(`Error fetching fee rate from ${rpcUrl}:`, error)
-
-      return 1
-    }
-  }
-
-  private getNetwork(networkId: string): bitcoin.Network {
-    const network = this.networkMap.get(networkId)
-    if (!network) {
-      throw new Error(`Unsupported network: ${networkId}`)
-    }
-    return network
-  }
-
-  private getRpcUrl(networkId: string): string {
-    const rpcUrl = this.rpcMap.get(networkId)
-    if (!rpcUrl) {
-      throw new Error(`Unsupported network: ${networkId}`)
-    }
-    return rpcUrl
-  }
-}
-
-```
----
+      console.error(`Error fetching
