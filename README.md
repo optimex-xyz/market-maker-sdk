@@ -58,7 +58,7 @@ yarn add @petafixyz/market-maker-sdk
 | -------- | ----------- | ---------- |
 | SDK_ENV  | dev         | production |
 
-## Solver Functions for PMMs
+## SDK Functions for PMMs
 
 SDK functions for PMM-Solver communication. See PMM Services for full documentation [PMM Services](pmm_sdk_services.md)
 
