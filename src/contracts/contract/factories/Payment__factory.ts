@@ -121,7 +121,7 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "protocolFee",
+        name: "totalFee",
         type: "uint256",
       },
     ],
@@ -171,7 +171,7 @@ const _abi = [
       },
       {
         internalType: "uint256",
-        name: "protocolFee",
+        name: "totalFee",
         type: "uint256",
       },
       {

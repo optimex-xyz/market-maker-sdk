@@ -70,7 +70,7 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "protocolFee",
+        "name": "totalFee",
         "type": "uint256"
       }
     ],
@@ -102,7 +102,7 @@
       { "internalType": "address", "name": "token", "type": "address" },
       { "internalType": "address", "name": "toUser", "type": "address" },
       { "internalType": "uint256", "name": "amount", "type": "uint256" },
-      { "internalType": "uint256", "name": "protocolFee", "type": "uint256" },
+      { "internalType": "uint256", "name": "totalFee", "type": "uint256" },
       { "internalType": "uint256", "name": "deadline", "type": "uint256" }
     ],
     "name": "payment",

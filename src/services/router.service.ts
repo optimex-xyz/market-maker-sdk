@@ -1,4 +1,4 @@
-import { BytesLike, JsonRpcProvider } from 'ethers'
+import { BytesLike, ethers, JsonRpcProvider } from 'ethers'
 
 import { config } from '../config'
 import { ITypes, Router__factory } from '../contracts'
@@ -19,8 +19,8 @@ export class RouterService {
     return await this.contract.SIGNER()
   }
 
-  async getCurrentPubkey(): Promise<BytesLike> {
-    return await this.contract.getCurrentPubkey()
+  async getCurrentPubkey(network: string): Promise<ITypes.MPCInfoStructOutput> {
+    return this.contract.getLatestMPCInfo(ethers.toUtf8Bytes(network))
   }
 
   async getCurrentStage(tradeId: BytesLike): Promise<bigint> {
@@ -36,20 +36,6 @@ export class RouterService {
     toChain: BytesLike
   ): Promise<[string, string]> {
     return await this.contract.getHandler(fromChain, toChain)
-  }
-
-  async getHandlerByTradeId(tradeId: BytesLike): Promise<[string, string]> {
-    return await this.contract.getHandlerByTradeId(tradeId)
-  }
-
-  async getMPCPubkeyInfo(
-    pubkey: BytesLike
-  ): Promise<ITypes.MPCInfoStructOutput> {
-    return await this.contract.getMPCPubkeyInfo(pubkey)
-  }
-
-  async getOwner(): Promise<string> {
-    return await this.contract.getOwner()
   }
 
   async getPFeeRate(): Promise<bigint> {
@@ -70,10 +56,10 @@ export class RouterService {
     return await this.contract.getProtocolState()
   }
 
-  async getProtocolFee(
+  async getFeeDetails(
     tradeId: BytesLike
-  ): Promise<ITypes.ProtocolFeeStructOutput> {
-    return await this.contract.getProtocolFee(tradeId)
+  ): Promise<ITypes.FeeDetailsStructOutput> {
+    return await this.contract.getFeeDetails(tradeId)
   }
 
   async getSettledPayment(
@@ -117,10 +103,6 @@ export class RouterService {
 
   async isValidPMMAccount(pmmId: BytesLike, account: string): Promise<boolean> {
     return await this.contract.isValidPMMAccount(pmmId, account)
-  }
-
-  async isValidPubkey(pubkey: BytesLike): Promise<string> {
-    return await this.contract.isValidPubkey(pubkey)
   }
 
   async isValidToken(

@@ -9,7 +9,7 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "contract IBitFiManagement",
+        internalType: "contract IManagement",
         name: "management_",
         type: "address",
       },
@@ -85,6 +85,12 @@ const _abi = [
       },
       {
         indexed: false,
+        internalType: "uint256",
+        name: "aFeeRate",
+        type: "uint256",
+      },
+      {
+        indexed: false,
         internalType: "bytes[]",
         name: "list",
         type: "bytes[]",
@@ -137,7 +143,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "solver",
+        name: "operator",
         type: "address",
       },
       {
@@ -337,13 +343,36 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "getCurrentPubkey",
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "tradeId",
+        type: "bytes32",
+      },
+    ],
+    name: "getAffiliateInfo",
     outputs: [
       {
-        internalType: "bytes",
+        components: [
+          {
+            internalType: "uint256",
+            name: "aggregatedValue",
+            type: "uint256",
+          },
+          {
+            internalType: "string",
+            name: "schema",
+            type: "string",
+          },
+          {
+            internalType: "bytes",
+            name: "data",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct ITypes.Affiliate",
         name: "",
-        type: "bytes",
+        type: "tuple",
       },
     ],
     stateMutability: "view",
@@ -361,7 +390,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "currentStage_",
+        name: "",
         type: "uint256",
       },
     ],
@@ -380,8 +409,54 @@ const _abi = [
     outputs: [
       {
         internalType: "bytes[]",
-        name: "list",
+        name: "",
         type: "bytes[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "tradeId",
+        type: "bytes32",
+      },
+    ],
+    name: "getFeeDetails",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "totalAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "pFeeAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "aFeeAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint128",
+            name: "pFeeRate",
+            type: "uint128",
+          },
+          {
+            internalType: "uint128",
+            name: "aFeeRate",
+            type: "uint128",
+          },
+        ],
+        internalType: "struct ITypes.FeeDetails",
+        name: "",
+        type: "tuple",
       },
     ],
     stateMutability: "view",
@@ -424,7 +499,7 @@ const _abi = [
         type: "bytes32",
       },
     ],
-    name: "getHandlerByTradeId",
+    name: "getHandlerOf",
     outputs: [
       {
         internalType: "address",
@@ -452,7 +527,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint64",
-        name: "signedAt",
+        name: "",
         type: "uint64",
       },
     ],
@@ -463,23 +538,33 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes",
-        name: "pubkey",
+        name: "networkId",
         type: "bytes",
       },
     ],
-    name: "getMPCPubkeyInfo",
+    name: "getLatestMPCInfo",
     outputs: [
       {
         components: [
           {
             internalType: "address",
-            name: "mpc",
+            name: "mpcL2Address",
             type: "address",
           },
           {
-            internalType: "uint256",
+            internalType: "uint64",
             name: "expireTime",
-            type: "uint256",
+            type: "uint64",
+          },
+          {
+            internalType: "bytes",
+            name: "mpcL2Pubkey",
+            type: "bytes",
+          },
+          {
+            internalType: "bytes",
+            name: "mpcAssetPubkey",
+            type: "bytes",
           },
         ],
         internalType: "struct ITypes.MPCInfo",
@@ -491,13 +576,83 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "networkId",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "pubkey",
+        type: "bytes",
+      },
+    ],
+    name: "getMPCInfo",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "mpcL2Address",
+            type: "address",
+          },
+          {
+            internalType: "uint64",
+            name: "expireTime",
+            type: "uint64",
+          },
+          {
+            internalType: "bytes",
+            name: "mpcL2Pubkey",
+            type: "bytes",
+          },
+          {
+            internalType: "bytes",
+            name: "mpcAssetPubkey",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct ITypes.MPCInfo",
+        name: "info",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
-    name: "getOwner",
+    name: "getManagementOwner",
     outputs: [
       {
         internalType: "address",
         name: "",
         type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "fromChain",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "toChain",
+        type: "bytes",
+      },
+    ],
+    name: "getMaxAffiliateFeeRate",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -511,6 +666,35 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "pmmId",
+        type: "bytes32",
+      },
+      {
+        internalType: "uint256",
+        name: "fromIdx",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "toIdx",
+        type: "uint256",
+      },
+    ],
+    name: "getPMMAccounts",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "list",
+        type: "address[]",
       },
     ],
     stateMutability: "view",
@@ -579,7 +763,7 @@ const _abi = [
           },
         ],
         internalType: "struct ITypes.PMMSelection",
-        name: "selection",
+        name: "",
         type: "tuple",
       },
     ],
@@ -615,39 +799,8 @@ const _abi = [
           },
         ],
         internalType: "struct ITypes.Presign[]",
-        name: "presigns",
+        name: "",
         type: "tuple[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "tradeId",
-        type: "bytes32",
-      },
-    ],
-    name: "getProtocolFee",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "uint256",
-            name: "feeRate",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "amount",
-            type: "uint256",
-          },
-        ],
-        internalType: "struct ITypes.ProtocolFee",
-        name: "protocolFee_",
-        type: "tuple",
       },
     ],
     stateMutability: "view",
@@ -700,7 +853,7 @@ const _abi = [
           },
         ],
         internalType: "struct ITypes.SettledPayment",
-        name: "settledPayment_",
+        name: "",
         type: "tuple",
       },
     ],
@@ -806,7 +959,7 @@ const _abi = [
           },
         ],
         internalType: "struct ITypes.TradeData",
-        name: "tradeData",
+        name: "",
         type: "tuple",
       },
     ],
@@ -863,7 +1016,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bool",
-        name: "stop",
+        name: "",
         type: "bool",
       },
     ],
@@ -936,6 +1089,11 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes",
+        name: "networkId",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
         name: "pubkey",
         type: "bytes",
       },
@@ -943,9 +1101,9 @@ const _abi = [
     name: "isValidPubkey",
     outputs: [
       {
-        internalType: "address",
-        name: "mpcAddress",
-        type: "address",
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -980,9 +1138,28 @@ const _abi = [
     name: "management",
     outputs: [
       {
-        internalType: "contract IBitFiManagement",
+        internalType: "contract IManagement",
         name: "",
         type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "pmmId",
+        type: "bytes32",
+      },
+    ],
+    name: "numOfPMMAccounts",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -1166,7 +1343,29 @@ const _abi = [
           },
         ],
         internalType: "struct ITypes.TradeData",
-        name: "data",
+        name: "tradeData",
+        type: "tuple",
+      },
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "aggregatedValue",
+            type: "uint256",
+          },
+          {
+            internalType: "string",
+            name: "schema",
+            type: "string",
+          },
+          {
+            internalType: "bytes",
+            name: "data",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct ITypes.Affiliate",
+        name: "affiliateInfo",
         type: "tuple",
       },
       {
@@ -1188,11 +1387,11 @@ const _abi = [
           },
         ],
         internalType: "struct ITypes.Presign[]",
-        name: "presigns",
+        name: "presignList",
         type: "tuple[]",
       },
     ],
-    name: "submitTradeInfoAndPresign",
+    name: "submitTrade",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

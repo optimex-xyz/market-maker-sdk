@@ -1,9 +1,0 @@
-{
-  "name": "token",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "libs/token/src",
-  "projectType": "library",
-  "tags": [],
-  "// targets": "to see all targets run: nx show project token --web",
-  "targets": {}
-}
