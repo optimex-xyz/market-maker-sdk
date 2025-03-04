@@ -1,6 +1,6 @@
 {
-  "name": "@petafixyz/market-maker-sdk",
-  "version": "0.1.1-dev.3",
+  "name": "@optimex/market-maker-sdk",
+  "version": "0.1.0",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -10,15 +10,14 @@
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bitfixyz/petafi-market-maker-sdk.git"
+    "url": "git+https://github.com/bitfixyz/market-maker-sdk.git"
   },
-  "homepage": "https://github.com/bitfixyz/petafi-market-maker-sdk#readme",
+  "homepage": "https://github.com/bitfixyz/market-maker-sdk#readme",
   "files": [
     "dist",
     "README.md"
   ],
   "keywords": [
-    "PetaFi",
     "maker",
     "market",
     "sdk"

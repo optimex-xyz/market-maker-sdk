@@ -1,7 +1,7 @@
-# PetaFi Market Maker SDK
+# Market Maker SDK
 
 ## Overview
-PetaFi Market Maker SDK is a TypeScript library that provides a comprehensive interface for interacting with the PetaFi decentralized trading platform. The SDK facilitates cross-chain token transfers, signature verification, and trade settlements, with built-in support for both EVM and Bitcoin networks.
+Market Maker SDK is a TypeScript library that provides a comprehensive interface for interacting with the decentralized trading platform. The SDK facilitates cross-chain token transfers, signature verification, and trade settlements, with built-in support for both EVM and Bitcoin networks.
 
 ## Features
 - Cross-chain token transfers and settlements
@@ -15,18 +15,18 @@ PetaFi Market Maker SDK is a TypeScript library that provides a comprehensive in
 ## Installation
 
 ```bash
-npm install @petafixyz/market-maker-sdk
+npm install @optimex/market-maker-sdk
 # or
-yarn add @petafixyz/market-maker-sdk
+yarn add @optimex/market-maker-sdk
 ```
 
 ## Services
 
 ### RouterService
-Handles interactions with the PetaFi router contract:
+Handles interactions with the router contract:
 
 ```typescript
-import { routerService } from '@petafixyz/market-maker-sdk';
+import { routerService } from '@optimex/market-maker-sdk';
 
 // Get contract information
 const signer = await routerService.getSigner();
@@ -45,7 +45,7 @@ const tokens = await routerService.getTokens(fromIdx, toIdx);
 Manages settlement transaction submissions:
 
 ```typescript
-import { solverService } from '@petafixyz/market-maker-sdk';
+import { solverService } from '@optimex/market-maker-sdk';
 
 // Single settlement
 await solverService.submitSingleSettlement(
@@ -71,7 +71,7 @@ await solverService.submitBatchSettlement(
 Provides token information and management:
 
 ```typescript
-import { tokenService } from '@petafixyz/market-maker-sdk';
+import { tokenService } from '@optimex/market-maker-sdk';
 
 // Retrieve token information
 const allTokens = await tokenService.getTokens();
@@ -89,7 +89,7 @@ import {
   getSignature,
   SignatureType,
   getInfoHash
-} from '@petafixyz/market-maker-sdk';
+} from '@optimex/market-maker-sdk';
 
 // Generate signatures
 const signature = await getSignature(

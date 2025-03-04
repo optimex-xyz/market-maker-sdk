@@ -1,31 +1,63 @@
 # PMM SDK Integration Documentation
 
-A comprehensive toolkit for implementing Private Market Makers (PMMs) in the PetaFi cross-chain trading network. This guide covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
+A comprehensive toolkit for implementing Private Market Makers (PMMs) in the cross-chain trading network. This guide covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
 
 ## Table of Contents
 
-1. [Overview](#1-overview)
-   - [Repository Structure](#11-repository-structure)
-   - [Example Implementation](#12-example-implementation)
-2. [Quick Start](#2-quick-start)
-   - [Installation](#21-installation)
-   - [Environment Setup](#22-environment-setup)
-3. [PMM Backend APIs](#3-pmm-backend-apis)
-   - [Endpoint: /indicative-quote](#31-endpoint-indicative-quote)
-   - [Endpoint: /commitment-quote](#32-endpoint-commitment-quote)
-   - [Endpoint: /settlement-signature](#33-endpoint-settlement-signature)
-   - [Endpoint: /ack-settlement](#34-endpoint-ack-settlement)
-   - [Endpoint: /signal-payment](#35-endpoint-signal-payment)
-4. [SDK Functions for PMMs](#4-sdk-functions-for-pmms)
-   - [Function: getTokens](#41-function-gettokens)
-   - [Function: submitSettlementTx](#42-function-submitsettlementtx)
-5. [PMM Making Payment](#5-pmm-making-payment)
-   - [EVM Payment](#51-evm)
-   - [Bitcoin Payment](#52-bitcoin)
+- [PMM SDK Integration Documentation](#pmm-sdk-integration-documentation)
+  - [Table of Contents](#table-of-contents)
+  - [1. Overview](#1-overview)
+    - [1.1. Repository Structure](#11-repository-structure)
+    - [1.2. Example Implementation](#12-example-implementation)
+  - [2. Quick Start](#2-quick-start)
+    - [2.1. Installation](#21-installation)
+    - [2.2. Environment Setup](#22-environment-setup)
+  - [3. PMM Backend APIs](#3-pmm-backend-apis)
+    - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)
+      - [Description](#description)
+      - [Request Parameters](#request-parameters)
+      - [Example Request](#example-request)
+      - [Expected Response](#expected-response)
+      - [Example Implementation](#example-implementation)
+    - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)
+      - [Description](#description-1)
+      - [Request Parameters](#request-parameters-1)
+      - [Example Request](#example-request-1)
+      - [Expected Response](#expected-response-1)
+      - [Example Implementation](#example-implementation-1)
+    - [3.3. Endpoint: `/settlement-signature`](#33-endpoint-settlement-signature)
+      - [Description](#description-2)
+      - [Request Parameters](#request-parameters-2)
+      - [Example Request](#example-request-2)
+      - [Expected Response](#expected-response-2)
+      - [Example Implementation](#example-implementation-2)
+    - [3.4. Endpoint: `/ack-settlement`](#34-endpoint-ack-settlement)
+      - [Description](#description-3)
+      - [Request Parameters](#request-parameters-3)
+      - [Example Request](#example-request-3)
+      - [Expected Response](#expected-response-3)
+      - [Example Implementation](#example-implementation-3)
+    - [3.5. Endpoint: `/signal-payment`](#35-endpoint-signal-payment)
+      - [Description](#description-4)
+      - [Request Parameters](#request-parameters-4)
+      - [Example Request](#example-request-4)
+      - [Expected Response](#expected-response-4)
+      - [Example Implementation](#example-implementation-4)
+  - [4. SDK Functions for PMMs](#4-sdk-functions-for-pmms)
+    - [4.1. Function: getTokens](#41-function-gettokens)
+      - [Description](#description-5)
+      - [Example Code](#example-code)
+    - [4.2. Function: submitSettlementTx](#42-function-submitsettlementtx)
+      - [Description](#description-6)
+      - [Example Implementation](#example-implementation-5)
+      - [Notes](#notes)
+  - [5. PMM Making Payment](#5-pmm-making-payment)
+    - [5.1. EVM](#51-evm)
+    - [5.2. Bitcoin](#52-bitcoin)
 
 ## 1. Overview
 
-This repository contains everything needed to integrate your PMM with PetaFi's solver network:
+This repository contains everything needed to integrate your PMM with 's solver network:
 
 ```mermaid
 sequenceDiagram
@@ -64,16 +96,16 @@ The repository consists of:
 - `src/`: Source code for the market maker SDK
 
 ### 1.2. Example Implementation
-The [Example](example/) directory contains a fully functional mock PMM. Use this implementation as a reference while integrating the `@petafixyz/market-maker-sdk` into your own PMM service.
+The [Example](example/) directory contains a fully functional mock PMM. Use this implementation as a reference while integrating the `@optimex/market-maker-sdk` into your own PMM service.
 
 ## 2. Quick Start
 
 ### 2.1. Installation
 
 ```bash
-npm install @petafixyz/market-maker-sdk
+npm install @optimex/market-maker-sdk
 # or
-yarn add @petafixyz/market-maker-sdk
+yarn add @optimex/market-maker-sdk
 ```
 
 ### 2.2. Environment Setup
@@ -129,7 +161,7 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 #### Example Implementation
 
 ```js
-import { Token, tokenService } from '@petafixyz/market-maker-sdk'
+import { Token, tokenService } from '@optimex/market-maker-sdk'
 
 export const IndicativeQuoteResponseSchema = z.object({
   sessionId: z.string(),
@@ -209,7 +241,7 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
 #### Example Implementation
 
 ```js
-import { Token, tokenService } from '@petafixyz/market-maker-sdk'
+import { Token, tokenService } from '@optimex/market-maker-sdk'
 
 export const GetCommitmentQuoteSchema = z.object({
   sessionId: z.string(),
@@ -300,7 +332,7 @@ import {
   routerService,
   SignatureType,
   signerService,
-} from '@petafixyz/market-maker-sdk'
+} from '@optimex/market-maker-sdk'
 
 export const GetSettlementSignatureSchema = z.object({
   tradeId: z.string(),
@@ -523,7 +555,7 @@ Returns a list of all supported tokens across different networks.
 #### Example Code
 
 ```ts
-import { tokenService } from '@petafixyz/market-maker-sdk'
+import { tokenService } from '@optimex/market-maker-sdk'
 
 tokenService.getTokens()
 ```
@@ -552,7 +584,7 @@ import {
   SignatureType,
   signerService,
   solverService,
-} from '@petafixyz/market-maker-sdk'
+} from '@optimex/market-maker-sdk'
 
 async submit(job: Job<string>) {
   const { tradeId, paymentTxId } = toObject(job.data) as SubmitSettlementEvent
@@ -609,7 +641,7 @@ async submit(job: Job<string>) {
 ## 5. PMM Making Payment
 
 ```ts
-import { Token } from '@petafixyz/market-maker-sdk'
+import { Token } from '@optimex/market-maker-sdk'
 
 export interface TransferParams {
   toAddress: string
@@ -630,7 +662,7 @@ In case the target chain is EVM-based, the transaction should emit the event fro
 Example implementation:
 
 ```ts
-import { config, ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@petafixyz/market-maker-sdk'
+import { config, ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@optimex/market-maker-sdk'
 
 import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
 
@@ -706,7 +738,7 @@ export class EVMTransferStrategy implements ITransferStrategy {
 
 ### 5.2. Bitcoin
 
-In case the target chain is Bitcoin, the transaction should have at least N + 1 outputs, with the first N outputs being the settlement UTXOs for PetaFi trades, and one of them being the change UTXO for the user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds.
+In case the target chain is Bitcoin, the transaction should have at least N + 1 outputs, with the first N outputs being the settlement UTXOs for trades, and one of them being the change UTXO for the user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds.
 
 Example implementation:
 
@@ -715,7 +747,7 @@ import * as bitcoin from 'bitcoinjs-lib'
 import { ECPairFactory } from 'ecpair'
 import * as ecc from 'tiny-secp256k1'
 
-import { getTradeIdsHash, Token } from '@petafixyz/market-maker-sdk'
+import { getTradeIdsHash, Token } from '@optimex/market-maker-sdk'
 
 import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
 
