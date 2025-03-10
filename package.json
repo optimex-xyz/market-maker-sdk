@@ -10,9 +10,9 @@
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bitfixyz/market-maker-sdk.git"
+    "url": "git+https://github.com/optimex-xyz/market-maker-sdk.git"
   },
-  "homepage": "https://github.com/bitfixyz/market-maker-sdk#readme",
+  "homepage": "https://github.com/optimex-xyz/market-maker-sdk#readme",
   "files": [
     "dist",
     "README.md"
