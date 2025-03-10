@@ -96,16 +96,16 @@ The repository consists of:
 - `src/`: Source code for the market maker SDK
 
 ### 1.2. Example Implementation
-The [Example](example/) directory contains a fully functional mock PMM. Use this implementation as a reference while integrating the `@optimex/market-maker-sdk` into your own PMM service.
+The [Example](example/) directory contains a fully functional mock PMM. Use this implementation as a reference while integrating the `@optimex-xyz/market-maker-sdk` into your own PMM service.
 
 ## 2. Quick Start
 
 ### 2.1. Installation
 
 ```bash
-npm install @optimex/market-maker-sdk
+npm install @optimex-xyz/market-maker-sdk
 # or
-yarn add @optimex/market-maker-sdk
+yarn add @optimex-xyz/market-maker-sdk
 ```
 
 ### 2.2. Environment Setup
@@ -161,7 +161,7 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 #### Example Implementation
 
 ```js
-import { Token, tokenService } from '@optimex/market-maker-sdk'
+import { Token, tokenService } from '@optimex-xyz/market-maker-sdk'
 
 export const IndicativeQuoteResponseSchema = z.object({
   sessionId: z.string(),
@@ -241,7 +241,7 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
 #### Example Implementation
 
 ```js
-import { Token, tokenService } from '@optimex/market-maker-sdk'
+import { Token, tokenService } from '@optimex-xyz/market-maker-sdk'
 
 export const GetCommitmentQuoteSchema = z.object({
   sessionId: z.string(),
@@ -332,7 +332,7 @@ import {
   routerService,
   SignatureType,
   signerService,
-} from '@optimex/market-maker-sdk'
+} from '@optimex-xyz/market-maker-sdk'
 
 export const GetSettlementSignatureSchema = z.object({
   tradeId: z.string(),
@@ -555,7 +555,7 @@ Returns a list of all supported tokens across different networks.
 #### Example Code
 
 ```ts
-import { tokenService } from '@optimex/market-maker-sdk'
+import { tokenService } from '@optimex-xyz/market-maker-sdk'
 
 tokenService.getTokens()
 ```
@@ -584,7 +584,7 @@ import {
   SignatureType,
   signerService,
   solverService,
-} from '@optimex/market-maker-sdk'
+} from '@optimex-xyz/market-maker-sdk'
 
 async submit(job: Job<string>) {
   const { tradeId, paymentTxId } = toObject(job.data) as SubmitSettlementEvent
@@ -641,7 +641,7 @@ async submit(job: Job<string>) {
 ## 5. PMM Making Payment
 
 ```ts
-import { Token } from '@optimex/market-maker-sdk'
+import { Token } from '@optimex-xyz/market-maker-sdk'
 
 export interface TransferParams {
   toAddress: string
@@ -662,7 +662,7 @@ In case the target chain is EVM-based, the transaction should emit the event fro
 Example implementation:
 
 ```ts
-import { config, ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@optimex/market-maker-sdk'
+import { config, ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@optimex-xyz/market-maker-sdk'
 
 import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
 
@@ -747,7 +747,7 @@ import * as bitcoin from 'bitcoinjs-lib'
 import { ECPairFactory } from 'ecpair'
 import * as ecc from 'tiny-secp256k1'
 
-import { getTradeIdsHash, Token } from '@optimex/market-maker-sdk'
+import { getTradeIdsHash, Token } from '@optimex-xyz/market-maker-sdk'
 
 import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
 

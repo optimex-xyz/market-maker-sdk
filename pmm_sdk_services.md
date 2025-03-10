@@ -15,9 +15,9 @@ Market Maker SDK is a TypeScript library that provides a comprehensive interface
 ## Installation
 
 ```bash
-npm install @optimex/market-maker-sdk
+npm install @optimex-xyz/market-maker-sdk
 # or
-yarn add @optimex/market-maker-sdk
+yarn add @optimex-xyz/market-maker-sdk
 ```
 
 ## Services
@@ -26,7 +26,7 @@ yarn add @optimex/market-maker-sdk
 Handles interactions with the router contract:
 
 ```typescript
-import { routerService } from '@optimex/market-maker-sdk';
+import { routerService } from '@optimex-xyz/market-maker-sdk';
 
 // Get contract information
 const signer = await routerService.getSigner();
@@ -45,7 +45,7 @@ const tokens = await routerService.getTokens(fromIdx, toIdx);
 Manages settlement transaction submissions:
 
 ```typescript
-import { solverService } from '@optimex/market-maker-sdk';
+import { solverService } from '@optimex-xyz/market-maker-sdk';
 
 // Single settlement
 await solverService.submitSingleSettlement(
@@ -71,7 +71,7 @@ await solverService.submitBatchSettlement(
 Provides token information and management:
 
 ```typescript
-import { tokenService } from '@optimex/market-maker-sdk';
+import { tokenService } from '@optimex-xyz/market-maker-sdk';
 
 // Retrieve token information
 const allTokens = await tokenService.getTokens();
@@ -89,7 +89,7 @@ import {
   getSignature,
   SignatureType,
   getInfoHash
-} from '@optimex/market-maker-sdk';
+} from '@optimex-xyz/market-maker-sdk';
 
 // Generate signatures
 const signature = await getSignature(
