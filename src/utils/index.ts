@@ -1,2 +1,2 @@
-export * from './casing';
-export * from './hex';
+export * from './casing'
+export * from './hex'

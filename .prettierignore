@@ -1,0 +1,27 @@
+# Ignore artifacts:
+build
+coverage
+dist
+
+# Ignore all HTML files:
+*.html
+
+# Ignore specific folders
+node_modules
+.next
+public
+
+# Ignore specific files
+package-lock.json
+yarn.lock
+
+# Ignore specific path
+src/contracts
+
+*.json
+
+index.html
+
+
+eslint.config.js
+generate-indexes.js

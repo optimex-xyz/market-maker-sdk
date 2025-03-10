@@ -87,15 +87,11 @@ export class TokenService {
     try {
       const tokens = await this.getTokens()
       const token = tokens.find(
-        (t) =>
-          t.networkId === networkId &&
-          t.tokenAddress.toLowerCase() === tokenAddress.toLowerCase()
+        (t) => t.networkId === networkId && t.tokenAddress.toLowerCase() === tokenAddress.toLowerCase()
       )
 
       if (!token) {
-        throw new Error(
-          `Token not found for networkId: ${networkId} and address: ${tokenAddress}`
-        )
+        throw new Error(`Token not found for networkId: ${networkId} and address: ${tokenAddress}`)
       }
 
       return token

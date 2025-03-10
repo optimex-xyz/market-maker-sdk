@@ -36,9 +36,7 @@ export class SolverService {
    * @returns Promise with the response message
    * @throws Error if the request fails or validation fails
    */
-  async submitSettlementTx(
-    params: SubmitSettlementRequest
-  ): Promise<SubmitSettlementResponse> {
+  async submitSettlementTx(params: SubmitSettlementRequest): Promise<SubmitSettlementResponse> {
     try {
       // Validate request parameters
       SubmitSettlementRequestSchema.parse(params)
@@ -61,9 +59,7 @@ export class SolverService {
       return SubmitSettlementResponseSchema.parse(response.data)
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(
-          `Failed to submit settlement transaction: ${error.message}`
-        )
+        throw new Error(`Failed to submit settlement transaction: ${error.message}`)
       }
       if (error instanceof z.ZodError) {
         throw new Error(`Invalid data: ${error.message}`)

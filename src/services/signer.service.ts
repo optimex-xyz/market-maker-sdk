@@ -1,8 +1,9 @@
 import { JsonRpcProvider } from 'ethers'
 
+import { routerService } from './router.service'
+
 import { config } from '../config'
 import { Signer__factory } from '../contracts'
-import { routerService } from './router.service'
 
 export class SignerService {
   private readonly provider: JsonRpcProvider

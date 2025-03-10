@@ -8,6 +8,14 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/optimex-xyz/market-maker-sdk.git"
@@ -24,9 +32,14 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "tsup",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
     "typechain": "typechain --target=ethers-v6 ./abi/**/**.json --out-dir ./src/contracts/contract",
-    "ctix": "node generate-indexes.js"
+    "prepare": "simple-git-hooks",
+    "lint": "eslint --ext .js,.ts,.tsx src/",
+    "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
+    "lint-staged": "lint-staged",
+    "ctix": "node generate-indexes.js",
+    "commit": "cz"
   },
   "dependencies": {
     "axios": "^1.7.9",
@@ -38,10 +51,39 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "@eslint/js": "^9.22.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
     "@typechain/ethers-v6": "^0.5.1",
     "@types/node": "^22.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.26.0",
+    "@typescript-eslint/parser": "^8.26.0",
+    "commitizen": "^4.3.1",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "globals": "^16.0.0",
+    "lint-staged": "^15.4.3",
+    "prettier": "^3.5.3",
+    "simple-git-hooks": "^2.11.1",
     "tsup": "^8.4.0",
     "typechain": "^8.3.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.26.0"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged",
+    "commit-msg": "npx commitlint --edit $1"
+  },
+  "lint-staged": {
+    "src/**/*.{js,ts,tsx}": [
+      "prettier --write"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   }
 }

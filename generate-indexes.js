@@ -13,7 +13,7 @@ function generateIndexContent(files) {
   const exports = files
     .map((file) => {
       const filename = path.basename(file, path.extname(file))
-      return `export * from './${filename}';`
+      return `export * from './${filename}'`
     })
     .join('\n')
 
@@ -67,7 +67,7 @@ function processModule(dirPath) {
         processModule(subdirPath)
       }
 
-      return `export * from './${dir.name}';`
+      return `export * from './${dir.name}'`
     })
     .filter(Boolean)
     .join('\n')

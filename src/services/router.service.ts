@@ -9,10 +9,7 @@ export class RouterService {
 
   constructor() {
     this.provider = new JsonRpcProvider(config.getRpcUrl())
-    this.contract = Router__factory.connect(
-      config.getRouterAddress(),
-      this.provider
-    )
+    this.contract = Router__factory.connect(config.getRouterAddress(), this.provider)
   }
 
   async getSigner(): Promise<string> {
@@ -31,10 +28,7 @@ export class RouterService {
     return await this.contract.getDepositAddressList(tradeId)
   }
 
-  async getHandler(
-    fromChain: BytesLike,
-    toChain: BytesLike
-  ): Promise<[string, string]> {
+  async getHandler(fromChain: BytesLike, toChain: BytesLike): Promise<[string, string]> {
     return await this.contract.getHandler(fromChain, toChain)
   }
 
@@ -42,9 +36,7 @@ export class RouterService {
     return await this.contract.getPFeeRate()
   }
 
-  async getPMMSelection(
-    tradeId: BytesLike
-  ): Promise<ITypes.PMMSelectionStructOutput> {
+  async getPMMSelection(tradeId: BytesLike): Promise<ITypes.PMMSelectionStructOutput> {
     return await this.contract.getPMMSelection(tradeId)
   }
 
@@ -56,28 +48,19 @@ export class RouterService {
     return await this.contract.getProtocolState()
   }
 
-  async getFeeDetails(
-    tradeId: BytesLike
-  ): Promise<ITypes.FeeDetailsStructOutput> {
+  async getFeeDetails(tradeId: BytesLike): Promise<ITypes.FeeDetailsStructOutput> {
     return await this.contract.getFeeDetails(tradeId)
   }
 
-  async getSettledPayment(
-    tradeId: BytesLike
-  ): Promise<ITypes.SettledPaymentStructOutput> {
+  async getSettledPayment(tradeId: BytesLike): Promise<ITypes.SettledPaymentStructOutput> {
     return await this.contract.getSettledPayment(tradeId)
   }
 
-  async getTokens(
-    fromIdx: bigint,
-    toIdx: bigint
-  ): Promise<ITypes.TokenInfoStructOutput[]> {
+  async getTokens(fromIdx: bigint, toIdx: bigint): Promise<ITypes.TokenInfoStructOutput[]> {
     return await this.contract.getTokens(fromIdx, toIdx)
   }
 
-  async getTradeData(
-    tradeId: BytesLike
-  ): Promise<ITypes.TradeDataStructOutput> {
+  async getTradeData(tradeId: BytesLike): Promise<ITypes.TradeDataStructOutput> {
     return await this.contract.getTradeData(tradeId)
   }
 
@@ -105,10 +88,7 @@ export class RouterService {
     return await this.contract.isValidPMMAccount(pmmId, account)
   }
 
-  async isValidToken(
-    networkId: BytesLike,
-    tokenId: BytesLike
-  ): Promise<boolean> {
+  async isValidToken(networkId: BytesLike, tokenId: BytesLike): Promise<boolean> {
     return await this.contract.isValidToken(networkId, tokenId)
   }
 

@@ -1,12 +1,4 @@
-import {
-  AddressLike,
-  BytesLike,
-  Provider,
-  Signer,
-  TypedDataDomain,
-  verifyTypedData,
-  Wallet,
-} from 'ethers'
+import { AddressLike, BytesLike, Provider, Signer, TypedDataDomain, verifyTypedData, Wallet } from 'ethers'
 
 import defaultDomain from './domain'
 import {
@@ -35,8 +27,7 @@ function getSignatureType(type: SignatureType): any {
   else if (type === SignatureType.RFQ) return rfqAuthenticationTypes
   else if (type === SignatureType.MakePayment) return makePaymentType
   else if (type === SignatureType.ConfirmPayment) return confirmPaymentType
-  else if (type === SignatureType.ConfirmSettlement)
-    return confirmSettlementType
+  else if (type === SignatureType.ConfirmSettlement) return confirmSettlementType
   else throw new Error('Invalid signature type!')
 }
 
@@ -49,16 +40,8 @@ export async function getSigner(
   signature: string
 ) {
   const values = { tradeId: tradeId, infoHash: infoHash }
-  const contractDomain: TypedDataDomain = await defaultDomain(
-    signerHelper,
-    provider
-  )
-  return verifyTypedData(
-    contractDomain,
-    getSignatureType(type),
-    values,
-    signature
-  )
+  const contractDomain: TypedDataDomain = await defaultDomain(signerHelper, provider)
+  return verifyTypedData(contractDomain, getSignatureType(type), values, signature)
 }
 
 export async function getSignature(
@@ -70,18 +53,11 @@ export async function getSignature(
   type: SignatureType,
   domain?: TypedDataDomain
 ): Promise<string> {
-  const contractDomain: TypedDataDomain = await defaultDomain(
-    signerHelper,
-    provider
-  )
+  const contractDomain: TypedDataDomain = await defaultDomain(signerHelper, provider)
 
   let values: any
   if (type === SignatureType.MakePayment) values = { infoHash }
   else values = { tradeId: tradeId, infoHash: infoHash }
 
-  return await Signer.signTypedData(
-    domain ?? contractDomain,
-    getSignatureType(type),
-    values
-  )
+  return await Signer.signTypedData(domain ?? contractDomain, getSignatureType(type), values)
 }

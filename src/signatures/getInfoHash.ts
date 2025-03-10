@@ -2,13 +2,8 @@ import { AbiCoder, AddressLike, BytesLike, keccak256 } from 'ethers'
 
 const abiCoder = AbiCoder.defaultAbiCoder()
 
-export function getPresignHash(
-  pmmRecvAddress: AddressLike,
-  amountIn: bigint
-): string {
-  const infoHash: string = keccak256(
-    abiCoder.encode(['address', 'uint256'], [pmmRecvAddress, amountIn])
-  )
+export function getPresignHash(pmmRecvAddress: AddressLike, amountIn: bigint): string {
+  const infoHash: string = keccak256(abiCoder.encode(['address', 'uint256'], [pmmRecvAddress, amountIn]))
 
   return infoHash
 }
@@ -20,14 +15,9 @@ export function getDepositConfirmationHash(
   depositFromList: BytesLike[]
 ): string {
   const depositHash: string = keccak256(
-    abiCoder.encode(
-      ['uint256', 'bytes[3]', 'bytes[]'],
-      [amountIn, fromChain, depositFromList]
-    )
+    abiCoder.encode(['uint256', 'bytes[3]', 'bytes[]'], [amountIn, fromChain, depositFromList])
   )
-  const infoHash: string = keccak256(
-    abiCoder.encode(['bytes32', 'bytes'], [depositHash, depositTxId])
-  )
+  const infoHash: string = keccak256(abiCoder.encode(['bytes32', 'bytes'], [depositHash, depositTxId]))
 
   return infoHash
 }
@@ -51,9 +41,7 @@ export function getSelectPMMHash(
 }
 
 export function getRFQHash(minAmountOut: bigint, tradeTimeout: bigint): string {
-  const infoHash: string = keccak256(
-    abiCoder.encode(['uint256', 'uint256'], [minAmountOut, tradeTimeout])
-  )
+  const infoHash: string = keccak256(abiCoder.encode(['uint256', 'uint256'], [minAmountOut, tradeTimeout]))
 
   return infoHash
 }
@@ -68,14 +56,9 @@ export function getMakePaymentHash(
   startIdx: bigint,
   paymentTxId: BytesLike
 ): string {
-  const bundlerHash: string = keccak256(
-    abiCoder.encode(['bytes32[]'], [tradeIds])
-  )
+  const bundlerHash: string = keccak256(abiCoder.encode(['bytes32[]'], [tradeIds]))
   const infoHash: string = keccak256(
-    abiCoder.encode(
-      ['uint64', 'uint256', 'bytes32', 'bytes'],
-      [signedAt, startIdx, bundlerHash, paymentTxId]
-    )
+    abiCoder.encode(['uint64', 'uint256', 'bytes32', 'bytes'], [signedAt, startIdx, bundlerHash, paymentTxId])
   )
 
   return infoHash
@@ -88,14 +71,9 @@ export function getBTCEVMConfirmPaymentHash(
   paymentTxId: BytesLike
 ): string {
   const paymentHash: string = keccak256(
-    abiCoder.encode(
-      ['uint256', 'uint256', 'bytes[3]'],
-      [protocolFee, paymentAmount, toChain]
-    )
+    abiCoder.encode(['uint256', 'uint256', 'bytes[3]'], [protocolFee, paymentAmount, toChain])
   )
-  const infoHash: string = keccak256(
-    abiCoder.encode(['bytes32', 'bytes'], [paymentHash, paymentTxId])
-  )
+  const infoHash: string = keccak256(abiCoder.encode(['bytes32', 'bytes'], [paymentHash, paymentTxId]))
 
   return infoHash
 }
@@ -105,12 +83,8 @@ export function getEVMBTCConfirmPaymentHash(
   toChain: [BytesLike, BytesLike, BytesLike],
   paymentTxId: BytesLike
 ): string {
-  const paymentHash: string = keccak256(
-    abiCoder.encode(['uint256', 'bytes[3]'], [paymentAmount, toChain])
-  )
-  const infoHash: string = keccak256(
-    abiCoder.encode(['bytes32', 'bytes'], [paymentHash, paymentTxId])
-  )
+  const paymentHash: string = keccak256(abiCoder.encode(['uint256', 'bytes[3]'], [paymentAmount, toChain]))
+  const infoHash: string = keccak256(abiCoder.encode(['bytes32', 'bytes'], [paymentHash, paymentTxId]))
 
   return infoHash
 }
@@ -121,13 +95,8 @@ export function getBTCEVMConfirmSettlementHash(releaseTxId: BytesLike): string {
   return infoHash
 }
 
-export function getEVMBTCConfirmSettlementHash(
-  protocolFee: bigint,
-  releaseTxId: BytesLike
-): string {
-  const infoHash: string = keccak256(
-    abiCoder.encode(['uint256', 'bytes'], [protocolFee, releaseTxId])
-  )
+export function getEVMBTCConfirmSettlementHash(protocolFee: bigint, releaseTxId: BytesLike): string {
+  const infoHash: string = keccak256(abiCoder.encode(['uint256', 'bytes'], [protocolFee, releaseTxId]))
 
   return infoHash
 }
