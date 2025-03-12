@@ -14,7 +14,7 @@
   "ignore": {
     "useGitignore": true,
     "useDefaultPatterns": true,
-    "customPatterns": ["**/*.log", ".github", "abi", "src/contracts"]
+    "customPatterns": ["**/*.log", ".github", "abi", "src/contracts", "**/*.md" , "generate-indexes.js"]
   },
   "security": {
     "enableSecurityCheck": true
