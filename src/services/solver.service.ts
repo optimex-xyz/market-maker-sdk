@@ -27,7 +27,7 @@ export class SolverService {
   private readonly baseURL: string
 
   constructor() {
-    this.baseURL = config.getSolverUrl()
+    this.baseURL = config.getBackendUrl()
   }
 
   /**
@@ -45,7 +45,7 @@ export class SolverService {
       const snakeCaseParams = convertToSnakeCase(params)
 
       const response = await axios.post<SubmitSettlementResponse>(
-        `${this.baseURL}/submit-settlement-tx`,
+        `${this.baseURL}/solver/submit-settlement-tx`,
         snakeCaseParams,
         {
           headers: {
@@ -66,56 +66,6 @@ export class SolverService {
       }
       throw error
     }
-  }
-
-  /**
-   * Helper function to format and submit a single trade settlement
-   * @param tradeId The ID of the trade to settle
-   * @param pmmId The PMM's identifier
-   * @param settlementTx The settlement transaction data
-   * @param signature The PMM's signature
-   */
-  async submitSingleSettlement(
-    tradeId: string,
-    pmmId: string,
-    settlementTx: string,
-    signature: string,
-    signedAt: number
-  ): Promise<SubmitSettlementResponse> {
-    return this.submitSettlementTx({
-      tradeIds: [tradeId],
-      pmmId,
-      settlementTx,
-      signature,
-      startIndex: 0,
-      signedAt,
-    })
-  }
-
-  /**
-   * Helper function to submit multiple trade settlements in one transaction
-   * @param tradeIds Array of trade IDs to settle
-   * @param pmmId The PMM's identifier
-   * @param settlementTx The settlement transaction data
-   * @param signature The PMM's signature
-   * @param startIndex Starting index for batch processing
-   */
-  async submitBatchSettlement(
-    tradeIds: string[],
-    pmmId: string,
-    settlementTx: string,
-    signature: string,
-    signedAt: number,
-    startIndex: number = 0
-  ): Promise<SubmitSettlementResponse> {
-    return this.submitSettlementTx({
-      tradeIds,
-      pmmId,
-      settlementTx,
-      signature,
-      startIndex,
-      signedAt,
-    })
   }
 }
 

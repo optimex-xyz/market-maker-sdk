@@ -1,7 +1,6 @@
 export type Environment = 'dev' | 'production'
 
 export interface EnvironmentConfig {
-  solverUrl: string
   backendUrl: string
   rpcUrl: string
   routerAddress: string
@@ -14,7 +13,6 @@ export interface AppConfig extends EnvironmentConfig {
 
 const environments: Record<Environment, EnvironmentConfig> = {
   dev: {
-    solverUrl: 'https://pre-bitfi-solver.kyberengineering.io',
     backendUrl: 'https://api-stg.bitdex.xyz',
     rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
     routerAddress: '0xc0B01A53B15bacAF6f81aF1F6B001E8c8130256e',
@@ -23,7 +21,6 @@ const environments: Record<Environment, EnvironmentConfig> = {
     },
   },
   production: {
-    solverUrl: 'https://bitfi-solver.kyberengineering.io',
     backendUrl: 'https://api.petafi.xyz',
     rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
     routerAddress: '0x07468dF194817257e73cA71E938C1ef977Be032F',
@@ -52,10 +49,6 @@ class Config {
       env: this.env,
       ...this.config,
     }
-  }
-
-  public getSolverUrl(): string {
-    return this.config.solverUrl
   }
 
   public getBackendUrl(): string {
