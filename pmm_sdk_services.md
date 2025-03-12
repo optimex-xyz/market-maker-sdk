@@ -101,14 +101,6 @@ const signature = await getSignature(
   SignatureType.Presign  // update type signature
 );
 
-// Generate various info hashes
-const presignHash = getInfoHash.getPresignHash(pmmRecvAddress, amountIn);
-const depositHash = getInfoHash.getDepositConfirmationHash(
-  amountIn,
-  fromChain,
-  depositTxId,
-  depositFromList
-);
 ```
 
 ## Best Practices
