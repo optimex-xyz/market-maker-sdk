@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { z } from 'zod'
 
-import { config } from '../config'
+import { AppConfig, config, ConfigObserver } from '../config'
 import { convertToSnakeCase } from '../utils'
 
 // Request validation schema
@@ -23,11 +23,21 @@ const SubmitSettlementResponseSchema = z.object({
 type SubmitSettlementRequest = z.infer<typeof SubmitSettlementRequestSchema>
 type SubmitSettlementResponse = z.infer<typeof SubmitSettlementResponseSchema>
 
-export class SolverService {
-  private readonly baseURL: string
+export class SolverService implements ConfigObserver {
+  private baseURL: string
 
   constructor() {
     this.baseURL = config.getBackendUrl()
+    // Register as an observer
+    config.registerObserver(this)
+  }
+
+  /**
+   * Implementation of ConfigObserver interface
+   * Updates service when config changes
+   */
+  onConfigUpdate(newConfig: AppConfig): void {
+    this.baseURL = newConfig.backendUrl
   }
 
   /**

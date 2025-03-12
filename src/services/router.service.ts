@@ -1,15 +1,26 @@
 import { BytesLike, ethers, JsonRpcProvider } from 'ethers'
 
-import { config } from '../config'
+import { AppConfig, config, ConfigObserver } from '../config'
 import { ITypes, Router__factory } from '../contracts'
 
-export class RouterService {
-  private readonly provider: JsonRpcProvider
-  private readonly contract: ReturnType<typeof Router__factory.connect>
+export class RouterService implements ConfigObserver {
+  private provider: JsonRpcProvider
+  private contract: ReturnType<typeof Router__factory.connect>
 
   constructor() {
     this.provider = new JsonRpcProvider(config.getRpcUrl())
     this.contract = Router__factory.connect(config.getRouterAddress(), this.provider)
+
+    // Register as an observer
+    config.registerObserver(this)
+  }
+  /**
+   * Implementation of ConfigObserver interface
+   * Updates service when config changes
+   */
+  onConfigUpdate(newConfig: AppConfig): void {
+    this.provider = new JsonRpcProvider(newConfig.rpcUrl)
+    this.contract = Router__factory.connect(newConfig.routerAddress, this.provider)
   }
 
   async getSigner(): Promise<string> {
