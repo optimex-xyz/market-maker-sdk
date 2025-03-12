@@ -34,9 +34,8 @@ class Config {
   private env: Environment
   private config: EnvironmentConfig
 
-  constructor() {
-    // Default to production but allow override
-    this.env = (process.env.SDK_ENV as Environment) || 'production'
+  constructor(env: Environment = 'production') {
+    this.env = env
     this.config = this.validateAndGetConfig(this.env)
   }
 
