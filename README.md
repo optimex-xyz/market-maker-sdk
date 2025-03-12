@@ -12,6 +12,7 @@ A comprehensive toolkit for implementing Private Market Makers (PMMs) in the cro
   - [2. Quick Start](#2-quick-start)
     - [2.1. Installation](#21-installation)
     - [2.2. Environment Setup](#22-environment-setup)
+    - [2.3. Available Environments](#23-available-environments)
   - [3. PMM Backend APIs](#3-pmm-backend-apis)
     - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)
       - [Description](#description)
@@ -110,9 +111,26 @@ yarn add @optimex-xyz/market-maker-sdk
 
 ### 2.2. Environment Setup
 
-| Variable | Development | Production |
-| -------- | ----------- | ---------- |
-| SDK_ENV  | dev         | production |
+you can directly specify the environment
+
+```typescript
+import { sdk, Environment } from '@optimex-xyz/market-maker-sdk'
+
+// Change to development environment
+sdk.setEnvironment('dev' as Environment)
+
+// Change to production environment
+sdk.setEnvironment('production' as Environment)
+```
+
+### 2.3. Available Environments
+
+| Environment  | Description                                                          |
+| ------------ | -------------------------------------------------------------------- |
+| `dev`        | Development environment with test networks and staging services      |
+| `production` | Production environment with mainnet networks and production services |
+
+Each environment includes specific configuration for backend URLs, RPC endpoints, router addresses, and payment addresses.
 
 ## 3. PMM Backend APIs
 
