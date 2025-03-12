@@ -23,9 +23,9 @@ const environments: Record<Environment, EnvironmentConfig> = {
   production: {
     backendUrl: 'https://api.petafi.xyz',
     rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
-    routerAddress: '0x07468dF194817257e73cA71E938C1ef977Be032F',
+    routerAddress: '0x272599CE3602A49B580A5C4a4d3C1067E30248D2',
     paymentAddressMap: {
-      ethereum: '0x05d60d78ec4896c041268b68fcef2294b16123c3',
+      ethereum: 'x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
   },
 }
