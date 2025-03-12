@@ -8,7 +8,15 @@ export class SDK {
   setEnvironment(env: Environment): void {
     config.setEnvironment(env)
   }
+
+  /**
+   * Get the current environment configuration
+   * @returns The current environment configuration
+   */
+  getConfig() {
+    return config.get()
+  }
 }
 
-// Export a default instance of the SDK with production environment
+// Export a default instance of the SDK
 export const sdk = new SDK()
