@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { z } from 'zod'
 
-import { config } from '../config'
+import { AppConfig, config, ConfigObserver } from '../config'
 import { Token, TokenSchema } from '../types'
 import { convertToCamelCase } from '../utils'
 
@@ -12,11 +12,21 @@ const TokenResponseSchema = z.object({
   traceId: z.string(),
 })
 
-export class TokenService {
-  private readonly baseURL: string
+export class TokenService implements ConfigObserver {
+  private baseURL: string
 
   constructor() {
     this.baseURL = config.getBackendUrl()
+    // Register as an observer
+    config.registerObserver(this)
+  }
+
+  /**
+   * Implementation of ConfigObserver interface
+   * Updates service when config changes
+   */
+  onConfigUpdate(newConfig: AppConfig): void {
+    this.baseURL = newConfig.backendUrl
   }
 
   /**

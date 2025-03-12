@@ -11,6 +11,10 @@ export interface AppConfig extends EnvironmentConfig {
   env: Environment
 }
 
+export interface ConfigObserver {
+  onConfigUpdate(newConfig: AppConfig): void
+}
+
 const environments: Record<Environment, EnvironmentConfig> = {
   dev: {
     backendUrl: 'https://api-stg.bitdex.xyz',
@@ -33,10 +37,25 @@ const environments: Record<Environment, EnvironmentConfig> = {
 class Config {
   private env: Environment
   private config: EnvironmentConfig
+  private observers: ConfigObserver[] = []
 
   constructor(env: Environment = 'production') {
     this.env = env
     this.config = this.validateAndGetConfig(this.env)
+  }
+
+  /**
+   * Register a service as an observer to be notified of config changes
+   */
+  public registerObserver(observer: ConfigObserver): void {
+    this.observers.push(observer)
+  }
+
+  /**
+   * Remove a service from observers
+   */
+  public unregisterObserver(observer: ConfigObserver): void {
+    this.observers = this.observers.filter((obs) => obs !== observer)
   }
 
   /**
@@ -50,6 +69,10 @@ class Config {
 
     this.env = env
     this.config = environments[env]
+
+    // Notify all observers that config has changed
+    const newConfig = this.get()
+    this.observers.forEach((observer) => observer.onConfigUpdate(newConfig))
   }
 
   private validateAndGetConfig(env: Environment): EnvironmentConfig {
