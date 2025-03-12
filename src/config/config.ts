@@ -31,17 +31,34 @@ const environments: Record<Environment, EnvironmentConfig> = {
 }
 
 class Config {
-  private readonly env: Environment
-  private readonly config: EnvironmentConfig
+  private env: Environment
+  private config: EnvironmentConfig
 
   constructor() {
+    // Default to production but allow override
     this.env = (process.env.SDK_ENV as Environment) || 'production'
+    this.config = this.validateAndGetConfig(this.env)
+  }
 
-    if (!environments[this.env]) {
-      throw new Error(`Unsupported environment: ${this.env}`)
+  /**
+   * Set the environment for the SDK
+   * @param env The environment to use ('dev' or 'production')
+   */
+  public setEnvironment(env: Environment): void {
+    if (!environments[env]) {
+      throw new Error(`Unsupported environment: ${env}`)
     }
 
-    this.config = environments[this.env]
+    this.env = env
+    this.config = environments[env]
+  }
+
+  private validateAndGetConfig(env: Environment): EnvironmentConfig {
+    if (!environments[env]) {
+      throw new Error(`Unsupported environment: ${env}`)
+    }
+
+    return environments[env]
   }
 
   public get(): AppConfig {
