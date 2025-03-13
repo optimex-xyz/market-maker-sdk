@@ -42,13 +42,13 @@
     "commit": "cz"
   },
   "dependencies": {
-    "axios": "^1.8.2",
+    "axios": "^1.8.3",
     "bip174": "^3.0.0-rc.1",
     "bitcoinjs-lib": "^7.0.0-rc.0",
-    "ecpair": "^3.0.0-rc.0",
-    "ethers": "^6.13.4",
+    "ecpair": "^3.0.0",
+    "ethers": "^6.13.5",
     "tiny-secp256k1": "^2.2.3",
-    "zod": "^3.23.8"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
@@ -56,21 +56,21 @@
     "@eslint/js": "^9.22.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
     "@typechain/ethers-v6": "^0.5.1",
-    "@types/node": "^22.10.1",
-    "@typescript-eslint/eslint-plugin": "^8.26.0",
-    "@typescript-eslint/parser": "^8.26.0",
+    "@types/node": "^22.13.10",
+    "@typescript-eslint/eslint-plugin": "^8.26.1",
+    "@typescript-eslint/parser": "^8.26.1",
     "commitizen": "^4.3.1",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-unused-imports": "^4.1.4",
     "globals": "^16.0.0",
-    "lint-staged": "^15.4.3",
+    "lint-staged": "^15.5.0",
     "prettier": "^3.5.3",
     "simple-git-hooks": "^2.11.1",
     "tsup": "^8.4.0",
     "typechain": "^8.3.2",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.26.0"
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged",
