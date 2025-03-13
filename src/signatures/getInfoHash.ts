@@ -1,4 +1,4 @@
-import { AbiCoder, AddressLike, BytesLike, keccak256 } from 'ethers'
+import { AbiCoder, BytesLike, keccak256 } from 'ethers'
 
 const abiCoder = AbiCoder.defaultAbiCoder()
 
