@@ -55,7 +55,7 @@ export class SolverService implements ConfigObserver {
       const snakeCaseParams = convertToSnakeCase(params)
 
       const response = await axios.post<SubmitSettlementResponse>(
-        `${this.baseURL}/v1/solver/submit-settlement-tx`,
+        `${this.baseURL}/market-maker/submit-settlement-tx`,
         snakeCaseParams,
         {
           headers: {

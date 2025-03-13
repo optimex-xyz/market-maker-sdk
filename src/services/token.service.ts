@@ -36,7 +36,7 @@ export class TokenService implements ConfigObserver {
    */
   async getTokens(): Promise<Token[]> {
     try {
-      const response = await axios.get<any>(`${this.baseURL}/v1/tokens`, {
+      const response = await axios.get<any>(`${this.baseURL}/market-maker/tokens`, {
         headers: {
           Accept: 'application/json',
         },
