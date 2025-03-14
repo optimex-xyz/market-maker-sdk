@@ -1327,7 +1327,7 @@ eastasianwidth@^0.2.0:
   resolved "https://registry.yarnpkg.com/eastasianwidth/-/eastasianwidth-0.2.0.tgz#696ce2ec0aa0e6ea93a397ffcf24aa7840c827cb"
   integrity sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==
 
-ecpair@^3.0.0-rc.0:
+ecpair@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/ecpair/-/ecpair-3.0.0.tgz#7a9c5fcebbefd074b3759fe0a4ee20976ead44ea"
   integrity sha512-kf4JxjsRQoD4EBzpYjGAcR0t9i/4oAeRPtyCpKvSwyotgkc6oA4E4M0/e+kep7cXe+mgxAvoeh/jdgH9h5+Wxw==
