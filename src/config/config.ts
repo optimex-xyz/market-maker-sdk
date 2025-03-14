@@ -25,7 +25,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     },
   },
   production: {
-    backendUrl: 'https://api.optimex.cc',
+    backendUrl: 'https://api.optimex.xyz',
     rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
     routerAddress: '0x272599CE3602A49B580A5C4a4d3C1067E30248D2',
     paymentAddressMap: {
