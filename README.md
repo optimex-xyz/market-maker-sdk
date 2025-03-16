@@ -1,18 +1,17 @@
-# PMM SDK Integration Documentation
+# PMM API Integration Documentation
 
-A comprehensive toolkit for implementing Private Market Makers (PMMs) in the cross-chain trading network. This guide covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
+> **Note**: If you prefer using the SDK instead of direct API integration, please refer to the [PMM SDK Integration Guide](sdk-integration.md).
+
+A comprehensive guide for implementing Private Market Makers (PMMs) in the cross-chain trading network. This documentation covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
 
 ## Table of Contents
 
-- [PMM SDK Integration Documentation](#pmm-sdk-integration-documentation)
+- [PMM API Integration Documentation](#pmm-api-integration-documentation)
   - [Table of Contents](#table-of-contents)
   - [1. Overview](#1-overview)
-    - [1.1. Repository Structure](#11-repository-structure)
-    - [1.2. Example Implementation](#12-example-implementation)
+    - [1.1. Integration Flow](#11-integration-flow)
   - [2. Quick Start](#2-quick-start)
-    - [2.1. Installation](#21-installation)
-    - [2.2. Environment Setup](#22-environment-setup)
-    - [2.3. Available Environments](#23-available-environments)
+    - [2.1. API Environments](#21-api-environments)
   - [3. PMM Backend APIs](#3-pmm-backend-apis)
     - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)
       - [Description](#description)
@@ -44,21 +43,33 @@ A comprehensive toolkit for implementing Private Market Makers (PMMs) in the cro
       - [Example Request](#example-request-4)
       - [Expected Response](#expected-response-4)
       - [Example Implementation](#example-implementation-4)
-  - [4. SDK Functions for PMMs](#4-sdk-functions-for-pmms)
-    - [4.1. Function: getTokens](#41-function-gettokens)
+  - [4. Solver API Endpoints for PMMs](#4-solver-api-endpoints-for-pmms)
+    - [4.1. Endpoint: `/market-maker/tokens`](#41-endpoint-market-makertokens)
       - [Description](#description-5)
-      - [Example Code](#example-code)
-    - [4.2. Function: submitSettlementTx](#42-function-submitsettlementtx)
+      - [Request Parameters](#request-parameters-5)
+      - [Example Request](#example-request-5)
+      - [Expected Response](#expected-response-5)
+    - [4.2. Endpoint: `/market-maker/submit-settlement-tx`](#42-endpoint-market-makersubmit-settlement-tx)
       - [Description](#description-6)
-      - [Example Implementation](#example-implementation-5)
+      - [Request Parameters](#request-parameters-6)
+      - [Example Request](#example-request-6)
+      - [Expected Response](#expected-response-6)
       - [Notes](#notes)
+    - [4.3. Endpoint: `/market-maker/trades/:tradeId`](#43-endpoint-market-makertradestradeid)
+      - [Description](#description-7)
+      - [Request Parameters](#request-parameters-7)
+      - [Example Request](#example-request-7)
+      - [Expected Response](#expected-response-7)
   - [5. PMM Making Payment](#5-pmm-making-payment)
     - [5.1. EVM](#51-evm)
     - [5.2. Bitcoin](#52-bitcoin)
+  - [6. General Notes for PMMs](#6-general-notes-for-pmms)
 
 ## 1. Overview
 
-This repository contains everything needed to integrate your PMM with 's solver network:
+This documentation contains everything needed to integrate your PMM with the solver network. The integration requires implementing specific API endpoints in your PMM service and making calls to the solver backend APIs.
+
+### 1.1. Integration Flow
 
 ```mermaid
 sequenceDiagram
@@ -86,44 +97,13 @@ sequenceDiagram
     Solver->>PMM: POST /signal-payment
     PMM-->>Solver: Acknowledge signal
     PMM->>Chain: Execute settlement (transfer)
-    PMM->>Solver: POST /submit-settlement-tx
+    PMM->>Solver: POST /market-maker/submit-settlement-tx
     Solver-->>PMM: Confirm settlement submission
 ```
 
-### 1.1. Repository Structure
-The repository consists of:
-- `abi/`: Smart contract ABIs and interfaces
-- `example/`: A complete mock PMM implementation showing how to integrate the SDK
-- `src/`: Source code for the market maker SDK
-
-### 1.2. Example Implementation
-The [Example](example/) directory contains a fully functional mock PMM. Use this implementation as a reference while integrating the `@optimex-xyz/market-maker-sdk` into your own PMM service.
-
 ## 2. Quick Start
 
-### 2.1. Installation
-
-```bash
-npm install @optimex-xyz/market-maker-sdk
-# or
-yarn add @optimex-xyz/market-maker-sdk
-```
-
-### 2.2. Environment Setup
-
-you can directly specify the environment
-
-```typescript
-import { sdk, Environment } from '@optimex-xyz/market-maker-sdk'
-
-// Change to development environment
-sdk.setEnvironment('dev' as Environment)
-
-// Change to production environment
-sdk.setEnvironment('production' as Environment)
-```
-
-### 2.3. Available Environments
+### 2.1. API Environments
 
 | Environment  | Description                                                          |
 | ------------ | -------------------------------------------------------------------- |
@@ -179,34 +159,49 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 #### Example Implementation
 
 ```js
-import { Token, tokenService } from '@optimex-xyz/market-maker-sdk'
-
-export const IndicativeQuoteResponseSchema = z.object({
-  sessionId: z.string(),
-  pmmReceivingAddress: z.string(),
-  indicativeQuote: z.string(),
-  error: z.string().optional(),
-});
-
-export type IndicativeQuoteResponse = z.infer<
-  typeof IndicativeQuoteResponseSchema
->;
-
-async getIndicativeQuote(dto: GetIndicativeQuoteDto): Promise<IndicativeQuoteResponse> {
-  const sessionId = dto.sessionId || this.generateSessionId()
-
-  const [fromToken, toToken] = Promise.all([
-    this.tokenService.getTokenByTokenId(dto.fromTokenId),
-    this.tokenService.getTokenByTokenId(dto.toTokenId),
-  ])
-
-  const quote = this.calculateBestQuote()
-
-  return {
-    sessionId,
-    pmmReceivingAddress,
-    indicativeQuote: quote,
-    error: '',
+async function getIndicativeQuote(req, res) {
+  try {
+    const { from_token_id, to_token_id, amount, session_id } = req.query;
+    
+    // Generate a session ID if not provided
+    const sessionId = session_id || generateSessionId();
+    
+    // Fetch token information from Solver API
+    const tokensResponse = await fetch('https://api.solver.example/market-maker/tokens');
+    const tokensData = await tokensResponse.json();
+    
+    // Find the from token and to token
+    const fromToken = tokensData.data.tokens.find(token => token.token_id === from_token_id);
+    const toToken = tokensData.data.tokens.find(token => token.token_id === to_token_id);
+    
+    if (!fromToken || !toToken) {
+      return res.status(400).json({
+        session_id: sessionId,
+        pmm_receiving_address: '',
+        indicative_quote: '0',
+        error: 'Token not found'
+      });
+    }
+    
+    // Calculate the quote (implementation specific to your PMM)
+    const quote = calculateQuote(fromToken, toToken, amount);
+    
+    // Get the receiving address for this token pair
+    const pmmReceivingAddress = getPMMReceivingAddress(fromToken.network_id);
+    
+    return res.status(200).json({
+      session_id: sessionId,
+      pmm_receiving_address: pmmReceivingAddress,
+      indicative_quote: quote,
+      error: ''
+    });
+  } catch (error) {
+    return res.status(500).json({
+      session_id: req.query.session_id || '',
+      pmm_receiving_address: '',
+      indicative_quote: '0',
+      error: error.message
+    });
   }
 }
 ```
@@ -259,44 +254,78 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
 #### Example Implementation
 
 ```js
-import { Token, tokenService } from '@optimex-xyz/market-maker-sdk'
-
-export const GetCommitmentQuoteSchema = z.object({
-  sessionId: z.string(),
-  tradeId: z.string(),
-  fromTokenId: z.string(),
-  toTokenId: z.string(),
-  amount: z.string(),
-  fromUserAddress: z.string(),
-  toUserAddress: z.string(),
-  userDepositTx: z.string(),
-  userDepositVault: z.string(),
-  tradeDeadline: z.string(),
-  scriptDeadline: z.string(),
-});
-
-export class GetCommitmentQuoteDto extends createZodDto(
-  GetCommitmentQuoteSchema
-) {}
-
-async getCommitmentQuote(dto: GetCommitmentQuoteDto): Promise<CommitmentQuoteResponse> {
-  const session = await this.sessionRepo.findById(dto.sessionId)
-
-  const [fromToken, toToken] = await Promise.all([
-    tokenService.getTokenByTokenId(dto.fromTokenId),
-    tokenService.getTokenByTokenId(dto.toTokenId),
-  ])
-
-  const quote = this.calculateBestQuote(...)
-
-  await this.tradeService.createTrade({ tradeId: dto.tradeId })
-
-  await this.tradeService.updateTradeQuote(dto.tradeId, { commitmentQuote: quote })
-
-  return {
-    tradeId: dto.tradeId,
-    commitmentQuote: quote,
-    error: '',
+async function getCommitmentQuote(req, res) {
+  try {
+    const {
+      session_id,
+      trade_id,
+      from_token_id,
+      to_token_id,
+      amount,
+      from_user_address,
+      to_user_address,
+      user_deposit_tx,
+      user_deposit_vault,
+      trade_deadline,
+      script_deadline
+    } = req.query;
+    
+    // Validate the session exists
+    const session = await sessionRepository.findById(session_id);
+    if (!session) {
+      return res.status(400).json({
+        trade_id,
+        commitment_quote: '0',
+        error: 'Session not found'
+      });
+    }
+    
+    // Fetch token information from Solver API
+    const tokensResponse = await fetch('https://api.solver.example/market-maker/tokens');
+    const tokensData = await tokensResponse.json();
+    
+    // Find the from token and to token
+    const fromToken = tokensData.data.tokens.find(token => token.token_id === from_token_id);
+    const toToken = tokensData.data.tokens.find(token => token.token_id === to_token_id);
+    
+    if (!fromToken || !toToken) {
+      return res.status(400).json({
+        trade_id,
+        commitment_quote: '0',
+        error: 'Token not found'
+      });
+    }
+    
+    // Calculate the final quote (implementation specific to your PMM)
+    const quote = calculateFinalQuote(fromToken, toToken, amount, trade_deadline);
+    
+    // Store the trade in the database
+    await tradeRepository.create({
+      tradeId: trade_id,
+      sessionId: session_id,
+      fromTokenId: from_token_id,
+      toTokenId: to_token_id,
+      amount,
+      fromUserAddress: from_user_address,
+      toUserAddress: to_user_address,
+      userDepositTx: user_deposit_tx,
+      userDepositVault: user_deposit_vault,
+      tradeDeadline: trade_deadline,
+      scriptDeadline: script_deadline,
+      commitmentQuote: quote
+    });
+    
+    return res.status(200).json({
+      trade_id,
+      commitment_quote: quote,
+      error: ''
+    });
+  } catch (error) {
+    return res.status(500).json({
+      trade_id: req.query.trade_id || '',
+      commitment_quote: '0',
+      error: error.message
+    });
   }
 }
 ```
@@ -343,77 +372,62 @@ GET /settlement-signature?trade_id=abcd1234&committed_quote=987654321000000000&t
 
 #### Example Implementation
 
-```ts
-import {
-  getCommitInfoHash,
-  getSignature,
-  routerService,
-  SignatureType,
-  signerService,
-} from '@optimex-xyz/market-maker-sdk'
-
-export const GetSettlementSignatureSchema = z.object({
-  tradeId: z.string(),
-  committedQuote: z.string(),
-  tradeDeadline: z.string(),
-  scriptDeadline: z.string(),
-})
-
-export class GetSettlementSignatureDto extends createZodDto(GetSettlementSignatureSchema) {}
-
-async getSettlementSignature(dto: GetSettlementSignatureDto, trade: Trade): Promise<SettlementSignatureResponseDto> {
+```js
+async function getSettlementSignature(req, res) {
   try {
-    const { tradeId } = trade
-
-    // Get data directly from l2 contract or using routerService ( wrapper of l2 contract )
-    const [presigns, tradeData] = await Promise.all([
-      routerService.getPresigns(tradeId),
-      routerService.getTradeData(tradeId),
-    ])
-
-    const { toChain } = tradeData.tradeInfo
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + 1800)
-
-    const pmmId = ... // hexString
-    const pmmPresign = presigns.find((t) => t.pmmId === pmmId)
-    if (!pmmPresign) {
-      throw new BadRequestException('pmmPresign not found')
+    const { trade_id, committed_quote, trade_deadline, script_deadline } = req.query;
+    
+    // Fetch the trade from the database
+    const trade = await tradeRepository.findById(trade_id);
+    if (!trade) {
+      return res.status(400).json({
+        trade_id,
+        signature: '',
+        deadline: 0,
+        error: 'Trade not found'
+      });
     }
-
-    // get amountOut from the committed quote
-    const amountOut = BigInt(dto.committedQuote)
-
-    const commitInfoHash = getCommitInfoHash(
-      pmmPresign.pmmId,
-      pmmPresign.pmmRecvAddress,
-      toChain[1],
-      toChain[2],
-      amountOut,
+    
+    // Fetch trade details from Solver API
+    const tradeDetailsResponse = await fetch(`https://api.solver.example/market-maker/trades/${trade_id}`);
+    const tradeDetails = await tradeDetailsResponse.json();
+    
+    // Calculate a deadline (30 minutes from now)
+    const deadline = Math.floor(Date.now() / 1000) + 1800;
+    
+    // Get PMM data
+    const pmmId = process.env.PMM_ID; // Your PMM ID
+    
+    // Get the presigns and trade data from tradeDetails
+    const { from_token, to_token } = tradeDetails.data;
+    
+    // Create a commitment info hash
+    const commitInfoHash = createCommitInfoHash(
+      pmmId,
+      trade.pmmReceivingAddress,
+      to_token.chain,
+      to_token.address,
+      committed_quote,
       deadline
-    )
-
-    const signerAddress = await this.routerService.getSigner()
-
-    const domain = await signerService.getDomain()
-
-    const signature = await getSignature(
-      this.pmmWallet,
-      this.provider,
-      signerAddress,
-      tradeId,
-      commitInfoHash,
-      SignatureType.VerifyingContract,
-      domain
-    )
-
-    return {
-      tradeId: tradeId,
+    );
+    
+    // Sign the commitment with your private key
+    const privateKey = process.env.PMM_PRIVATE_KEY;
+    const signature = signMessage(privateKey, trade_id, commitInfoHash);
+    
+    return res.status(200).json({
+      trade_id,
       signature,
-      deadline: Number(deadline),
-      error: '',
-    }
-  } catch (error: any) {
-    // Handle error
+      deadline,
+      error: ''
+    });
+  } catch (error) {
+    return res.status(500).json({
+      trade_id: req.query.trade_id || '',
+      signature: '',
+      deadline: 0,
+      error: error.message
+    });
   }
 }
 ```
@@ -461,30 +475,39 @@ trade_id=abcd1234&trade_deadline=1696012800&script_deadline=1696016400&chosen=tr
 
 #### Example Implementation
 
-```ts
-export const AckSettlementSchema = z.object({
-  tradeId: z.string(),
-  tradeDeadline: z.string(),
-  scriptDeadline: z.string(),
-  chosen: z.string().refine((val) => val === 'true' || val === 'false', {
-    message: "chosen must be 'true' or 'false'",
-  }),
-})
-
-export class AckSettlementDto extends createZodDto(AckSettlementSchema) {}
-
-async ackSettlement(dto: AckSettlementDto, trade: Trade): Promise<AckSettlementResponseDto> {
+```js
+async function ackSettlement(req, res) {
   try {
-    return {
-      tradeId: dto.tradeId,
+    const { trade_id, trade_deadline, script_deadline, chosen } = req.body;
+    
+    // Fetch the trade from the database
+    const trade = await tradeRepository.findById(trade_id);
+    if (!trade) {
+      return res.status(400).json({
+        trade_id,
+        status: 'error',
+        error: 'Trade not found'
+      });
+    }
+    
+    // Update trade status based on whether it was chosen
+    await tradeRepository.update(trade_id, {
+      chosen: chosen === 'true',
+      tradeDeadline: trade_deadline,
+      scriptDeadline: script_deadline
+    });
+    
+    return res.status(200).json({
+      trade_id,
       status: 'acknowledged',
-      error: '',
-    }
-  } catch (error: any) {
-    if (error instanceof HttpException) {
-      throw error
-    }
-    throw new BadRequestException(error.message)
+      error: ''
+    });
+  } catch (error) {
+    return res.status(500).json({
+      trade_id: req.body.trade_id || '',
+      status: 'error',
+      error: error.message
+    });
   }
 }
 ```
@@ -500,7 +523,7 @@ Used by the solver to signal the chosen PMM to start submitting their payment.
 - **HTTP Method**: `POST`
 - **Form Parameters**:
   - `trade_id` (string): The unique identifier for the trade.
-  - `protocol_fee_amount` (string): The amount of protocol fee the PMM has to submit, in base 10.
+  - `total_fee_amount` (string): The amount of total fee the PMM has to submit, in base 10.
   - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
   - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
 
@@ -510,7 +533,7 @@ Used by the solver to signal the chosen PMM to start submitting their payment.
 POST /signal-payment
 Content-Type: application/x-www-form-urlencoded
 
-trade_id=abcd1234&protocol_fee_amount=1000000000000000&trade_deadline=1696012800&script_deadline=1696016400
+trade_id=abcd1234&total_fee_amount=1000000000000000&trade_deadline=1696012800&script_deadline=1696016400
 ```
 
 #### Expected Response
@@ -532,121 +555,198 @@ trade_id=abcd1234&protocol_fee_amount=1000000000000000&trade_deadline=1696012800
 
 #### Example Implementation
 
-```ts
-export const SignalPaymentSchema = z.object({
-  tradeId: z.string(),
-  protocolFeeAmount: z.string(),
-  tradeDeadline: z.string(),
-  scriptDeadline: z.string(),
-})
-
-export class SignalPaymentDto extends createZodDto(SignalPaymentSchema) {}
-
-async signalPayment(dto: SignalPaymentDto, trade: Trade): Promise<SignalPaymentResponseDto> {
+```js
+async function signalPayment(req, res) {
   try {
-    // enqueue transfer with dto and trade
-
-    return {
-      tradeId: dto.tradeId,
+    const { trade_id, total_fee_amount, trade_deadline, script_deadline } = req.body;
+    
+    // Fetch the trade from the database
+    const trade = await tradeRepository.findById(trade_id);
+    if (!trade) {
+      return res.status(400).json({
+        trade_id,
+        status: 'error',
+        error: 'Trade not found'
+      });
+    }
+    
+    // Update trade with fee amount
+    await tradeRepository.update(trade_id, {
+      totalFeeAmount: total_fee_amount,
+      tradeDeadline: trade_deadline,
+      scriptDeadline: script_deadline
+    });
+    
+    // Queue the payment task
+    await paymentQueue.add({
+      tradeId: trade_id,
+      totalFeeAmount: total_fee_amount
+    });
+    
+    return res.status(200).json({
+      trade_id,
       status: 'acknowledged',
-      error: '',
-    }
-  } catch (error: any) {
-    if (error instanceof HttpException) {
-      throw error
-    }
-    throw new BadRequestException(error.message)
+      error: ''
+    });
+  } catch (error) {
+    return res.status(500).json({
+      trade_id: req.body.trade_id || '',
+      status: 'error',
+      error: error.message
+    });
   }
 }
 ```
 
-## 4. SDK Functions for PMMs
+## 4. Solver API Endpoints for PMMs
 
-These SDK functions facilitate PMM-Solver communication and are essential for implementing the required backend APIs.
+These API endpoints are provided by the Solver backend for PMMs to retrieve token information and submit settlement data.
 
-### 4.1. Function: getTokens
+### 4.1. Endpoint: `/market-maker/tokens`
 
 #### Description
 
-Returns a list of all supported tokens across different networks.
+Returns a list of tokens supported by the Solver Backend.
 
-#### Example Code
+#### Request Parameters
 
-```ts
-import { tokenService } from '@optimex-xyz/market-maker-sdk'
+- **HTTP Method**: `GET`
 
-tokenService.getTokens()
+#### Example Request
+
+```
+GET /market-maker/tokens
 ```
 
-### 4.2. Function: submitSettlementTx
+#### Expected Response
+
+- **HTTP Status**: `200 OK`
+- **Response Body** (JSON):
+
+```json
+{
+    "data": {
+        "supported_networks": [
+            {
+                "network_id": "bitcoin_testnet",
+                "name": "Bitcoin Testnet",
+                "symbol": "tBTC",
+                "type": "BTC",
+                "logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/btc_network.svg"
+            },
+            {
+                "network_id": "ethereum_sepolia",
+                "name": "Ethereum Sepolia",
+                "symbol": "ETH",
+                "type": "EVM",
+                "logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/eth_network.svg"
+            }
+        ],
+        "tokens": [
+            {
+                "id": 2,
+                "network_id": "bitcoin_testnet",
+                "token_id": "tBTC",
+                "network_name": "Bitcoin Testnet",
+                "network_symbol": "tBTC",
+                "network_type": "BTC",
+                "token_name": "Bitcoin Testnet",
+                "token_symbol": "tBTC",
+                "token_address": "native",
+                "token_decimals": 8,
+                "token_logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/tbtc.svg",
+                "network_logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/btc_network.svg",
+                "active": true,
+                "created_at": "2024-10-28T07:24:33.179Z",
+                "updated_at": "2024-11-07T04:40:46.454Z"
+            },
+            {
+                "id": 11,
+                "network_id": "ethereum_sepolia",
+                "token_id": "ETH",
+                "network_name": "Ethereum Sepolia",
+                "network_symbol": "ETH",
+                "network_type": "EVM",
+                "token_name": "Ethereum Sepolia",
+                "token_symbol": "ETH",
+                "token_address": "native",
+                "token_decimals": 18,
+                "token_logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/eth.svg",
+                "network_logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/eth_network.svg",
+                "active": true,
+                "created_at": "2024-11-22T08:36:59.175Z",
+                "updated_at": "2024-11-22T08:36:59.175Z"
+            }
+        ],
+        "pairs": [
+            {
+                "from_token_id": "ETH",
+                "to_token_id": "tBTC",
+                "is_active": true
+            },
+            {
+                "from_token_id": "tBTC",
+                "to_token_id": "ETH",
+                "is_active": true
+            }
+        ]
+    }
+}
+```
+
+### 4.2. Endpoint: `/market-maker/submit-settlement-tx`
 
 #### Description
 
 Allows the PMM to submit the settlement transaction hash for one or more trades. This step is necessary to complete the trade settlement process.
 
-Parameters:
+#### Request Parameters
+
+- **HTTP Method**: `POST`
+- **Request Body** (JSON):
+
+```json
+{
+  "trade_ids": ["0xTradeID1", "0xTradeID2", "..."],
+  "pmm_id": "pmm001",
+  "settlement_tx": "SettlementTransactionData",
+  "signature": "0xSignatureData",
+  "start_index": 0,
+  "signed_at": 1719158400
+}
+```
+
 - `trade_ids` (array of strings): An array of trade IDs associated with the settlement transaction.
 - `pmm_id` (string): The PMM's ID, which must match the one committed for the trade(s).
-- `settlement_tx` (string): The raw transaction data (in hex) representing the settlement.
+- `settlement_tx` (string): The raw transaction data representing the settlement.
 - `signature` (string): The PMM's signature on the settlement transaction.
 - `start_index` (integer): The index indicating the starting point for settlement processing (used for batch settlements).
 - `signed_at` (integer): The UNIX timestamp (in seconds) when the PMM signed the settlement transaction.
 
-#### Example Implementation
+#### Example Request
 
-```ts
-import {
-  getMakePaymentHash,
-  getSignature,
-  routerService,
-  SignatureType,
-  signerService,
-  solverService,
-} from '@optimex-xyz/market-maker-sdk'
+```
+POST /market-maker/submit-settlement-tx
+Content-Type: application/json
 
-async submit(job: Job<string>) {
-  const { tradeId, paymentTxId } = toObject(job.data) as SubmitSettlementEvent
+{
+  "trade_ids": ["0xabcdef123456...", "0x123456abcdef..."],
+  "pmm_id": "pmm001",
+  "settlement_tx": "0xRawTransactionData",
+  "signature": "0xSignatureData",
+  "start_index": 0,
+  "signed_at": 1719158400
+}
+```
 
-  try {
-    const tradeIds: BytesLike[] = [tradeId]
-    const startIdx = BigInt(tradeIds.indexOf(tradeId))
+#### Expected Response
 
-    const signerAddress = await this.routerService.getSigner()
+- **HTTP Status**: `200 OK`
+- **Response Body** (JSON):
 
-    const signedAt = Math.floor(Date.now() / 1000)
-
-    const makePaymentInfoHash = getMakePaymentHash(tradeIds, BigInt(signedAt), startIdx, ensureHexPrefix(paymentTxId))
-
-    const domain = await signerService.getDomain()
-
-    const signature = await getSignature(
-      this.pmmWallet,
-      this.provider,
-      signerAddress,
-      tradeId,
-      makePaymentInfoHash,
-      SignatureType.MakePayment,
-      domain
-    )
-
-    const pmmId = ... // string
-    const requestPayload = {
-      tradeIds: [tradeId],
-      pmmId: pmmId,
-      settlementTx: ensureHexPrefix(paymentTxId),
-      signature: signature,
-      startIndex: 0,
-      signedAt: signedAt,
-    }
-
-    const response = await this.solverSerivce.submitSettlementTx(requestPayload)
-
-    return response
-  } catch (error: any) {
-    this.logger.error('submit settlement error', error.stack)
-
-    throw error // Re-throw the error for the queue to handle
-  }
+```json
+{
+  "message": "Settlement transaction submitted successfully"
 }
 ```
 
@@ -656,22 +756,30 @@ async submit(job: Job<string>) {
 - **Start Index**: Used when submitting a batch of settlements to indicate the position within the batch.
 - **Signature**: Must be valid and verifiable by the solver backend.
 
-## 5. PMM Making Payment
+### 4.3. Endpoint: `/market-maker/trades/:tradeId`
 
-```ts
-import { Token } from '@optimex-xyz/market-maker-sdk'
+#### Description
 
-export interface TransferParams {
-  toAddress: string
-  amount: bigint
-  token: Token
-  tradeId: string
-}
+Returns detailed information about a specific trade by its trade ID. This endpoint allows PMMs to fetch comprehensive data about a trade, including token information, user addresses, quotes, settlement details, and current state.
 
-export interface ITransferStrategy {
-  transfer(params: TransferParams): Promise<string>
-}
+#### Request Parameters
+
+- **HTTP Method**: `GET`
+- **Path Parameters**:
+  - `tradeId` (string): The unique identifier for the trade to retrieve.
+
+#### Example Request
+
 ```
+GET /market-maker/trades/0x650e2c921a85eb0b8831ff838d4d98c0a5cd2ede5c0cb6bb4a15969f51c75424
+```
+
+#### Expected Response
+
+- **HTTP Status**: `200 OK`
+- **Response Body** (JSON): See the detailed response format in the updated PMM Integration API Documentation.
+
+## 5. PMM Making Payment
 
 ### 5.1. EVM
 
@@ -679,77 +787,54 @@ In case the target chain is EVM-based, the transaction should emit the event fro
 
 Example implementation:
 
-```ts
-import { config, ensureHexPrefix, ERC20__factory, Payment__factory, routerService } from '@optimex-xyz/market-maker-sdk'
+```js
+const { ethers } = require('ethers');
 
-import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
-
-@Injectable()
-export class EVMTransferStrategy implements ITransferStrategy {
-  private pmmPrivateKey: string
-
-  private routerService = routerService
-  private readonly rpcMap = new Map<string, string>([['ethereum_sepolia', 'https://eth-sepolia.public.blastapi.io']])
-
-  constructor(private configService: ConfigService) {
-    this.pmmPrivateKey = this.configService.getOrThrow<string>('PMM_EVM_PRIVATE_KEY')
-  }
-
-  async transfer(params: TransferParams): Promise<string> {
-    const { toAddress, amount, token, tradeId } = params
-    const { tokenAddress, networkId } = token
-
-    const signer = this.getSigner(networkId)
-
-    const paymentAddress = this.getPaymentAddress(networkId)
-
-    if (tokenAddress !== 'native') {
-      // allowance with ERC20
-    }
-
-    const paymentContract = Payment__factory.connect(paymentAddress, signer)
-
-    const feeDetail = await this.routerService.getFeeDetails(tradeId)
-
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + 30 * 60)
-
-    const decoder = errorDecoder()
-
+async function makeEVMPayment(tradeId, toAddress, amount, token, protocolFeeAmount) {
+  try {
+    // Get the private key from your secure storage
+    const privateKey = process.env.PMM_EVM_PRIVATE_KEY;
+    
+    // Set up the provider and signer
+    const rpcUrl = getRpcUrlForNetwork(token.networkId);
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const signer = new ethers.Wallet(privateKey, provider);
+    
+    // Get the payment contract address
+    const paymentAddress = getPaymentAddressForNetwork(token.networkId);
+    
+    // Create the contract instance
+    const paymentAbi = [
+      // ABI for the payment contract
+      "function payment(bytes32 tradeId, address token, address recipient, uint256 amount, uint256 feeAmount, uint256 deadline) payable returns (bool)"
+    ];
+    const paymentContract = new ethers.Contract(paymentAddress, paymentAbi, signer);
+    
+    // Calculate the deadline (30 minutes from now)
+    const deadline = Math.floor(Date.now() / 1000) + 30 * 60;
+    
+    // If the token is native, we need to set the value
+    const value = token.tokenAddress === 'native' ? amount : 0;
+    const tokenAddress = token.tokenAddress === 'native' ? ethers.ZeroAddress : token.tokenAddress;
+    
+    // Submit the transaction
     const tx = await paymentContract.payment(
       tradeId,
-      tokenAddress === 'native' ? ZeroAddress : tokenAddress,
+      tokenAddress,
       toAddress,
       amount,
-      feeDetail.totalAmount,
+      protocolFeeAmount,
       deadline,
-      {
-        value: tokenAddress === 'native' ? amount : 0n,
-      }
-    )
-
-    this.logger.log(`Transfer transaction sent: ${tx.hash}`)
-
-    return ensureHexPrefix(tx.hash)
-  }
-
-  private getSigner(networkId: string) {
-    const rpcUrl = this.rpcMap.get(networkId)
-
-    if (!rpcUrl) {
-      throw new Error(`Unsupported networkId: ${networkId}`)
-    }
-
-    const provider = new ethers.JsonRpcProvider(rpcUrl)
-    return new ethers.Wallet(this.pmmPrivateKey, provider)
-  }
-
-  private getPaymentAddress(networkId: string) {
-    const paymentAddress = config.getPaymentAddress(networkId)
-    if (!paymentAddress) {
-      throw new Error(`Unsupported networkId: ${networkId}`)
-    }
-
-    return paymentAddress
+      { value }
+    );
+    
+    console.log(`Transfer transaction sent: ${tx.hash}`);
+    
+    // Return the transaction hash with the 0x prefix
+    return `0x${tx.hash.replace(/^0x/, '')}`;
+  } catch (error) {
+    console.error('EVM payment error:', error);
+    throw error;
   }
 }
 ```
@@ -760,177 +845,4 @@ In case the target chain is Bitcoin, the transaction should have at least N + 1 
 
 Example implementation:
 
-```ts
-import * as bitcoin from 'bitcoinjs-lib'
-import { ECPairFactory } from 'ecpair'
-import * as ecc from 'tiny-secp256k1'
-
-import { getTradeIdsHash, Token } from '@optimex-xyz/market-maker-sdk'
-
-import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
-
-interface UTXO {
-  txid: string
-  vout: number
-  value: number
-  status: {
-    confirmed: boolean
-    block_height: number
-    block_hash: string
-    block_time: number
-  }
-}
-
-@Injectable()
-export class BTCTransferStrategy implements ITransferStrategy {
-  private readonly privateKey: string
-  private readonly ECPair = ECPairFactory(ecc)
-
-  private readonly networkMap = new Map<string, bitcoin.Network>([
-    ['bitcoin_testnet', bitcoin.networks.testnet],
-    ['bitcoin', bitcoin.networks.bitcoin],
-  ])
-
-  private readonly rpcMap = new Map<string, string>([
-    ['bitcoin_testnet', 'https://blockstream.info/testnet'],
-    ['bitcoin', 'https://blockstream.info'],
-  ])
-
-  constructor(private configService: ConfigService) {
-    this.privateKey = this.configService.getOrThrow<string>('PMM_BTC_PRIVATE_KEY')
-    bitcoin.initEccLib(ecc)
-  }
-
-  async transfer(params: TransferParams): Promise<string> {
-    const { toAddress, amount, token, tradeId } = params
-
-    const network = this.getNetwork(token.networkId)
-    const rpcUrl = this.getRpcUrl(token.networkId)
-
-    const txId = await this.sendBTC(this.privateKey, toAddress, amount, network, rpcUrl, token, [tradeId])
-
-    return ensureHexPrefix(txId)
-  }
-
-  private createPayment(publicKey: Uint8Array, network: bitcoin.Network) {
-    const p2tr = bitcoin.payments.p2tr({
-      internalPubkey: Buffer.from(publicKey.slice(1, 33)),
-      network,
-    })
-
-    return {
-      payment: p2tr,
-      keypair: this.ECPair.fromWIF(this.privateKey, network),
-    }
-  }
-
-  private async sendBTC(
-    privateKey: string,
-    toAddress: string,
-    amountInSatoshis: bigint,
-    network: bitcoin.Network,
-    rpcUrl: string,
-    token: Token,
-    tradeIds: string[]
-  ): Promise<string> {
-    const keyPair = this.ECPair.fromWIF(privateKey, network)
-    const { payment, keypair } = this.createPayment(keyPair.publicKey, network)
-
-    if (!payment.address) {
-      throw new Error('Could not generate address')
-    }
-
-    const utxos = await this.getUTXOs(payment.address, rpcUrl)
-    if (utxos.length === 0) {
-      throw new Error(`No UTXOs found in ${token.networkSymbol} wallet`)
-    }
-
-    const psbt = new bitcoin.Psbt({ network })
-    let totalInput = 0n
-
-    for (const utxo of utxos) {
-      if (!payment.output) {
-        throw new Error('Could not generate output script')
-      }
-
-      const internalKey = Buffer.from(keypair.publicKey.slice(1, 33))
-
-      psbt.addInput({
-        hash: utxo.txid,
-        index: utxo.vout,
-        witnessUtxo: {
-          script: payment.output,
-          value: BigInt(utxo.value),
-        },
-        tapInternalKey: internalKey,
-      })
-
-      totalInput += BigInt(utxo.value)
-    }
-
-    this.logger.log(`Total input: ${totalInput.toString()} ${token.tokenSymbol}`)
-
-    if (totalInput < amountInSatoshis) {
-      throw new Error(
-        `Insufficient balance in ${token.networkSymbol} wallet. ` +
-          `Need ${amountInSatoshis} satoshis, but only have ${totalInput} satoshis`
-      )
-    }
-
-    const feeRate = await this.getFeeRate(rpcUrl)
-    const fee = BigInt(Math.ceil(200 * feeRate))
-    const changeAmount = totalInput - amountInSatoshis - fee
-
-    psbt.addOutput({
-      address: toAddress,
-      value: amountInSatoshis,
-    })
-
-    if (changeAmount > 546n) {
-      psbt.addOutput({
-        address: payment.address,
-        value: changeAmount,
-      })
-    }
-
-    const tradeIdsHash = getTradeIdsHash(tradeIds)
-
-    // Add OP_RETURN output with tradeIds hash
-    psbt.addOutput({
-      script: bitcoin.script.compile([bitcoin.opcodes['OP_RETURN'], Buffer.from(tradeIdsHash.slice(2), 'hex')]),
-      value: 0n,
-    })
-
-    const toXOnly = (pubKey: Uint8Array) => (pubKey.length === 32 ? pubKey : pubKey.slice(1, 33))
-    const tweakedSigner = keyPair.tweak(bitcoin.crypto.taggedHash('TapTweak', toXOnly(keyPair.publicKey)))
-
-    for (let i = 0; i < psbt.data.inputs.length; i++) {
-      psbt.signInput(i, tweakedSigner, [bitcoin.Transaction.SIGHASH_DEFAULT])
-      this.logger.log(`Input ${i} signed successfully`)
-    }
-
-    psbt.finalizeAllInputs()
-
-    const tx = psbt.extractTransaction()
-    const rawTx = tx.toHex()
-
-    const response = await axios.post(`${rpcUrl}/api/tx`, rawTx, {
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-    })
-
-    return response.data
-  }
-
-  private async getUTXOs(address: string, rpcUrl: string): Promise<UTXO[]> {
-    const response = await axios.get<UTXO[]>(`${rpcUrl}/api/address/${address}/utxo`)
-    return response.data
-  }
-
-  private async getFeeRate(rpcUrl: string): Promise<number> {
-    try {
-      const response = await axios.get<{ [key: string]: number }>(`${rpcUrl}/api/fee-estimates`)
-      return response.data[0]
-    } catch (error) {
-      console.error(`Error fetching
+```js
