@@ -600,7 +600,11 @@ async function signalPayment(req, res) {
 
 ## 4. Solver API Endpoints for PMMs
 
+
 These API endpoints are provided by the Solver backend for PMMs to retrieve token information and submit settlement data.
+
+> **Note**: The base URL for the Solver API endpoints will be provided separately. All endpoint paths in this documentation should be appended to that base URL.
+
 
 ### 4.1. Endpoint: `/market-maker/tokens`
 
