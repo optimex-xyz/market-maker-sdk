@@ -102,30 +102,3 @@ const signature = await getSignature(
 );
 
 ```
-
-## Best Practices
-
-1. Always validate input data before making service calls
-2. Implement proper error handling for all operations
-3. Keep private keys secure and never expose them in code
-4. Monitor transaction status after submitting settlements
-5. Use TypeScript for better type safety
-6. Regularly update to the latest SDK version
-7. Use environment variables for configuration
-8. Test thoroughly before deploying to production
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## Support
-
-For issues and feature requests, please open an issue on GitHub.
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
