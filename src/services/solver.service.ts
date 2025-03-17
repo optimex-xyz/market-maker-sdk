@@ -122,7 +122,7 @@ export class SolverService implements ConfigObserver {
       const snakeCaseParams = convertToSnakeCase(params)
 
       const response = await axios.post<SubmitSettlementResponse>(
-        `${this.baseURL}/market-maker/submit-settlement-tx`,
+        `${this.baseURL}/v1/market-maker/submit-settlement-tx`,
         snakeCaseParams,
         {
           headers: {
@@ -153,7 +153,7 @@ export class SolverService implements ConfigObserver {
    */
   async getTradeDetail(tradeId: string): Promise<TradeDetailResponse> {
     try {
-      const response = await axios.get(`${this.baseURL}/market-maker/trades/${tradeId}`, {
+      const response = await axios.get(`${this.baseURL}/v1/market-maker/trades/${tradeId}`, {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',

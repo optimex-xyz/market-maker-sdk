@@ -44,18 +44,18 @@ A comprehensive guide for implementing Private Market Makers (PMMs) in the cross
       - [Expected Response](#expected-response-4)
       - [Example Implementation](#example-implementation-4)
   - [4. Solver API Endpoints for PMMs](#4-solver-api-endpoints-for-pmms)
-    - [4.1. Endpoint: `/market-maker/tokens`](#41-endpoint-market-makertokens)
+    - [4.1. Endpoint: `/v1/market-maker/tokens`](#41-endpoint-v1market-makertokens)
       - [Description](#description-5)
       - [Request Parameters](#request-parameters-5)
       - [Example Request](#example-request-5)
       - [Expected Response](#expected-response-5)
-    - [4.2. Endpoint: `/market-maker/submit-settlement-tx`](#42-endpoint-market-makersubmit-settlement-tx)
+    - [4.2. Endpoint: `/v1/market-maker/submit-settlement-tx`](#42-endpoint-v1market-makersubmit-settlement-tx)
       - [Description](#description-6)
       - [Request Parameters](#request-parameters-6)
       - [Example Request](#example-request-6)
       - [Expected Response](#expected-response-6)
       - [Notes](#notes)
-    - [4.3. Endpoint: `/market-maker/trades/:tradeId`](#43-endpoint-market-makertradestradeid)
+    - [4.3. Endpoint: `/v1/market-maker/trades/:tradeId`](#43-endpoint-v1market-makertradestradeid)
       - [Description](#description-7)
       - [Request Parameters](#request-parameters-7)
       - [Example Request](#example-request-7)
@@ -63,7 +63,6 @@ A comprehensive guide for implementing Private Market Makers (PMMs) in the cross
   - [5. PMM Making Payment](#5-pmm-making-payment)
     - [5.1. EVM](#51-evm)
     - [5.2. Bitcoin](#52-bitcoin)
-  - [6. General Notes for PMMs](#6-general-notes-for-pmms)
 
 ## 1. Overview
 
@@ -97,7 +96,7 @@ sequenceDiagram
     Solver->>PMM: POST /signal-payment
     PMM-->>Solver: Acknowledge signal
     PMM->>Chain: Execute settlement (transfer)
-    PMM->>Solver: POST /market-maker/submit-settlement-tx
+    PMM->>Solver: POST /v1/market-maker/submit-settlement-tx
     Solver-->>PMM: Confirm settlement submission
 ```
 
@@ -162,18 +161,18 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 async function getIndicativeQuote(req, res) {
   try {
     const { from_token_id, to_token_id, amount, session_id } = req.query;
-    
+
     // Generate a session ID if not provided
     const sessionId = session_id || generateSessionId();
-    
+
     // Fetch token information from Solver API
-    const tokensResponse = await fetch('https://api.solver.example/market-maker/tokens');
+    const tokensResponse = await fetch('https://api.solver.example/v1/market-maker/tokens');
     const tokensData = await tokensResponse.json();
-    
+
     // Find the from token and to token
     const fromToken = tokensData.data.tokens.find(token => token.token_id === from_token_id);
     const toToken = tokensData.data.tokens.find(token => token.token_id === to_token_id);
-    
+
     if (!fromToken || !toToken) {
       return res.status(400).json({
         session_id: sessionId,
@@ -182,13 +181,13 @@ async function getIndicativeQuote(req, res) {
         error: 'Token not found'
       });
     }
-    
+
     // Calculate the quote (implementation specific to your PMM)
     const quote = calculateQuote(fromToken, toToken, amount);
-    
+
     // Get the receiving address for this token pair
     const pmmReceivingAddress = getPMMReceivingAddress(fromToken.network_id);
-    
+
     return res.status(200).json({
       session_id: sessionId,
       pmm_receiving_address: pmmReceivingAddress,
@@ -269,7 +268,7 @@ async function getCommitmentQuote(req, res) {
       trade_deadline,
       script_deadline
     } = req.query;
-    
+
     // Validate the session exists
     const session = await sessionRepository.findById(session_id);
     if (!session) {
@@ -279,15 +278,15 @@ async function getCommitmentQuote(req, res) {
         error: 'Session not found'
       });
     }
-    
+
     // Fetch token information from Solver API
-    const tokensResponse = await fetch('https://api.solver.example/market-maker/tokens');
+    const tokensResponse = await fetch('https://api.solver.example/v1/market-maker/tokens');
     const tokensData = await tokensResponse.json();
-    
+
     // Find the from token and to token
     const fromToken = tokensData.data.tokens.find(token => token.token_id === from_token_id);
     const toToken = tokensData.data.tokens.find(token => token.token_id === to_token_id);
-    
+
     if (!fromToken || !toToken) {
       return res.status(400).json({
         trade_id,
@@ -295,10 +294,10 @@ async function getCommitmentQuote(req, res) {
         error: 'Token not found'
       });
     }
-    
+
     // Calculate the final quote (implementation specific to your PMM)
     const quote = calculateFinalQuote(fromToken, toToken, amount, trade_deadline);
-    
+
     // Store the trade in the database
     await tradeRepository.create({
       tradeId: trade_id,
@@ -314,7 +313,7 @@ async function getCommitmentQuote(req, res) {
       scriptDeadline: script_deadline,
       commitmentQuote: quote
     });
-    
+
     return res.status(200).json({
       trade_id,
       commitment_quote: quote,
@@ -376,7 +375,7 @@ GET /settlement-signature?trade_id=abcd1234&committed_quote=987654321000000000&t
 async function getSettlementSignature(req, res) {
   try {
     const { trade_id, committed_quote, trade_deadline, script_deadline } = req.query;
-    
+
     // Fetch the trade from the database
     const trade = await tradeRepository.findById(trade_id);
     if (!trade) {
@@ -387,20 +386,20 @@ async function getSettlementSignature(req, res) {
         error: 'Trade not found'
       });
     }
-    
+
     // Fetch trade details from Solver API
-    const tradeDetailsResponse = await fetch(`https://api.solver.example/market-maker/trades/${trade_id}`);
+    const tradeDetailsResponse = await fetch(`https://api.solver.example/v1/market-maker/trades/${trade_id}`);
     const tradeDetails = await tradeDetailsResponse.json();
-    
+
     // Calculate a deadline (30 minutes from now)
     const deadline = Math.floor(Date.now() / 1000) + 1800;
-    
+
     // Get PMM data
     const pmmId = process.env.PMM_ID; // Your PMM ID
-    
+
     // Get the presigns and trade data from tradeDetails
     const { from_token, to_token } = tradeDetails.data;
-    
+
     // Create a commitment info hash
     const commitInfoHash = createCommitInfoHash(
       pmmId,
@@ -410,11 +409,11 @@ async function getSettlementSignature(req, res) {
       committed_quote,
       deadline
     );
-    
+
     // Sign the commitment with your private key
     const privateKey = process.env.PMM_PRIVATE_KEY;
     const signature = signMessage(privateKey, trade_id, commitInfoHash);
-    
+
     return res.status(200).json({
       trade_id,
       signature,
@@ -479,7 +478,7 @@ trade_id=abcd1234&trade_deadline=1696012800&script_deadline=1696016400&chosen=tr
 async function ackSettlement(req, res) {
   try {
     const { trade_id, trade_deadline, script_deadline, chosen } = req.body;
-    
+
     // Fetch the trade from the database
     const trade = await tradeRepository.findById(trade_id);
     if (!trade) {
@@ -489,14 +488,14 @@ async function ackSettlement(req, res) {
         error: 'Trade not found'
       });
     }
-    
+
     // Update trade status based on whether it was chosen
     await tradeRepository.update(trade_id, {
       chosen: chosen === 'true',
       tradeDeadline: trade_deadline,
       scriptDeadline: script_deadline
     });
-    
+
     return res.status(200).json({
       trade_id,
       status: 'acknowledged',
@@ -559,7 +558,7 @@ trade_id=abcd1234&total_fee_amount=1000000000000000&trade_deadline=1696012800&sc
 async function signalPayment(req, res) {
   try {
     const { trade_id, total_fee_amount, trade_deadline, script_deadline } = req.body;
-    
+
     // Fetch the trade from the database
     const trade = await tradeRepository.findById(trade_id);
     if (!trade) {
@@ -569,20 +568,20 @@ async function signalPayment(req, res) {
         error: 'Trade not found'
       });
     }
-    
+
     // Update trade with fee amount
     await tradeRepository.update(trade_id, {
       totalFeeAmount: total_fee_amount,
       tradeDeadline: trade_deadline,
       scriptDeadline: script_deadline
     });
-    
+
     // Queue the payment task
     await paymentQueue.add({
       tradeId: trade_id,
       totalFeeAmount: total_fee_amount
     });
-    
+
     return res.status(200).json({
       trade_id,
       status: 'acknowledged',
@@ -606,7 +605,7 @@ These API endpoints are provided by the Solver backend for PMMs to retrieve toke
 > **Note**: The base URL for the Solver API endpoints will be provided separately. All endpoint paths in this documentation should be appended to that base URL.
 
 
-### 4.1. Endpoint: `/market-maker/tokens`
+### 4.1. Endpoint: `/v1/market-maker/tokens`
 
 #### Description
 
@@ -619,7 +618,7 @@ Returns a list of tokens supported by the Solver Backend.
 #### Example Request
 
 ```
-GET /market-maker/tokens
+GET /v1/market-maker/tokens
 ```
 
 #### Expected Response
@@ -698,7 +697,7 @@ GET /market-maker/tokens
 }
 ```
 
-### 4.2. Endpoint: `/market-maker/submit-settlement-tx`
+### 4.2. Endpoint: `/v1/market-maker/submit-settlement-tx`
 
 #### Description
 
@@ -730,7 +729,7 @@ Allows the PMM to submit the settlement transaction hash for one or more trades.
 #### Example Request
 
 ```
-POST /market-maker/submit-settlement-tx
+POST /v1/market-maker/submit-settlement-tx
 Content-Type: application/json
 
 {
@@ -760,7 +759,7 @@ Content-Type: application/json
 - **Start Index**: Used when submitting a batch of settlements to indicate the position within the batch.
 - **Signature**: Must be valid and verifiable by the solver backend.
 
-### 4.3. Endpoint: `/market-maker/trades/:tradeId`
+### 4.3. Endpoint: `/v1/market-maker/trades/:tradeId`
 
 #### Description
 
@@ -775,7 +774,7 @@ Returns detailed information about a specific trade by its trade ID. This endpoi
 #### Example Request
 
 ```
-GET /market-maker/trades/0x650e2c921a85eb0b8831ff838d4d98c0a5cd2ede5c0cb6bb4a15969f51c75424
+GET /v1/market-maker/trades/0x650e2c921a85eb0b8831ff838d4d98c0a5cd2ede5c0cb6bb4a15969f51c75424
 ```
 
 #### Expected Response
@@ -798,29 +797,29 @@ async function makeEVMPayment(tradeId, toAddress, amount, token, protocolFeeAmou
   try {
     // Get the private key from your secure storage
     const privateKey = process.env.PMM_EVM_PRIVATE_KEY;
-    
+
     // Set up the provider and signer
     const rpcUrl = getRpcUrlForNetwork(token.networkId);
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const signer = new ethers.Wallet(privateKey, provider);
-    
+
     // Get the payment contract address
     const paymentAddress = getPaymentAddressForNetwork(token.networkId);
-    
+
     // Create the contract instance
     const paymentAbi = [
       // ABI for the payment contract
       "function payment(bytes32 tradeId, address token, address recipient, uint256 amount, uint256 feeAmount, uint256 deadline) payable returns (bool)"
     ];
     const paymentContract = new ethers.Contract(paymentAddress, paymentAbi, signer);
-    
+
     // Calculate the deadline (30 minutes from now)
     const deadline = Math.floor(Date.now() / 1000) + 30 * 60;
-    
+
     // If the token is native, we need to set the value
     const value = token.tokenAddress === 'native' ? amount : 0;
     const tokenAddress = token.tokenAddress === 'native' ? ethers.ZeroAddress : token.tokenAddress;
-    
+
     // Submit the transaction
     const tx = await paymentContract.payment(
       tradeId,
@@ -831,9 +830,9 @@ async function makeEVMPayment(tradeId, toAddress, amount, token, protocolFeeAmou
       deadline,
       { value }
     );
-    
+
     console.log(`Transfer transaction sent: ${tx.hash}`);
-    
+
     // Return the transaction hash with the 0x prefix
     return `0x${tx.hash.replace(/^0x/, '')}`;
   } catch (error) {
