@@ -721,7 +721,7 @@ Allows the PMM to submit the settlement transaction hash for one or more trades.
 
 - `trade_ids` (array of strings): An array of trade IDs associated with the settlement transaction.
 - `pmm_id` (string): The PMM's ID, which must match the one committed for the trade(s).
-- `settlement_tx` (string): The raw transaction data representing the settlement.
+- `settlement_tx` (string): The txHash of the settlement.
 - `signature` (string): The PMM's signature on the settlement transaction.
 - `start_index` (integer): The index indicating the starting point for settlement processing (used for batch settlements).
 - `signed_at` (integer): The UNIX timestamp (in seconds) when the PMM signed the settlement transaction.
