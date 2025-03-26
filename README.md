@@ -849,3 +849,123 @@ In case the target chain is Bitcoin, the transaction should have at least N + 1 
 Example implementation:
 
 ```js
+import * as bitcoin from 'bitcoinjs-lib'
+import { ECPairFactory } from 'ecpair'
+import * as ecc from 'tiny-secp256k1'
+import axios from 'axios'
+import { getTradeIdsHash } from '@optimex-xyz/market-maker-sdk'
+
+async function makeBitcoinPayment(params) {
+  const { toAddress, amount, token, tradeId } = params
+  const ECPair = ECPairFactory(ecc)
+  
+  // Set up Bitcoin library
+  bitcoin.initEccLib(ecc)
+  
+  // Get network configuration
+  const network = getNetwork(token.networkId)
+  const rpcUrl = getRpcUrl(token.networkId)
+  
+  // Create keypair from private key
+  const keyPair = ECPair.fromWIF(process.env.PMM_BTC_PRIVATE_KEY, network)
+  const payment = bitcoin.payments.p2tr({
+    internalPubkey: Buffer.from(keyPair.publicKey.slice(1, 33)),
+    network,
+  })
+  
+  if (!payment.address) {
+    throw new Error('Could not generate address')
+  }
+  
+  // Get UTXOs for the address
+  const utxos = await getUTXOs(payment.address, rpcUrl)
+  if (utxos.length === 0) {
+    throw new Error(`No UTXOs found in ${token.networkSymbol} wallet`)
+  }
+  
+  // Create and sign transaction
+  const psbt = new bitcoin.Psbt({ network })
+  let totalInput = 0n
+  
+  // Add inputs
+  for (const utxo of utxos) {
+    if (!payment.output) {
+      throw new Error('Could not generate output script')
+    }
+    
+    const internalKey = Buffer.from(keyPair.publicKey.slice(1, 33))
+    
+    psbt.addInput({
+      hash: utxo.txid,
+      index: utxo.vout,
+      witnessUtxo: {
+        script: payment.output,
+        value: BigInt(utxo.value),
+      },
+      tapInternalKey: internalKey,
+    })
+    
+    totalInput += BigInt(utxo.value)
+  }
+  
+  // Check if we have enough balance
+  if (totalInput < amount) {
+    throw new Error(
+      `Insufficient balance. Need ${amount} satoshis, but only have ${totalInput} satoshis`
+    )
+  }
+  
+  // Get fee rate
+  const feeRate = await getFeeRate(rpcUrl)
+  const fee = BigInt(Math.ceil(200 * feeRate))
+  const changeAmount = totalInput - amount - fee
+  
+  // Add recipient output
+  psbt.addOutput({
+    address: toAddress,
+    value: amount,
+  })
+  
+  // Add change output if needed
+  if (changeAmount > 546n) {
+    psbt.addOutput({
+      address: payment.address,
+      value: changeAmount,
+    })
+  }
+  
+  // Add OP_RETURN output with trade ID hash
+  const tradeIdsHash = getTradeIdsHash([tradeId])
+  psbt.addOutput({
+    script: bitcoin.script.compile([
+      bitcoin.opcodes.OP_RETURN, 
+      Buffer.from(tradeIdsHash.slice(2), 'hex')
+    ]),
+    value: 0n,
+  })
+  
+  // Sign inputs
+  const toXOnly = (pubKey) => (pubKey.length === 32 ? pubKey : pubKey.slice(1, 33))
+  const tweakedSigner = keyPair.tweak(bitcoin.crypto.taggedHash('TapTweak', toXOnly(keyPair.publicKey)))
+  
+  for (let i = 0; i < psbt.data.inputs.length; i++) {
+    psbt.signInput(i, tweakedSigner, [bitcoin.Transaction.SIGHASH_DEFAULT])
+  }
+  
+  psbt.finalizeAllInputs()
+  
+  // Extract transaction
+  const tx = psbt.extractTransaction()
+  const rawTx = tx.toHex()
+  
+  // Broadcast transaction
+  const response = await axios.post(`${rpcUrl}/api/tx`, rawTx, {
+    headers: {
+      'Content-Type': 'text/plain',
+    },
+  })
+  
+  return response.data // Transaction ID
+}
+
+```
