@@ -127,13 +127,12 @@ Provides an indicative quote for the given token pair and trade amount. The quot
 - **Query Parameters**:
   - `from_token_id` (string): The ID of the source token.
   - `to_token_id` (string): The ID of the destination token.
-  - `amount` (string): The amount of the source token to be traded, represented as a string in base 10 to accommodate large numbers.
-  - `session_id` (string, optional): A unique identifier for the session.
+  - `amount` (string): The amount of the source token to be traded, represented as a string in base 10 to accommodate large numbers. This should be treated as a BigInt in your implementation.
 
 #### Example Request
 
 ```
-GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=1000000000000000000&session_id=12345
+GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=1000000000000000000
 ```
 
 #### Expected Response
@@ -152,7 +151,7 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 
 - `session_id` (string): The session ID associated with the request.
 - `pmm_receiving_address` (string): The receiving address where the user will send the `from_token`.
-- `indicative_quote` (string): The indicative quote value, represented as a string.
+- `indicative_quote` (string): The indicative quote value, represented as a string. Should be treated as a BigInt in your implementation.
 - `error` (string): Error message, if any (empty if no error).
 
 #### Example Implementation
@@ -183,7 +182,9 @@ async function getIndicativeQuote(req, res) {
     }
 
     // Calculate the quote (implementation specific to your PMM)
-    const quote = calculateQuote(fromToken, toToken, amount);
+    // Note: Treat amount as BigInt
+    const amountBigInt = BigInt(amount);
+    const quote = calculateQuote(fromToken, toToken, amountBigInt);
 
     // Get the receiving address for this token pair
     const pmmReceivingAddress = getPMMReceivingAddress(fromToken.network_id);
@@ -191,7 +192,7 @@ async function getIndicativeQuote(req, res) {
     return res.status(200).json({
       session_id: sessionId,
       pmm_receiving_address: pmmReceivingAddress,
-      indicative_quote: quote,
+      indicative_quote: quote.toString(),
       error: ''
     });
   } catch (error) {
@@ -216,21 +217,21 @@ Provides a commitment quote for a specific trade, representing a firm commitment
 - **HTTP Method**: `GET`
 - **Query Parameters**:
   - `session_id` (string): A unique identifier for the session.
-  - `trade_id` (string): The unique identifier for the trade.
+  - `trade_id` (string): The unique identifier for the trade. Example format: `0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328`.
   - `from_token_id` (string): The ID of the source token.
   - `to_token_id` (string): The ID of the destination token.
-  - `amount` (string): The amount of the source token to be traded, in base 10.
+  - `amount` (string): The amount of the source token to be traded, in base 10. This should be treated as a BigInt in your implementation.
   - `from_user_address` (string): The address of the user initiating the trade.
   - `to_user_address` (string): The address where the user will receive the `to_token`.
   - `user_deposit_tx` (string): The transaction hash where the user deposited their funds.
   - `user_deposit_vault` (string): The vault where the user's deposit is kept.
-  - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
-  - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
+  - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment. Should be treated as a BigInt in your implementation.
+  - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid. Should be treated as a BigInt in your implementation.
 
 #### Example Request
 
 ```
-GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_token_id=BTC&amount=1000000000000000000&from_user_address=0xUserAddress&to_user_address=0xReceivingAddress&user_deposit_tx=0xDepositTxHash&user_deposit_vault=VaultData&trade_deadline=1696012800&script_deadline=1696016400
+GET /commitment-quote?session_id=12345&trade_id=0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328&from_token_id=ETH&to_token_id=BTC&amount=1000000000000000000&from_user_address=0xUserAddress&to_user_address=0xReceivingAddress&user_deposit_tx=0xDepositTxHash&user_deposit_vault=VaultData&trade_deadline=1696012800&script_deadline=1696016400
 ```
 
 #### Expected Response
@@ -240,14 +241,14 @@ GET /commitment-quote?session_id=12345&trade_id=abcd1234&from_token_id=ETH&to_to
 
 ```json
 {
-  "trade_id": "abcd1234",
+  "trade_id": "0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328",
   "commitment_quote": "987654321000000000",
   "error": "" // Empty if no error
 }
 ```
 
 - `trade_id` (string): The trade ID associated with the request.
-- `commitment_quote` (string): The committed quote value, represented as a string.
+- `commitment_quote` (string): The committed quote value, represented as a string. Should be treated as a BigInt in your implementation.
 - `error` (string): Error message, if any (empty if no error).
 
 #### Example Implementation
@@ -296,7 +297,9 @@ async function getCommitmentQuote(req, res) {
     }
 
     // Calculate the final quote (implementation specific to your PMM)
-    const quote = calculateFinalQuote(fromToken, toToken, amount, trade_deadline);
+    // Note: Treat numeric values as BigInt
+    const amountBigInt = BigInt(amount);
+    const quote = calculateFinalQuote(fromToken, toToken, amountBigInt, trade_deadline);
 
     // Store the trade in the database
     await tradeRepository.create({
@@ -304,19 +307,19 @@ async function getCommitmentQuote(req, res) {
       sessionId: session_id,
       fromTokenId: from_token_id,
       toTokenId: to_token_id,
-      amount,
+      amount: amountBigInt.toString(),
       fromUserAddress: from_user_address,
       toUserAddress: to_user_address,
       userDepositTx: user_deposit_tx,
       userDepositVault: user_deposit_vault,
       tradeDeadline: trade_deadline,
       scriptDeadline: script_deadline,
-      commitmentQuote: quote
+      commitmentQuote: quote.toString()
     });
 
     return res.status(200).json({
       trade_id,
-      commitment_quote: quote,
+      commitment_quote: quote.toString(),
       error: ''
     });
   } catch (error) {
@@ -339,15 +342,16 @@ Returns a signature from the PMM to confirm the settlement quote, required to fi
 
 - **HTTP Method**: `GET`
 - **Query Parameters**:
-  - `trade_id` (string): The unique identifier for the trade.
-  - `committed_quote` (string): The committed quote value in base 10.
+  - `trade_id` (string): The unique identifier for the trade. Example format: `0x3d09b8eb94466bffa126aeda68c8c0f330633a7d0058f57269d795530415498a`.
+  - `committed_quote` (string): The committed quote value in base 10. This should be treated as a BigInt in your implementation.
   - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
   - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
+
 
 #### Example Request
 
 ```
-GET /settlement-signature?trade_id=abcd1234&committed_quote=987654321000000000&trade_deadline=1696012800&script_deadline=1696016400
+GET /settlement-signature?trade_id=0x3d09b8eb94466bffa126aeda68c8c0f330633a7d0058f57269d795530415498a&committed_quote=987654321000000000&trade_deadline=1696012800&script_deadline=1696016400
 ```
 
 #### Expected Response
@@ -357,7 +361,7 @@ GET /settlement-signature?trade_id=abcd1234&committed_quote=987654321000000000&t
 
 ```json
 {
-  "trade_id": "abcd1234",
+  "trade_id": "0x3d09b8eb94466bffa126aeda68c8c0f330633a7d0058f57269d795530415498a",
   "signature": "0xSignatureData",
   "deadline": 1696012800,
   "error": "" // Empty if no error
@@ -401,12 +405,14 @@ async function getSettlementSignature(req, res) {
     const { from_token, to_token } = tradeDetails.data;
 
     // Create a commitment info hash
+    // Note: Treat numeric values as BigInt
+    const committedQuoteBigInt = BigInt(committed_quote);
     const commitInfoHash = createCommitInfoHash(
       pmmId,
       trade.pmmReceivingAddress,
       to_token.chain,
       to_token.address,
-      committed_quote,
+      committedQuoteBigInt,
       deadline
     );
 
@@ -441,7 +447,7 @@ Used by the solver to acknowledge to the PMM about a successful settlement, indi
 
 - **HTTP Method**: `POST`
 - **Form Parameters**:
-  - `trade_id` (string): The unique identifier for the trade.
+  - `trade_id` (string): The unique identifier for the trade. Example format: `0x024be4dae899989e0c3d9b4459e5811613bcd04016dc56529f16a19d2a7724c0`.
   - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
   - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
   - `chosen` (string): `"true"` if the PMM is selected, `"false"` otherwise.
@@ -452,7 +458,7 @@ Used by the solver to acknowledge to the PMM about a successful settlement, indi
 POST /ack-settlement
 Content-Type: application/x-www-form-urlencoded
 
-trade_id=abcd1234&trade_deadline=1696012800&script_deadline=1696016400&chosen=true
+trade_id=0x024be4dae899989e0c3d9b4459e5811613bcd04016dc56529f16a19d2a7724c0&trade_deadline=1696012800&script_deadline=1696016400&chosen=true
 ```
 
 #### Expected Response
@@ -462,7 +468,7 @@ trade_id=abcd1234&trade_deadline=1696012800&script_deadline=1696016400&chosen=tr
 
 ```json
 {
-  "trade_id": "abcd1234",
+  "trade_id": "0x024be4dae899989e0c3d9b4459e5811613bcd04016dc56529f16a19d2a7724c0",
   "status": "acknowledged",
   "error": "" // Empty if no error
 }
@@ -521,10 +527,10 @@ Used by the solver to signal the chosen PMM to start submitting their payment.
 
 - **HTTP Method**: `POST`
 - **Form Parameters**:
-  - `trade_id` (string): The unique identifier for the trade.
-  - `total_fee_amount` (string): The amount of total fee the PMM has to submit, in base 10.
+  - `trade_id` (string): The unique identifier for the trade. Example format: `0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328`.
   - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
   - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
+  - `total_fee_amount` (string): The amount of total fee the PMM has to submit, in base 10. This should be treated as a BigInt in your implementation.
 
 #### Example Request
 
@@ -532,7 +538,7 @@ Used by the solver to signal the chosen PMM to start submitting their payment.
 POST /signal-payment
 Content-Type: application/x-www-form-urlencoded
 
-trade_id=abcd1234&total_fee_amount=1000000000000000&trade_deadline=1696012800&script_deadline=1696016400
+trade_id=0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328&total_fee_amount=1000000000000000&trade_deadline=1696012800&script_deadline=1696016400
 ```
 
 #### Expected Response
@@ -542,7 +548,7 @@ trade_id=abcd1234&total_fee_amount=1000000000000000&trade_deadline=1696012800&sc
 
 ```json
 {
-  "trade_id": "abcd1234",
+  "trade_id": "0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328",
   "status": "acknowledged",
   "error": "" // Empty if no error
 }
@@ -858,43 +864,43 @@ import { getTradeIdsHash } from '@optimex-xyz/market-maker-sdk'
 async function makeBitcoinPayment(params) {
   const { toAddress, amount, token, tradeId } = params
   const ECPair = ECPairFactory(ecc)
-  
+
   // Set up Bitcoin library
   bitcoin.initEccLib(ecc)
-  
+
   // Get network configuration
   const network = getNetwork(token.networkId)
   const rpcUrl = getRpcUrl(token.networkId)
-  
+
   // Create keypair from private key
   const keyPair = ECPair.fromWIF(process.env.PMM_BTC_PRIVATE_KEY, network)
   const payment = bitcoin.payments.p2tr({
     internalPubkey: Buffer.from(keyPair.publicKey.slice(1, 33)),
     network,
   })
-  
+
   if (!payment.address) {
     throw new Error('Could not generate address')
   }
-  
+
   // Get UTXOs for the address
   const utxos = await getUTXOs(payment.address, rpcUrl)
   if (utxos.length === 0) {
     throw new Error(`No UTXOs found in ${token.networkSymbol} wallet`)
   }
-  
+
   // Create and sign transaction
   const psbt = new bitcoin.Psbt({ network })
   let totalInput = 0n
-  
+
   // Add inputs
   for (const utxo of utxos) {
     if (!payment.output) {
       throw new Error('Could not generate output script')
     }
-    
+
     const internalKey = Buffer.from(keyPair.publicKey.slice(1, 33))
-    
+
     psbt.addInput({
       hash: utxo.txid,
       index: utxo.vout,
@@ -904,28 +910,28 @@ async function makeBitcoinPayment(params) {
       },
       tapInternalKey: internalKey,
     })
-    
+
     totalInput += BigInt(utxo.value)
   }
-  
+
   // Check if we have enough balance
   if (totalInput < amount) {
     throw new Error(
       `Insufficient balance. Need ${amount} satoshis, but only have ${totalInput} satoshis`
     )
   }
-  
+
   // Get fee rate
   const feeRate = await getFeeRate(rpcUrl)
   const fee = BigInt(Math.ceil(200 * feeRate))
   const changeAmount = totalInput - amount - fee
-  
+
   // Add recipient output
   psbt.addOutput({
     address: toAddress,
     value: amount,
   })
-  
+
   // Add change output if needed
   if (changeAmount > 546n) {
     psbt.addOutput({
@@ -933,38 +939,38 @@ async function makeBitcoinPayment(params) {
       value: changeAmount,
     })
   }
-  
+
   // Add OP_RETURN output with trade ID hash
   const tradeIdsHash = getTradeIdsHash([tradeId])
   psbt.addOutput({
     script: bitcoin.script.compile([
-      bitcoin.opcodes.OP_RETURN, 
+      bitcoin.opcodes.OP_RETURN,
       Buffer.from(tradeIdsHash.slice(2), 'hex')
     ]),
     value: 0n,
   })
-  
+
   // Sign inputs
   const toXOnly = (pubKey) => (pubKey.length === 32 ? pubKey : pubKey.slice(1, 33))
   const tweakedSigner = keyPair.tweak(bitcoin.crypto.taggedHash('TapTweak', toXOnly(keyPair.publicKey)))
-  
+
   for (let i = 0; i < psbt.data.inputs.length; i++) {
     psbt.signInput(i, tweakedSigner, [bitcoin.Transaction.SIGHASH_DEFAULT])
   }
-  
+
   psbt.finalizeAllInputs()
-  
+
   // Extract transaction
   const tx = psbt.extractTransaction()
   const rawTx = tx.toHex()
-  
+
   // Broadcast transaction
   const response = await axios.post(`${rpcUrl}/api/tx`, rawTx, {
     headers: {
       'Content-Type': 'text/plain',
     },
   })
-  
+
   return response.data // Transaction ID
 }
 
