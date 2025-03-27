@@ -53,7 +53,6 @@ const TradeDetailResponseSchema = z.object({
     amountAfterFees: z.string(),
     fromUserAddress: z.string(),
     userReceivingAddress: z.string(),
-    deadline: z.number(),
     protocolFeeInBps: z.string(),
     protocolMpcPubkey: z.string(),
     protocolMpcAddress: z.string(),
@@ -70,7 +69,6 @@ const TradeDetailResponseSchema = z.object({
     pmmFailureStats: z.record(z.number()),
     commitedSignature: z.string(),
     minAmountOut: z.null(),
-    sessionDeadline: z.number(),
     userDepositTx: z.string(),
     depositVault: z.string(),
     paymentBundle: PaymentBundleSchema,
@@ -81,6 +79,12 @@ const TradeDetailResponseSchema = z.object({
     state: z.string(),
     lastUpdateMsg: z.string(),
     version: z.number(),
+    scriptTimeout: z.number(),
+    affiliateFeeInBps: z.string(),
+    totalFee: z.string(),
+    protocolFee: z.string(),
+    affiliateFee: z.string(),
+    tradeTimeout: z.number(),
   }),
   traceId: z.string(),
 })
@@ -136,7 +140,8 @@ export class SolverService implements ConfigObserver {
       return SubmitSettlementResponseSchema.parse(response.data)
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(`Failed to submit settlement transaction: ${error.message}`)
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message
+        throw new Error(errorMessage)
       }
       if (error instanceof z.ZodError) {
         throw new Error(`Invalid data: ${error.message}`)
@@ -167,7 +172,8 @@ export class SolverService implements ConfigObserver {
       return TradeDetailResponseSchema.parse(camelCaseData)
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(`Failed to fetch trade details: ${error.message}`)
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message
+        throw new Error(errorMessage)
       }
       if (error instanceof z.ZodError) {
         throw new Error(`Invalid data: ${error.message}`)
