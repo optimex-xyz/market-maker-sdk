@@ -163,12 +163,9 @@ export class SolverService implements ConfigObserver {
           Accept: 'application/json',
         },
       })
-      console.log('🚀 ~ SolverService ~ getTradeDetail ~ response.data:', response.data)
 
       // Convert snake_case to camelCase before validation
       const camelCaseData = convertToCamelCase(response.data)
-
-      console.log('🚀 ~ SolverService ~ getTradeDetail ~ camelCaseData:', camelCaseData)
 
       // Validate transformed response
       return TradeDetailResponseSchema.parse(camelCaseData)
