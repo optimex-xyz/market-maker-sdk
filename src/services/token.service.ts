@@ -51,7 +51,8 @@ export class TokenService implements ConfigObserver {
       return validatedResponse.data.tokens
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(`Failed to fetch tokens: ${error.message}`)
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message
+        throw new Error(errorMessage)
       }
       if (error instanceof z.ZodError) {
         throw new Error(`Invalid token data received: ${error.message}`)

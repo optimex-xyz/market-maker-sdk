@@ -140,7 +140,8 @@ export class SolverService implements ConfigObserver {
       return SubmitSettlementResponseSchema.parse(response.data)
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(`Failed to submit settlement transaction: ${error.message}`)
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message
+        throw new Error(errorMessage)
       }
       if (error instanceof z.ZodError) {
         throw new Error(`Invalid data: ${error.message}`)
@@ -170,9 +171,9 @@ export class SolverService implements ConfigObserver {
       // Validate transformed response
       return TradeDetailResponseSchema.parse(camelCaseData)
     } catch (error) {
-      console.log('🚀 ~ SolverService ~ getTradeDetail ~ error:', error)
       if (axios.isAxiosError(error)) {
-        throw new Error(`Failed to fetch trade details: ${error.message}`)
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message
+        throw new Error(errorMessage)
       }
       if (error instanceof z.ZodError) {
         throw new Error(`Invalid data: ${error.message}`)
