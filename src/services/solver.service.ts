@@ -170,6 +170,7 @@ export class SolverService implements ConfigObserver {
       // Validate transformed response
       return TradeDetailResponseSchema.parse(camelCaseData)
     } catch (error) {
+      console.log('🚀 ~ SolverService ~ getTradeDetail ~ error:', error)
       if (axios.isAxiosError(error)) {
         throw new Error(`Failed to fetch trade details: ${error.message}`)
       }
