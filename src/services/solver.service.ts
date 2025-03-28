@@ -1,8 +1,8 @@
-import axios from 'axios';
-import { z } from 'zod';
+import axios from 'axios'
+import { z } from 'zod'
 
-import { AppConfig, config, ConfigObserver } from '../config';
-import { convertToCamelCase, convertToSnakeCase } from '../utils';
+import { AppConfig, config, ConfigObserver } from '../config'
+import { convertToCamelCase, convertToSnakeCase } from '../utils'
 
 // Request validation schema
 const SubmitSettlementRequestSchema = z.object({
@@ -16,7 +16,10 @@ const SubmitSettlementRequestSchema = z.object({
 
 // Response validation schema
 const SubmitSettlementResponseSchema = z.object({
-  message: z.string(),
+  data: z.object({
+    message: z.string(),
+  }),
+  traceId: z.string(),
 })
 
 // Response validation schemas
