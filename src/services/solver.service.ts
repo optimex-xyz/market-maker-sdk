@@ -128,6 +128,8 @@ export class SolverService implements ConfigObserver {
       // Convert params to snake_case for API
       const snakeCaseParams = convertToSnakeCase(params)
 
+      console.log('🚀 ~ SolverService ~ submitSettlementTx ~ snakeCaseParams:', snakeCaseParams)
+
       const response = await axios.post<SubmitSettlementResponse>(
         `${this.baseURL}/v1/market-maker/submit-settlement-tx`,
         snakeCaseParams,
@@ -138,7 +140,7 @@ export class SolverService implements ConfigObserver {
           },
         }
       )
-      console.log('🚀 ~ SolverService ~ submitSettlementTx ~ response:', response.data)
+      console.log('🚀 ~ SolverService ~ submitSettlementTx ~ response.data:', response.data)
 
       // Validate response
       return SubmitSettlementResponseSchema.parse(response.data)
@@ -162,12 +164,16 @@ export class SolverService implements ConfigObserver {
    */
   async getTradeDetail(tradeId: string): Promise<TradeDetailResponse> {
     try {
+      console.log('🚀 ~ SolverService ~ getTradeDetail ~ tradeId:', tradeId)
+
       const response = await axios.get(`${this.baseURL}/v1/market-maker/trades/${tradeId}`, {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
       })
+
+      console.log('🚀 ~ SolverService ~ getTradeDetail ~ response.data:', response.data)
 
       // Convert snake_case to camelCase before validation
       const camelCaseData = convertToCamelCase(response.data)

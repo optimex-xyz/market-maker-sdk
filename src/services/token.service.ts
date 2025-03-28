@@ -42,6 +42,8 @@ export class TokenService implements ConfigObserver {
         },
       })
 
+      console.log('🚀 ~ TokenService ~ getTokens ~ response.data:', response.data)
+
       // Convert snake_case to camelCase before validation
       const camelCaseData = convertToCamelCase(response.data)
 
