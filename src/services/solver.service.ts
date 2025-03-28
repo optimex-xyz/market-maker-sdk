@@ -1,8 +1,8 @@
-import axios from 'axios'
-import { z } from 'zod'
+import axios from 'axios';
+import { z } from 'zod';
 
-import { AppConfig, config, ConfigObserver } from '../config'
-import { convertToCamelCase, convertToSnakeCase } from '../utils'
+import { AppConfig, config, ConfigObserver } from '../config';
+import { convertToCamelCase, convertToSnakeCase } from '../utils';
 
 // Request validation schema
 const SubmitSettlementRequestSchema = z.object({
@@ -135,6 +135,7 @@ export class SolverService implements ConfigObserver {
           },
         }
       )
+      console.log('🚀 ~ SolverService ~ submitSettlementTx ~ response:', response.data)
 
       // Validate response
       return SubmitSettlementResponseSchema.parse(response.data)
