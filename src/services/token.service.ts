@@ -1,9 +1,9 @@
-import axios from 'axios'
-import { z } from 'zod'
+import axios from 'axios';
+import { z } from 'zod';
 
-import { AppConfig, config, ConfigObserver } from '../config'
-import { Token, TokenSchema } from '../types'
-import { convertToCamelCase } from '../utils'
+import { AppConfig, config, ConfigObserver } from '../config';
+import { Token, TokenSchema } from '../types';
+import { convertToCamelCase } from '../utils';
 
 const TokenResponseSchema = z.object({
   data: z.object({
@@ -41,8 +41,6 @@ export class TokenService implements ConfigObserver {
           Accept: 'application/json',
         },
       })
-
-      console.log('🚀 ~ TokenService ~ getTokens ~ response.data:', response.data)
 
       // Convert snake_case to camelCase before validation
       const camelCaseData = convertToCamelCase(response.data)
