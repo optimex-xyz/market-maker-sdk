@@ -16,7 +16,10 @@ const SubmitSettlementRequestSchema = z.object({
 
 // Response validation schema
 const SubmitSettlementResponseSchema = z.object({
-  message: z.string(),
+  data: z.object({
+    message: z.string(),
+  }),
+  traceId: z.string(),
 })
 
 // Response validation schemas
