@@ -6,19 +6,55 @@
         "name": "management_",
         "type": "address"
       },
-      { "internalType": "address", "name": "signer", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "signer",
+        "type": "address"
+      }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
-  { "inputs": [], "name": "AddressZero", "type": "error" },
-  { "inputs": [], "name": "BundlePaymentEmpty", "type": "error" },
-  { "inputs": [], "name": "InconsistentCoreType", "type": "error" },
-  { "inputs": [], "name": "InconsistentPMM", "type": "error" },
-  { "inputs": [], "name": "RegisteredAlready", "type": "error" },
-  { "inputs": [], "name": "RouteNotFound", "type": "error" },
-  { "inputs": [], "name": "RouteNotSupported", "type": "error" },
-  { "inputs": [], "name": "Unauthorized", "type": "error" },
+  {
+    "inputs": [],
+    "name": "AddressZero",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "BundlePaymentEmpty",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InconsistentCoreType",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InconsistentPMM",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RegisteredAlready",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RouteNotFound",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RouteNotSupported",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "Unauthorized",
+    "type": "error"
+  },
   {
     "anonymous": false,
     "inputs": [
@@ -157,7 +193,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "core",
+        "name": "handler",
         "type": "address"
       },
       {
@@ -185,7 +221,13 @@
   {
     "inputs": [],
     "name": "SIGNER",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
@@ -198,10 +240,26 @@
             "name": "tradeIds",
             "type": "bytes32[]"
           },
-          { "internalType": "uint64", "name": "signedAt", "type": "uint64" },
-          { "internalType": "uint64", "name": "startIdx", "type": "uint64" },
-          { "internalType": "bytes", "name": "paymentTxId", "type": "bytes" },
-          { "internalType": "bytes", "name": "signature", "type": "bytes" }
+          {
+            "internalType": "uint64",
+            "name": "signedAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "startIdx",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes",
+            "name": "paymentTxId",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "signature",
+            "type": "bytes"
+          }
         ],
         "internalType": "struct ITypes.BundlePayment",
         "name": "bundle",
@@ -215,8 +273,16 @@
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" },
-      { "internalType": "bytes", "name": "signature", "type": "bytes" },
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      },
       {
         "internalType": "bytes[]",
         "name": "depositFromList",
@@ -230,8 +296,16 @@
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" },
-      { "internalType": "bytes", "name": "signature", "type": "bytes" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
     ],
     "name": "confirmPayment",
     "outputs": [],
@@ -240,9 +314,21 @@
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" },
-      { "internalType": "bytes", "name": "releaseTxId", "type": "bytes" },
-      { "internalType": "bytes", "name": "signature", "type": "bytes" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "releaseTxId",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
     ],
     "name": "confirmSettlement",
     "outputs": [],
@@ -251,7 +337,11 @@
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
     ],
     "name": "getAffiliateInfo",
     "outputs": [
@@ -262,8 +352,16 @@
             "name": "aggregatedValue",
             "type": "uint256"
           },
-          { "internalType": "string", "name": "schema", "type": "string" },
-          { "internalType": "bytes", "name": "data", "type": "bytes" }
+          {
+            "internalType": "string",
+            "name": "schema",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
         ],
         "internalType": "struct ITypes.Affiliate",
         "name": "",
@@ -275,25 +373,83 @@
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" }
+      {
+        "internalType": "bytes",
+        "name": "fromChain",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "toChain",
+        "type": "bytes"
+      }
+    ],
+    "name": "getCurrentEpoch",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
     ],
     "name": "getCurrentStage",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
     ],
     "name": "getDepositAddressList",
-    "outputs": [{ "internalType": "bytes[]", "name": "", "type": "bytes[]" }],
+    "outputs": [
+      {
+        "internalType": "bytes[]",
+        "name": "",
+        "type": "bytes[]"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
     ],
     "name": "getFeeDetails",
     "outputs": [
@@ -314,8 +470,16 @@
             "name": "aFeeAmount",
             "type": "uint256"
           },
-          { "internalType": "uint128", "name": "pFeeRate", "type": "uint128" },
-          { "internalType": "uint128", "name": "aFeeRate", "type": "uint128" }
+          {
+            "internalType": "uint128",
+            "name": "pFeeRate",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "aFeeRate",
+            "type": "uint128"
+          }
         ],
         "internalType": "struct ITypes.FeeDetails",
         "name": "",
@@ -327,41 +491,83 @@
   },
   {
     "inputs": [
-      { "internalType": "bytes", "name": "fromChain", "type": "bytes" },
-      { "internalType": "bytes", "name": "toChain", "type": "bytes" }
+      {
+        "internalType": "bytes",
+        "name": "fromChain",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "toChain",
+        "type": "bytes"
+      }
     ],
     "name": "getHandler",
     "outputs": [
-      { "internalType": "address", "name": "handler", "type": "address" },
-      { "internalType": "string", "name": "handlerType", "type": "string" }
+      {
+        "internalType": "address",
+        "name": "handler",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "handlerType",
+        "type": "string"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
     ],
     "name": "getHandlerOf",
     "outputs": [
-      { "internalType": "address", "name": "handler", "type": "address" },
-      { "internalType": "string", "name": "handlerType", "type": "string" }
+      {
+        "internalType": "address",
+        "name": "handler",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "handlerType",
+        "type": "string"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
     ],
     "name": "getLastSignedPayment",
-    "outputs": [{ "internalType": "uint64", "name": "", "type": "uint64" }],
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes", "name": "networkId", "type": "bytes" }
+      {
+        "internalType": "bytes",
+        "name": "networkId",
+        "type": "bytes"
+      }
     ],
     "name": "getLatestMPCInfo",
     "outputs": [
@@ -372,9 +578,21 @@
             "name": "mpcL2Address",
             "type": "address"
           },
-          { "internalType": "uint64", "name": "expireTime", "type": "uint64" },
-          { "internalType": "bytes", "name": "mpcL2Pubkey", "type": "bytes" },
-          { "internalType": "bytes", "name": "mpcAssetPubkey", "type": "bytes" }
+          {
+            "internalType": "uint64",
+            "name": "expireTime",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes",
+            "name": "mpcL2Pubkey",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "mpcAssetPubkey",
+            "type": "bytes"
+          }
         ],
         "internalType": "struct ITypes.MPCInfo",
         "name": "",
@@ -386,8 +604,16 @@
   },
   {
     "inputs": [
-      { "internalType": "bytes", "name": "networkId", "type": "bytes" },
-      { "internalType": "bytes", "name": "pubkey", "type": "bytes" }
+      {
+        "internalType": "bytes",
+        "name": "networkId",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "pubkey",
+        "type": "bytes"
+      }
     ],
     "name": "getMPCInfo",
     "outputs": [
@@ -398,9 +624,21 @@
             "name": "mpcL2Address",
             "type": "address"
           },
-          { "internalType": "uint64", "name": "expireTime", "type": "uint64" },
-          { "internalType": "bytes", "name": "mpcL2Pubkey", "type": "bytes" },
-          { "internalType": "bytes", "name": "mpcAssetPubkey", "type": "bytes" }
+          {
+            "internalType": "uint64",
+            "name": "expireTime",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes",
+            "name": "mpcL2Pubkey",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "mpcAssetPubkey",
+            "type": "bytes"
+          }
         ],
         "internalType": "struct ITypes.MPCInfo",
         "name": "info",
@@ -413,43 +651,89 @@
   {
     "inputs": [],
     "name": "getManagementOwner",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes", "name": "fromChain", "type": "bytes" },
-      { "internalType": "bytes", "name": "toChain", "type": "bytes" }
+      {
+        "internalType": "bytes",
+        "name": "fromChain",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "toChain",
+        "type": "bytes"
+      }
     ],
     "name": "getMaxAffiliateFeeRate",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "getPFeeRate",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "pmmId", "type": "bytes32" },
-      { "internalType": "uint256", "name": "fromIdx", "type": "uint256" },
-      { "internalType": "uint256", "name": "toIdx", "type": "uint256" }
+      {
+        "internalType": "bytes32",
+        "name": "pmmId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fromIdx",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "toIdx",
+        "type": "uint256"
+      }
     ],
     "name": "getPMMAccounts",
     "outputs": [
-      { "internalType": "address[]", "name": "list", "type": "address[]" }
+      {
+        "internalType": "address[]",
+        "name": "list",
+        "type": "address[]"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
     ],
     "name": "getPMMSelection",
     "outputs": [
@@ -515,23 +799,67 @@
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" }
+      {
+        "internalType": "uint256",
+        "name": "epochNo",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fromIdx",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "toIdx",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "fromChain",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "toChain",
+        "type": "bytes"
+      }
     ],
-    "name": "getPresigns",
+    "name": "getPendingTrades",
     "outputs": [
       {
-        "components": [
-          { "internalType": "bytes32", "name": "pmmId", "type": "bytes32" },
-          {
-            "internalType": "bytes",
-            "name": "pmmRecvAddress",
-            "type": "bytes"
-          },
-          { "internalType": "bytes[]", "name": "presigns", "type": "bytes[]" }
-        ],
-        "internalType": "struct ITypes.Presign[]",
+        "internalType": "bytes32[]",
         "name": "",
-        "type": "tuple[]"
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "epochNo",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "fromChain",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "toChain",
+        "type": "bytes"
+      }
+    ],
+    "name": "getPendingTradesCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -540,13 +868,54 @@
   {
     "inputs": [],
     "name": "getProtocolState",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getRefundPresigns",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "refundAddress",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "presigns",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct ITypes.RefundPresign",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
     ],
     "name": "getSettledPayment",
     "outputs": [
@@ -557,9 +926,26 @@
             "name": "bundlerHash",
             "type": "bytes32"
           },
-          { "internalType": "bytes", "name": "paymentTxId", "type": "bytes" },
-          { "internalType": "bytes", "name": "releaseTxId", "type": "bytes" },
-          { "internalType": "bool", "name": "isConfirmed", "type": "bool" }
+          {
+            "internalType": "uint256",
+            "name": "index",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "paymentTxId",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "releaseTxId",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isConfirmed",
+            "type": "bool"
+          }
         ],
         "internalType": "struct ITypes.SettledPayment",
         "name": "",
@@ -571,15 +957,67 @@
   },
   {
     "inputs": [
-      { "internalType": "uint256", "name": "fromIdx", "type": "uint256" },
-      { "internalType": "uint256", "name": "toIdx", "type": "uint256" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getSettlementPresigns",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "pmmId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "pmmRecvAddress",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "presigns",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct ITypes.SettlementPresign[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "fromIdx",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "toIdx",
+        "type": "uint256"
+      }
     ],
     "name": "getTokens",
     "outputs": [
       {
         "components": [
-          { "internalType": "bytes[5]", "name": "info", "type": "bytes[5]" },
-          { "internalType": "uint256", "name": "decimals", "type": "uint256" }
+          {
+            "internalType": "bytes[5]",
+            "name": "info",
+            "type": "bytes[5]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "decimals",
+            "type": "uint256"
+          }
         ],
         "internalType": "struct ITypes.TokenInfo[]",
         "name": "list",
@@ -591,13 +1029,21 @@
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
     ],
     "name": "getTradeData",
     "outputs": [
       {
         "components": [
-          { "internalType": "uint256", "name": "sessionId", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "sessionId",
+            "type": "uint256"
+          },
           {
             "components": [
               {
@@ -653,76 +1099,168 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "account", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
     ],
     "name": "isMPCNode",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "account", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
     ],
     "name": "isSolver",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "enum ITypes.STAGE", "name": "stage", "type": "uint8" }
+      {
+        "internalType": "enum ITypes.STAGE",
+        "name": "stage",
+        "type": "uint8"
+      }
     ],
     "name": "isSuspended",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes", "name": "networkId", "type": "bytes" }
+      {
+        "internalType": "bytes",
+        "name": "networkId",
+        "type": "bytes"
+      }
     ],
     "name": "isValidNetwork",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "pmmId", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "pmmId",
+        "type": "bytes32"
+      }
     ],
     "name": "isValidPMM",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "pmmId", "type": "bytes32" },
-      { "internalType": "address", "name": "account", "type": "address" }
+      {
+        "internalType": "bytes32",
+        "name": "pmmId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
     ],
     "name": "isValidPMMAccount",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes", "name": "networkId", "type": "bytes" },
-      { "internalType": "bytes", "name": "pubkey", "type": "bytes" }
+      {
+        "internalType": "bytes",
+        "name": "networkId",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "pubkey",
+        "type": "bytes"
+      }
     ],
     "name": "isValidPubkey",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes", "name": "networkId", "type": "bytes" },
-      { "internalType": "bytes", "name": "tokenId", "type": "bytes" }
+      {
+        "internalType": "bytes",
+        "name": "networkId",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "tokenId",
+        "type": "bytes"
+      }
     ],
     "name": "isValidToken",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
@@ -730,30 +1268,54 @@
     "inputs": [],
     "name": "management",
     "outputs": [
-      { "internalType": "contract IManagement", "name": "", "type": "address" }
+      {
+        "internalType": "contract IManagement",
+        "name": "",
+        "type": "address"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "pmmId", "type": "bytes32" }
+      {
+        "internalType": "bytes32",
+        "name": "pmmId",
+        "type": "bytes32"
+      }
     ],
     "name": "numOfPMMAccounts",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "numOfSupportedTokens",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" },
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
       {
         "components": [
           {
@@ -818,7 +1380,11 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "newManagement", "type": "address" }
+      {
+        "internalType": "address",
+        "name": "newManagement",
+        "type": "address"
+      }
     ],
     "name": "setManagement",
     "outputs": [],
@@ -827,9 +1393,21 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "core", "type": "address" },
-      { "internalType": "bytes", "name": "fromChain", "type": "bytes" },
-      { "internalType": "bytes", "name": "toChain", "type": "bytes" }
+      {
+        "internalType": "address",
+        "name": "handler",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "fromChain",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "toChain",
+        "type": "bytes"
+      }
     ],
     "name": "setRoute",
     "outputs": [],
@@ -838,10 +1416,18 @@
   },
   {
     "inputs": [
-      { "internalType": "bytes32", "name": "tradeId", "type": "bytes32" },
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
       {
         "components": [
-          { "internalType": "uint256", "name": "sessionId", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "sessionId",
+            "type": "uint256"
+          },
           {
             "components": [
               {
@@ -898,8 +1484,16 @@
             "name": "aggregatedValue",
             "type": "uint256"
           },
-          { "internalType": "string", "name": "schema", "type": "string" },
-          { "internalType": "bytes", "name": "data", "type": "bytes" }
+          {
+            "internalType": "string",
+            "name": "schema",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
         ],
         "internalType": "struct ITypes.Affiliate",
         "name": "affiliateInfo",
@@ -907,17 +1501,42 @@
       },
       {
         "components": [
-          { "internalType": "bytes32", "name": "pmmId", "type": "bytes32" },
+          {
+            "internalType": "bytes32",
+            "name": "pmmId",
+            "type": "bytes32"
+          },
           {
             "internalType": "bytes",
             "name": "pmmRecvAddress",
             "type": "bytes"
           },
-          { "internalType": "bytes[]", "name": "presigns", "type": "bytes[]" }
+          {
+            "internalType": "bytes[]",
+            "name": "presigns",
+            "type": "bytes[]"
+          }
         ],
-        "internalType": "struct ITypes.Presign[]",
-        "name": "presignList",
+        "internalType": "struct ITypes.SettlementPresign[]",
+        "name": "settlementPresigns",
         "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "refundAddress",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "presigns",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct ITypes.RefundPresign",
+        "name": "refundPresign",
+        "type": "tuple"
       }
     ],
     "name": "submitTrade",
@@ -926,9 +1545,21 @@
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "name": "version",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   }
