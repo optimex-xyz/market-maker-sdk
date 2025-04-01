@@ -19,7 +19,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
   dev: {
     backendUrl: 'https://api-stg.bitdex.xyz',
     rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
-    routerAddress: '0xc0B01A53B15bacAF6f81aF1F6B001E8c8130256e',
+    routerAddress: '0xb3063A29cBb4363390687CCb9008f266657DF0fF',
     paymentAddressMap: {
       ethereum_sepolia: '0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2',
     },
