@@ -110,7 +110,17 @@ sequenceDiagram
 | `pre-production` | Pre-production environment with mainnet networks for testing before release | `https://api-preprod.bitfi.com` |
 | `production`     | Production environment with mainnet networks and production services | `https://api.bitfi.com`              |
 
-Each environment includes specific configuration for backend URLs, RPC endpoints, router addresses, and payment addresses.
+- Solver URLs: Each environment has dedicated API endpoints
+
+- RPC Endpoints: L2 RPC endpoints remain the same across all environments
+
+- Router Addresses: Smart contract addresses for routing transactions
+
+  - **Note:** pre-production and production share the same router addresses
+
+- Payment Addresses: Addresses used for fee collection and settlement
+
+  - **Note:** pre-production and production share the same payment addresses
 
 ## 3. PMM Backend APIs
 
