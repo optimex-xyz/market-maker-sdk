@@ -1,4 +1,4 @@
-export type Environment = 'dev' | 'production'
+export type Environment = 'dev' | 'prelive' | 'production'
 
 export interface EnvironmentConfig {
   backendUrl: string
@@ -22,6 +22,14 @@ const environments: Record<Environment, EnvironmentConfig> = {
     routerAddress: '0xb3063A29cBb4363390687CCb9008f266657DF0fF',
     paymentAddressMap: {
       ethereum_sepolia: '0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2',
+    },
+  },
+  prelive: {
+    backendUrl: 'https://pre-api.optimex.xyz',
+    rpcUrl: 'https://bitfi-ledger-testnet.alt.technology',
+    routerAddress: '0x272599CE3602A49B580A5C4a4d3C1067E30248D2',
+    paymentAddressMap: {
+      ethereum: 'x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
   },
   production: {
