@@ -104,10 +104,11 @@ sequenceDiagram
 
 ### 2.1. API Environments
 
-| Environment  | Description                                                          |
-| ------------ | -------------------------------------------------------------------- |
-| `dev`        | Development environment with test networks and staging services      |
-| `production` | Production environment with mainnet networks and production services |
+| Environment      | Description                                                          | Base URL                             |
+| ---------------- | -------------------------------------------------------------------- | ------------------------------------ |
+| `dev`            | Development environment with test networks and staging services      | `https://api-dev.bitfi.com`          |
+| `pre-production` | Pre-production environment with mainnet networks for testing before release | `https://api-preprod.bitfi.com` |
+| `production`     | Production environment with mainnet networks and production services | `https://api.bitfi.com`              |
 
 Each environment includes specific configuration for backend URLs, RPC endpoints, router addresses, and payment addresses.
 
