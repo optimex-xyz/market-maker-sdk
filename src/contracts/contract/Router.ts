@@ -143,19 +143,20 @@ export declare namespace ITypes {
     pmmInfo: ITypes.SelectedPMMInfoStructOutput;
   };
 
-  export type RefundPresignStruct = {
-    refundAddress: BytesLike;
+  export type PresignStruct = {
+    pmmId: BytesLike;
+    pmmRecvAddress: BytesLike;
     presigns: BytesLike[];
   };
 
-  export type RefundPresignStructOutput = [
-    refundAddress: string,
+  export type PresignStructOutput = [
+    pmmId: string,
+    pmmRecvAddress: string,
     presigns: string[]
-  ] & { refundAddress: string; presigns: string[] };
+  ] & { pmmId: string; pmmRecvAddress: string; presigns: string[] };
 
   export type SettledPaymentStruct = {
     bundlerHash: BytesLike;
-    index: BigNumberish;
     paymentTxId: BytesLike;
     releaseTxId: BytesLike;
     isConfirmed: boolean;
@@ -163,29 +164,15 @@ export declare namespace ITypes {
 
   export type SettledPaymentStructOutput = [
     bundlerHash: string,
-    index: bigint,
     paymentTxId: string,
     releaseTxId: string,
     isConfirmed: boolean
   ] & {
     bundlerHash: string;
-    index: bigint;
     paymentTxId: string;
     releaseTxId: string;
     isConfirmed: boolean;
   };
-
-  export type SettlementPresignStruct = {
-    pmmId: BytesLike;
-    pmmRecvAddress: BytesLike;
-    presigns: BytesLike[];
-  };
-
-  export type SettlementPresignStructOutput = [
-    pmmId: string,
-    pmmRecvAddress: string,
-    presigns: string[]
-  ] & { pmmId: string; pmmRecvAddress: string; presigns: string[] };
 
   export type TokenInfoStruct = {
     info: [BytesLike, BytesLike, BytesLike, BytesLike, BytesLike];
@@ -255,7 +242,6 @@ export interface RouterInterface extends Interface {
       | "confirmPayment"
       | "confirmSettlement"
       | "getAffiliateInfo"
-      | "getCurrentEpoch"
       | "getCurrentStage"
       | "getDepositAddressList"
       | "getFeeDetails"
@@ -269,12 +255,9 @@ export interface RouterInterface extends Interface {
       | "getPFeeRate"
       | "getPMMAccounts"
       | "getPMMSelection"
-      | "getPendingTrades"
-      | "getPendingTradesCount"
+      | "getPresigns"
       | "getProtocolState"
-      | "getRefundPresigns"
       | "getSettledPayment"
-      | "getSettlementPresigns"
       | "getTokens"
       | "getTradeData"
       | "isMPCNode"
@@ -326,10 +309,6 @@ export interface RouterInterface extends Interface {
   encodeFunctionData(
     functionFragment: "getAffiliateInfo",
     values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getCurrentEpoch",
-    values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getCurrentStage",
@@ -384,27 +363,15 @@ export interface RouterInterface extends Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getPendingTrades",
-    values: [BigNumberish, BigNumberish, BigNumberish, BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPendingTradesCount",
-    values: [BigNumberish, BytesLike, BytesLike]
+    functionFragment: "getPresigns",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getProtocolState",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getRefundPresigns",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "getSettledPayment",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getSettlementPresigns",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
@@ -477,8 +444,7 @@ export interface RouterInterface extends Interface {
       BytesLike,
       ITypes.TradeDataStruct,
       ITypes.AffiliateStruct,
-      ITypes.SettlementPresignStruct[],
-      ITypes.RefundPresignStruct
+      ITypes.PresignStruct[]
     ]
   ): string;
   encodeFunctionData(
@@ -505,10 +471,6 @@ export interface RouterInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getAffiliateInfo",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCurrentEpoch",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -558,11 +520,7 @@ export interface RouterInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPendingTrades",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPendingTradesCount",
+    functionFragment: "getPresigns",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -570,15 +528,7 @@ export interface RouterInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getRefundPresigns",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getSettledPayment",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getSettlementPresigns",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getTokens", data: BytesLike): Result;
@@ -726,19 +676,19 @@ export namespace SubmitTradeInfoEvent {
 
 export namespace UpdatedRouteEvent {
   export type InputTuple = [
-    handler: AddressLike,
+    core: AddressLike,
     version: BigNumberish,
     fromChain: BytesLike,
     toChain: BytesLike
   ];
   export type OutputTuple = [
-    handler: string,
+    core: string,
     version: bigint,
     fromChain: string,
     toChain: string
   ];
   export interface OutputObject {
-    handler: string;
+    core: string;
     version: bigint;
     fromChain: string;
     toChain: string;
@@ -824,12 +774,6 @@ export interface Router extends BaseContract {
     "view"
   >;
 
-  getCurrentEpoch: TypedContractMethod<
-    [fromChain: BytesLike, toChain: BytesLike],
-    [[bigint, bigint, bigint]],
-    "view"
-  >;
-
   getCurrentStage: TypedContractMethod<[tradeId: BytesLike], [bigint], "view">;
 
   getDepositAddressList: TypedContractMethod<
@@ -896,41 +840,17 @@ export interface Router extends BaseContract {
     "view"
   >;
 
-  getPendingTrades: TypedContractMethod<
-    [
-      epochNo: BigNumberish,
-      fromIdx: BigNumberish,
-      toIdx: BigNumberish,
-      fromChain: BytesLike,
-      toChain: BytesLike
-    ],
-    [string[]],
-    "view"
-  >;
-
-  getPendingTradesCount: TypedContractMethod<
-    [epochNo: BigNumberish, fromChain: BytesLike, toChain: BytesLike],
-    [bigint],
+  getPresigns: TypedContractMethod<
+    [tradeId: BytesLike],
+    [ITypes.PresignStructOutput[]],
     "view"
   >;
 
   getProtocolState: TypedContractMethod<[], [bigint], "view">;
 
-  getRefundPresigns: TypedContractMethod<
-    [tradeId: BytesLike],
-    [ITypes.RefundPresignStructOutput],
-    "view"
-  >;
-
   getSettledPayment: TypedContractMethod<
     [tradeId: BytesLike],
     [ITypes.SettledPaymentStructOutput],
-    "view"
-  >;
-
-  getSettlementPresigns: TypedContractMethod<
-    [tradeId: BytesLike],
-    [ITypes.SettlementPresignStructOutput[]],
     "view"
   >;
 
@@ -997,7 +917,7 @@ export interface Router extends BaseContract {
   >;
 
   setRoute: TypedContractMethod<
-    [handler: AddressLike, fromChain: BytesLike, toChain: BytesLike],
+    [core: AddressLike, fromChain: BytesLike, toChain: BytesLike],
     [void],
     "nonpayable"
   >;
@@ -1007,8 +927,7 @@ export interface Router extends BaseContract {
       tradeId: BytesLike,
       tradeData: ITypes.TradeDataStruct,
       affiliateInfo: ITypes.AffiliateStruct,
-      settlementPresigns: ITypes.SettlementPresignStruct[],
-      refundPresign: ITypes.RefundPresignStruct
+      presignList: ITypes.PresignStruct[]
     ],
     [void],
     "nonpayable"
@@ -1056,13 +975,6 @@ export interface Router extends BaseContract {
   ): TypedContractMethod<
     [tradeId: BytesLike],
     [ITypes.AffiliateStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getCurrentEpoch"
-  ): TypedContractMethod<
-    [fromChain: BytesLike, toChain: BytesLike],
-    [[bigint, bigint, bigint]],
     "view"
   >;
   getFunction(
@@ -1137,47 +1049,20 @@ export interface Router extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "getPendingTrades"
+    nameOrSignature: "getPresigns"
   ): TypedContractMethod<
-    [
-      epochNo: BigNumberish,
-      fromIdx: BigNumberish,
-      toIdx: BigNumberish,
-      fromChain: BytesLike,
-      toChain: BytesLike
-    ],
-    [string[]],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getPendingTradesCount"
-  ): TypedContractMethod<
-    [epochNo: BigNumberish, fromChain: BytesLike, toChain: BytesLike],
-    [bigint],
+    [tradeId: BytesLike],
+    [ITypes.PresignStructOutput[]],
     "view"
   >;
   getFunction(
     nameOrSignature: "getProtocolState"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "getRefundPresigns"
-  ): TypedContractMethod<
-    [tradeId: BytesLike],
-    [ITypes.RefundPresignStructOutput],
-    "view"
-  >;
-  getFunction(
     nameOrSignature: "getSettledPayment"
   ): TypedContractMethod<
     [tradeId: BytesLike],
     [ITypes.SettledPaymentStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getSettlementPresigns"
-  ): TypedContractMethod<
-    [tradeId: BytesLike],
-    [ITypes.SettlementPresignStructOutput[]],
     "view"
   >;
   getFunction(
@@ -1252,7 +1137,7 @@ export interface Router extends BaseContract {
   getFunction(
     nameOrSignature: "setRoute"
   ): TypedContractMethod<
-    [handler: AddressLike, fromChain: BytesLike, toChain: BytesLike],
+    [core: AddressLike, fromChain: BytesLike, toChain: BytesLike],
     [void],
     "nonpayable"
   >;
@@ -1263,8 +1148,7 @@ export interface Router extends BaseContract {
       tradeId: BytesLike,
       tradeData: ITypes.TradeDataStruct,
       affiliateInfo: ITypes.AffiliateStruct,
-      settlementPresigns: ITypes.SettlementPresignStruct[],
-      refundPresign: ITypes.RefundPresignStruct
+      presignList: ITypes.PresignStruct[]
     ],
     [void],
     "nonpayable"
