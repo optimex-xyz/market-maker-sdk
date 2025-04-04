@@ -104,15 +104,15 @@ sequenceDiagram
 
 ### 2.1. API Environments
 
-| Environment      | Description                                                          | Base URL                             |
-| ---------------- | -------------------------------------------------------------------- | ------------------------------------ |
-| `dev`            | Development environment with test networks and staging services      | `https://api-dev.bitfi.com`          |
-| `pre-production` | Pre-production environment with mainnet networks for testing before release | `https://api-preprod.bitfi.com` |
-| `production`     | Production environment with mainnet networks and production services | `https://api.bitfi.com`              |
+| Environment      | Description                                                          | 
+| ---------------- | -------------------------------------------------------------------- | 
+| `dev`            | Development environment with test networks and staging services      | 
+| `pre-production` | Pre-production environment with mainnet networks for testing before release |
+| `production`     | Production environment with mainnet networks and production services |
 
 - Solver URLs: Each environment has dedicated API endpoints
 
-- RPC Endpoints: L2 RPC endpoints remain the same across all environments
+- RPC Endpoints: L2 RPC endpoints
 
 - Router Addresses: Smart contract addresses for routing transactions
 
