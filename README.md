@@ -652,14 +652,14 @@ GET /v1/market-maker/tokens
                 "name": "Bitcoin Testnet",
                 "symbol": "tBTC",
                 "type": "BTC",
-                "logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/btc_network.svg"
+                "logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/btc_network.svg"
             },
             {
                 "network_id": "ethereum_sepolia",
                 "name": "Ethereum Sepolia",
                 "symbol": "ETH",
                 "type": "EVM",
-                "logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/eth_network.svg"
+                "logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/eth_network.svg"
             }
         ],
         "tokens": [
@@ -674,8 +674,8 @@ GET /v1/market-maker/tokens
                 "token_symbol": "tBTC",
                 "token_address": "native",
                 "token_decimals": 8,
-                "token_logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/tbtc.svg",
-                "network_logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/btc_network.svg",
+                "token_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/tbtc.svg",
+                "network_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/btc_network.svg",
                 "active": true,
                 "created_at": "2024-10-28T07:24:33.179Z",
                 "updated_at": "2024-11-07T04:40:46.454Z"
@@ -691,8 +691,8 @@ GET /v1/market-maker/tokens
                 "token_symbol": "ETH",
                 "token_address": "native",
                 "token_decimals": 18,
-                "token_logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/eth.svg",
-                "network_logo_uri": "https://storage.googleapis.com/bitfi-static-35291d79/images/tokens/eth_network.svg",
+                "token_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/eth.svg",
+                "network_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/eth_network.svg",
                 "active": true,
                 "created_at": "2024-11-22T08:36:59.175Z",
                 "updated_at": "2024-11-22T08:36:59.175Z"
