@@ -25,11 +25,13 @@ export interface SignerInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "eip712Domain"
+      | "getConfirmRefundSigner"
       | "getDepositConfirmationSigner"
       | "getMakePaymentSigner"
       | "getPMMSelectionSigner"
       | "getPaymentConfirmationSigner"
       | "getRFQSigner"
+      | "getReportFailureSigner"
       | "getSettlementConfirmationSigner"
   ): FunctionFragment;
 
@@ -38,6 +40,10 @@ export interface SignerInterface extends Interface {
   encodeFunctionData(
     functionFragment: "eip712Domain",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getConfirmRefundSigner",
+    values: [BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getDepositConfirmationSigner",
@@ -60,12 +66,20 @@ export interface SignerInterface extends Interface {
     values: [BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "getReportFailureSigner",
+    values: [BytesLike, BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getSettlementConfirmationSigner",
     values: [BytesLike, BytesLike, BytesLike]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "eip712Domain",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getConfirmRefundSigner",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -86,6 +100,10 @@ export interface SignerInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getRFQSigner",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getReportFailureSigner",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -163,6 +181,12 @@ export interface Signer extends BaseContract {
     "view"
   >;
 
+  getConfirmRefundSigner: TypedContractMethod<
+    [tradeId: BytesLike, infoHash: BytesLike, signature: BytesLike],
+    [string],
+    "view"
+  >;
+
   getDepositConfirmationSigner: TypedContractMethod<
     [tradeId: BytesLike, infoHash: BytesLike, signature: BytesLike],
     [string],
@@ -188,6 +212,12 @@ export interface Signer extends BaseContract {
   >;
 
   getRFQSigner: TypedContractMethod<
+    [tradeId: BytesLike, infoHash: BytesLike, signature: BytesLike],
+    [string],
+    "view"
+  >;
+
+  getReportFailureSigner: TypedContractMethod<
     [tradeId: BytesLike, infoHash: BytesLike, signature: BytesLike],
     [string],
     "view"
@@ -221,6 +251,13 @@ export interface Signer extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "getConfirmRefundSigner"
+  ): TypedContractMethod<
+    [tradeId: BytesLike, infoHash: BytesLike, signature: BytesLike],
+    [string],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "getDepositConfirmationSigner"
   ): TypedContractMethod<
     [tradeId: BytesLike, infoHash: BytesLike, signature: BytesLike],
@@ -250,6 +287,13 @@ export interface Signer extends BaseContract {
   >;
   getFunction(
     nameOrSignature: "getRFQSigner"
+  ): TypedContractMethod<
+    [tradeId: BytesLike, infoHash: BytesLike, signature: BytesLike],
+    [string],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getReportFailureSigner"
   ): TypedContractMethod<
     [tradeId: BytesLike, infoHash: BytesLike, signature: BytesLike],
     [string],

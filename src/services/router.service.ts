@@ -51,13 +51,13 @@ export class RouterService implements ConfigObserver {
     return await this.contract.getPMMSelection(tradeId)
   }
 
-  async getSettlementPresigns(tradeId: BytesLike): Promise<ITypes.PresignStructOutput[]> {
-    return await this.contract.getPresigns(tradeId)
+  async getSettlementPresigns(tradeId: BytesLike): Promise<ITypes.SettlementPresignStructOutput[]> {
+    return await this.contract.getSettlementPresigns(tradeId)
   }
 
-  // async getRefundPresigns(tradeId: BytesLike): Promise<ITypes.RefundPresignStructOutput> {
-  //   return await this.contract.getRefundPresigns(tradeId)
-  // }
+  async getRefundPresigns(tradeId: BytesLike): Promise<ITypes.RefundPresignStructOutput> {
+    return await this.contract.getRefundPresigns(tradeId)
+  }
 
   async getProtocolState(): Promise<bigint> {
     return await this.contract.getProtocolState()
@@ -67,8 +67,8 @@ export class RouterService implements ConfigObserver {
     return await this.contract.getFeeDetails(tradeId)
   }
 
-  async getSettledPayment(tradeId: BytesLike): Promise<ITypes.SettledPaymentStructOutput> {
-    return await this.contract.getSettledPayment(tradeId)
+  async getTradeFinalization(tradeId: BytesLike): Promise<ITypes.TradeFinalizationStructOutput> {
+    return await this.contract.getTradeFinalization(tradeId)
   }
 
   async getTokens(fromIdx: bigint, toIdx: bigint): Promise<ITypes.TokenInfoStructOutput[]> {

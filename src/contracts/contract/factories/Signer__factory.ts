@@ -121,6 +121,35 @@ const _abi = [
         type: "bytes",
       },
     ],
+    name: "getConfirmRefundSigner",
+    outputs: [
+      {
+        internalType: "address",
+        name: "signer",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "tradeId",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "infoHash",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
     name: "getDepositConfirmationSigner",
     outputs: [
       {
@@ -233,6 +262,35 @@ const _abi = [
       },
     ],
     name: "getRFQSigner",
+    outputs: [
+      {
+        internalType: "address",
+        name: "signer",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "tradeId",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "infoHash",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "getReportFailureSigner",
     outputs: [
       {
         internalType: "address",
