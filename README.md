@@ -110,18 +110,39 @@ sequenceDiagram
 | `pre-production` | Pre-production environment with mainnet networks for testing before release |
 | `production`     | Production environment with mainnet networks and production services |
 
-- Solver URLs: Each environment has dedicated API endpoints
+#### Development Environment
+Development environment with test networks and staging services
 
-- RPC Endpoints: L2 RPC endpoints
+- **Signer**: 0xA89F5060B810F3b6027D7663880c43ee77A865C7
+- **Router**: 0x193501E5F72a42DACCF8Eb1C4AB37561c213309D
+- **Payment**: 0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2
+- **ETHVault**: 0x17aD543010fc8E8065b85E203839C0CBEcdfC851
+- **WETHVault**: 0x673Ac1489457F43F04403940cE425ae19a9D639B
+- **USDTVault**: 0x62179B12Ce75B81Fcb4a2B634aD92DDaeF728e9C
+- **WBTCVault**: 0x04D0C9a5bb122958D8A64049068FD8570dDfA3Dc
 
-- Router Addresses: Smart contract addresses for routing transactions
+#### Pre-production Environment
+Pre-production environment with mainnet networks for testing before release
 
-  - **Note:** pre-production and production share the same router addresses
+- **Signer**: [0xCF9786F123F1071023dB8049808C223e94c384be](https://scan.optimex.xyz/address/0xCF9786F123F1071023dB8049808C223e94c384be)
+- **Router**: [0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A](https://scan.optimex.xyz/address/0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A)
+- **Payment**: [0x0A497AC4261E37FA4062762C23Cf3cB642C839b8](https://etherscan.io/address/0x0A497AC4261E37FA4062762C23Cf3cB642C839b8)
+- **ETHVault**: [0xF7fedF4A250157010807E6eA60258E3B768149Ff](https://etherscan.io/address/0xF7fedF4A250157010807E6eA60258E3B768149Ff)
+- **WETHVault**: [0xaD3f379AaED8Eca895209Af446F2e34f07145dbC](https://etherscan.io/address/0xaD3f379AaED8Eca895209Af446F2e34f07145dbC)
+- **USDTVault**: [0x0712CAB9e52a37aFC6fA768b20cc9b07325314fB](https://etherscan.io/address/0x0712CAB9e52a37aFC6fA768b20cc9b07325314fB)
+- **WBTCVault**: [0xCd6B5F600559104Ee19320B9F9C3b2c7672cb895](https://etherscan.io/address/0xCd6B5F600559104Ee19320B9F9C3b2c7672cb895)
 
-- Payment Addresses: Addresses used for fee collection and settlement
+#### Production Environment
+Production environment with mainnet networks and production services
 
-  - **Note:** pre-production and production share the same payment addresses
-
+- **Signer**: [0xCF9786F123F1071023dB8049808C223e94c384be](https://scan.optimex.xyz/address/0xCF9786F123F1071023dB8049808C223e94c384be)
+- **Router**: [0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A](https://scan.optimex.xyz/address/0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A)
+- **Payment**: [0x0A497AC4261E37FA4062762C23Cf3cB642C839b8](https://etherscan.io/address/0x0A497AC4261E37FA4062762C23Cf3cB642C839b8)
+- **ETHVault**: [0xF7fedF4A250157010807E6eA60258E3B768149Ff](https://etherscan.io/address/0xF7fedF4A250157010807E6eA60258E3B768149Ff)
+- **WETHVault**: [0xaD3f379AaED8Eca895209Af446F2e34f07145dbC](https://etherscan.io/address/0xaD3f379AaED8Eca895209Af446F2e34f07145dbC)
+- **USDTVault**: [0x0712CAB9e52a37aFC6fA768b20cc9b07325314fB](https://etherscan.io/address/0x0712CAB9e52a37aFC6fA768b20cc9b07325314fB)
+- **WBTCVault**: [0xCd6B5F600559104Ee19320B9F9C3b2c7672cb895](https://etherscan.io/address/0xCd6B5F600559104Ee19320B9F9C3b2c7672cb895)
+  
 ## 3. PMM Backend APIs
 
 These are the APIs that PMMs must implement for Solver integration. These endpoints allow Solvers to communicate with your PMM service.
