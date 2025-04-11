@@ -26,16 +26,16 @@ const environments: Record<Environment, EnvironmentConfig> = {
   },
   prelive: {
     backendUrl: 'https://pre-api.optimex.xyz',
-    rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
-    routerAddress: '0x272599CE3602A49B580A5C4a4d3C1067E30248D2',
+    rpcUrl: 'https://rpc.optimex.xyz',
+    routerAddress: '0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A',
     paymentAddressMap: {
       ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
   },
   production: {
     backendUrl: 'https://api.optimex.xyz',
-    rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
-    routerAddress: '0x272599CE3602A49B580A5C4a4d3C1067E30248D2',
+    rpcUrl: 'https://rpc.optimex.xyz',
+    routerAddress: '0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A',
     paymentAddressMap: {
       ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
