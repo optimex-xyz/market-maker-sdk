@@ -107,7 +107,7 @@ sequenceDiagram
 | Environment      | Description                                                          | 
 | ---------------- | -------------------------------------------------------------------- | 
 | `dev`            | Development environment with test networks and staging services      | 
-| `pre-production` | Pre-production environment with mainnet networks for testing before release |
+| `prelive` | Pre-production environment with mainnet networks for testing before release |
 | `production`     | Production environment with mainnet networks and production services |
 
 #### Development Environment
