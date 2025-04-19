@@ -12,6 +12,9 @@ A comprehensive guide for implementing Private Market Makers (PMMs) in the cross
     - [1.1. Integration Flow](#11-integration-flow)
   - [2. Quick Start](#2-quick-start)
     - [2.1. API Environments](#21-api-environments)
+      - [Development Environment](#development-environment)
+      - [Pre-production Environment](#pre-production-environment)
+      - [Production Environment](#production-environment)
   - [3. PMM Backend APIs](#3-pmm-backend-apis)
     - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)
       - [Description](#description)
@@ -104,9 +107,9 @@ sequenceDiagram
 
 ### 2.1. API Environments
 
-| Environment      | Description                                                          | 
-| ---------------- | -------------------------------------------------------------------- | 
-| `dev`            | Development environment with test networks and staging services      | 
+| Environment      | Description                                                          |
+| ---------------- | -------------------------------------------------------------------- |
+| `dev`            | Development environment with test networks and staging services      |
 | `prelive` | Pre-production environment with mainnet networks for testing before release |
 | `production`     | Production environment with mainnet networks and production services |
 
@@ -142,7 +145,7 @@ Production environment with mainnet networks and production services
 - **WETHVault**: [0xaD3f379AaED8Eca895209Af446F2e34f07145dbC](https://etherscan.io/address/0xaD3f379AaED8Eca895209Af446F2e34f07145dbC)
 - **USDTVault**: [0x0712CAB9e52a37aFC6fA768b20cc9b07325314fB](https://etherscan.io/address/0x0712CAB9e52a37aFC6fA768b20cc9b07325314fB)
 - **WBTCVault**: [0xCd6B5F600559104Ee19320B9F9C3b2c7672cb895](https://etherscan.io/address/0xCd6B5F600559104Ee19320B9F9C3b2c7672cb895)
-  
+
 ## 3. PMM Backend APIs
 
 These are the APIs that PMMs must implement for Solver integration. These endpoints allow Solvers to communicate with your PMM service.
