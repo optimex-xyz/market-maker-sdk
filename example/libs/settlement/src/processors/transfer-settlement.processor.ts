@@ -1,22 +1,22 @@
-import { Job, Queue } from 'bull'
-import { ethers } from 'ethers'
-
 import { stringToHex, toObject, toString } from '@bitfi-mock-pmm/shared'
-import { ensureHexPrefix, ITypes, routerService, tokenService } from '@bitfixyz/market-maker-sdk'
 import { InjectQueue, Process, Processor } from '@nestjs/bull'
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { ITypes, routerService, tokenService } from '@optimex-xyz/market-maker-sdk'
+
+import { Job, Queue } from 'bull'
 
 import { SETTLEMENT_QUEUE } from '../const'
 import { TransferFactory } from '../factories'
 import { SubmitSettlementEvent, TransferSettlementEvent } from '../types'
-import { decodeAddress } from '../utils'
+import { l2Decode } from '../utils'
 
 @Processor(SETTLEMENT_QUEUE.TRANSFER.NAME)
 export class TransferSettlementProcessor {
   private pmmId: string
+  private readonly MAX_RETRIES = 3
+  private readonly RETRY_DELAY = 30000
 
-  private tokenService = tokenService
   private routerService = routerService
   private tokenRepo = tokenService
 
@@ -25,15 +25,17 @@ export class TransferSettlementProcessor {
   constructor(
     private configService: ConfigService,
     private transferFactory: TransferFactory,
-    @InjectQueue(SETTLEMENT_QUEUE.SUBMIT.NAME)
-    private submitSettlementQueue: Queue
+    @InjectQueue(SETTLEMENT_QUEUE.SUBMIT.NAME) private submitSettlementQueue: Queue,
+    @InjectQueue(SETTLEMENT_QUEUE.TRANSFER.NAME) private transferSettlementQueue: Queue
   ) {
     this.pmmId = stringToHex(this.configService.getOrThrow<string>('PMM_ID'))
   }
 
   @Process(SETTLEMENT_QUEUE.TRANSFER.JOBS.PROCESS)
   async transfer(job: Job<string>) {
-    const { tradeId } = toObject(job.data) as TransferSettlementEvent
+    const { tradeId, retryCount = 0 } = toObject(job.data) as TransferSettlementEvent & { retryCount?: number }
+
+    this.logger.log(`Processing retry ${retryCount}/${this.MAX_RETRIES} for tradeId ${tradeId}`)
 
     try {
       const pMMSelection = await this.routerService.getPMMSelection(tradeId)
@@ -54,11 +56,38 @@ export class TransferSettlementProcessor {
         paymentTxId,
       } as SubmitSettlementEvent
 
-      await this.submitSettlementQueue.add(SETTLEMENT_QUEUE.SUBMIT.JOBS.PROCESS, toString(eventData))
+      await this.submitSettlementQueue.add(SETTLEMENT_QUEUE.SUBMIT.JOBS.PROCESS, toString(eventData), {
+        removeOnComplete: {
+          age: 24 * 3600,
+        },
+        removeOnFail: {
+          age: 24 * 3600,
+        },
+      })
 
       this.logger.log(`Processing transfer tradeId ${tradeId} success with paymentId ${paymentTxId}`)
     } catch (error) {
-      this.logger.error(`Processing transfer tradeId ${tradeId} failed: ${error}`)
+      if (retryCount < this.MAX_RETRIES - 1) {
+        this.logger.warn(`Retry ${retryCount + 1}/${this.MAX_RETRIES} for tradeId ${tradeId}: ${error}`)
+
+        await this.transferSettlementQueue.add(
+          SETTLEMENT_QUEUE.TRANSFER.JOBS.PROCESS,
+          toString({ tradeId, retryCount: retryCount + 1 }),
+          {
+            delay: this.RETRY_DELAY,
+            removeOnComplete: {
+              age: 24 * 3600,
+            },
+            removeOnFail: {
+              age: 24 * 3600,
+            },
+          }
+        )
+        return
+      }
+      this.logger.error(`Processing transfer tradeId ${tradeId} failed after ${this.MAX_RETRIES} attempts: ${error}`)
+
+      throw error
     }
   }
 
@@ -84,7 +113,7 @@ export class TransferSettlementProcessor {
     const toToken = await this.tokenRepo.getToken(networkId, toTokenAddress)
 
     try {
-      const strategy = this.transferFactory.getStrategy(toToken.networkType)
+      const strategy = this.transferFactory.getStrategy(toToken.networkType.toUpperCase())
       const tx = await strategy.transfer({
         toAddress: toUserAddress,
         amount,
@@ -92,7 +121,7 @@ export class TransferSettlementProcessor {
         tradeId,
       })
 
-      return ensureHexPrefix(tx)
+      return tx
     } catch (error) {
       this.logger.error('Transfer token error:', error)
       throw error
@@ -106,15 +135,10 @@ export class TransferSettlementProcessor {
   }> {
     const [addressHex, networkIdHex, tokenAddressHex] = chainInfo
 
-    const networkId = ethers.toUtf8String(networkIdHex)
-    const tokenAddress = ethers.toUtf8String(tokenAddressHex)
-
-    const token = await this.tokenService.getToken(networkId, tokenAddress)
-
     return {
-      address: decodeAddress(addressHex, token),
-      networkId,
-      tokenAddress,
+      address: l2Decode(addressHex),
+      networkId: l2Decode(networkIdHex),
+      tokenAddress: l2Decode(tokenAddressHex),
     }
   }
 }

@@ -2,6 +2,7 @@ import { ReqService } from '@bitfi-mock-pmm/req'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common'
 
+import { normalizeSymbol } from './helper'
 import { CoinGeckoToken, TokenPrice } from './type'
 
 @Injectable()
@@ -21,13 +22,10 @@ export class TokenRepository {
    * @returns Token price information
    */
   async getTokenPrice(symbol: string): Promise<TokenPrice> {
-    if (symbol === 'tBTC') {
-      symbol = 'BTC'
-    }
-
+    const targetSymbol = normalizeSymbol(symbol)
     const tokens = await this.getTokens()
 
-    const token = tokens.find((t) => t.symbol.toLowerCase() === symbol.toLowerCase())
+    const token = tokens.find((t) => t.symbol.toLowerCase() === targetSymbol.toLowerCase())
 
     if (!token) {
       throw new NotFoundException(`cannot find token info for symbol ${symbol}`)

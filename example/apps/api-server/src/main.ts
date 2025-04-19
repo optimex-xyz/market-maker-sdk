@@ -3,18 +3,21 @@
  * This is only a minimal backend to get started.
  */
 
-import { Logger as PinoLogger, LoggerErrorInterceptor } from 'nestjs-pino'
-import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod'
-
 import { Logger } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { Environment, sdk } from '@optimex-xyz/market-maker-sdk'
+
+import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino'
+import { patchNestJsSwagger, ZodValidationPipe } from 'nestjs-zod'
 
 import { AppModule } from './app/app.module'
 import { ResponseExceptionFilter } from './interceptors/response-exception.filter'
 import { ResponseLoggerInterceptor } from './interceptors/response-logger.interceptor'
 import { TraceIdInterceptor } from './interceptors/trace-id.interceptor'
 import { ZodValidationExceptionFilter } from './interceptors/zod-validation-exception.filter'
+
+sdk.setEnvironment(process.env.ENV as Environment)
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

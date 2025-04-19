@@ -1,14 +1,15 @@
+import { BTC, BTC_TESTNET } from '@bitfi-mock-pmm/shared'
+import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { getTradeIdsHash, Token } from '@optimex-xyz/market-maker-sdk'
+
 import axios from 'axios'
 import * as bitcoin from 'bitcoinjs-lib'
 import { ECPairFactory } from 'ecpair'
 import * as ecc from 'tiny-secp256k1'
 
-import { ensureHexPrefix } from '@bitfi-mock-pmm/shared'
-import { getTradeIdsHash, Token } from '@bitfixyz/market-maker-sdk'
-import { Injectable, Logger } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-
-import { ITransferStrategy, TransferParams } from '../interfaces/transfer-strategy.interface'
+import { ITransferStrategy, TransferParams } from '../../interfaces'
+import { TelegramHelper } from '../../utils'
 
 interface UTXO {
   txid: string
@@ -26,21 +27,92 @@ interface UTXO {
 export class BTCTransferStrategy implements ITransferStrategy {
   private readonly logger = new Logger(BTCTransferStrategy.name)
   private readonly privateKey: string
+  private readonly btcAddress: string
   private readonly ECPair = ECPairFactory(ecc)
 
   private readonly networkMap = new Map<string, bitcoin.Network>([
-    ['bitcoin-testnet', bitcoin.networks.testnet],
-    ['bitcoin', bitcoin.networks.bitcoin],
+    [BTC_TESTNET, bitcoin.networks.testnet],
+    [BTC, bitcoin.networks.bitcoin],
   ])
 
   private readonly rpcMap = new Map<string, string>([
-    ['bitcoin-testnet', 'https://blockstream.info/testnet'],
-    ['bitcoin', 'https://blockstream.info'],
+    [BTC_TESTNET, 'https://blockstream.info/testnet'],
+    [BTC, 'https://blockstream.info'],
   ])
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private readonly telegramHelper: TelegramHelper
+  ) {
     this.privateKey = this.configService.getOrThrow<string>('PMM_BTC_PRIVATE_KEY')
+    this.btcAddress = this.configService.getOrThrow<string>('PMM_BTC_ADDRESS')
     bitcoin.initEccLib(ecc)
+  }
+
+  private async checkBalance(amount: bigint, networkId: string): Promise<boolean> {
+    const maxRetries = 3
+    const sleepTime = 5000
+
+    const getBalanceFromBlockstream = async (): Promise<bigint> => {
+      const network = this.getNetwork(networkId)
+      const baseUrl =
+        network === bitcoin.networks.bitcoin ? 'https://blockstream.info/api' : 'https://blockstream.info/testnet/api'
+      const response = await axios.get(`${baseUrl}/address/${this.btcAddress}/utxo`)
+      if (response?.data) {
+        return response.data.reduce((sum: bigint, utxo: any) => sum + BigInt(utxo.value), 0n)
+      }
+      return 0n
+    }
+
+    const getBalanceFromMempool = async (): Promise<bigint> => {
+      const network = this.getNetwork(networkId)
+      const baseUrl =
+        network === bitcoin.networks.bitcoin ? 'https://mempool.space/api' : 'https://mempool.space/testnet/api'
+      const response = await axios.get(`${baseUrl}/address/${this.btcAddress}/utxo`)
+      if (response?.data) {
+        return response.data.reduce((sum: bigint, utxo: any) => sum + BigInt(utxo.value), 0n)
+      }
+      return 0n
+    }
+
+    for (let retryCount = 1; retryCount <= maxRetries; retryCount++) {
+      try {
+        this.logger.log(`Attempting to check BTC balance (Attempt ${retryCount}/${maxRetries})`)
+
+        const [blockstreamBalance, mempoolBalance] = await Promise.allSettled([
+          getBalanceFromBlockstream(),
+          getBalanceFromMempool(),
+        ])
+
+        let totalBalance = 0n
+
+        if (blockstreamBalance.status === 'fulfilled') {
+          this.logger.log('Successfully fetched balance from Blockstream')
+          totalBalance = blockstreamBalance.value
+        } else if (mempoolBalance.status === 'fulfilled') {
+          this.logger.log('Successfully fetched balance from Mempool')
+          totalBalance = mempoolBalance.value
+        }
+
+        if (totalBalance < amount) {
+          const message = `⚠️ Insufficient BTC Balance Alert\n\nRequired: ${amount.toString()} satoshis\nAvailable: ${totalBalance.toString()} satoshis\nAddress: ${this.btcAddress}`
+          await this.telegramHelper.sendMessage(message)
+          return false
+        }
+        return true
+      } catch (error) {
+        this.logger.error(`Error checking balance (Attempt ${retryCount}/${maxRetries}):`, error)
+
+        if (retryCount < maxRetries) {
+          this.logger.log(`Retrying in ${sleepTime / 1000} seconds...`)
+          await new Promise((resolve) => setTimeout(resolve, sleepTime))
+        } else {
+          this.logger.error('Max retries reached for BTC balance check')
+          return false
+        }
+      }
+    }
+    return false
   }
 
   async transfer(params: TransferParams): Promise<string> {
@@ -52,11 +124,17 @@ export class BTCTransferStrategy implements ITransferStrategy {
 
       this.logger.log(`Starting transfer of ${amount} satoshis to ${toAddress} on ${token.networkName}`)
 
+      // Check balance before proceeding
+      const hasSufficientBalance = await this.checkBalance(amount, token.networkId)
+      if (!hasSufficientBalance) {
+        throw new Error('Insufficient balance for transfer')
+      }
+
       const txId = await this.sendBTC(this.privateKey, toAddress, amount, network, rpcUrl, token, [tradeId])
 
       this.logger.log(`Transfer successful with txId: ${txId}`)
 
-      return ensureHexPrefix(txId)
+      return txId
     } catch (error) {
       this.logger.error('BTC transfer failed:', error)
       throw error
@@ -91,9 +169,9 @@ export class BTCTransferStrategy implements ITransferStrategy {
       throw new Error('Could not generate address')
     }
 
-    this.logger.log(`Sender address: ${payment.address} (${token.networkSymbol})`)
+    this.logger.log(`Sender address: ${this.btcAddress} (${token.networkSymbol})`)
 
-    const utxos = await this.getUTXOs(payment.address, rpcUrl)
+    const utxos = await this.getUTXOs(this.btcAddress, rpcUrl)
     if (utxos.length === 0) {
       throw new Error(`No UTXOs found in ${token.networkSymbol} wallet`)
     }
@@ -145,7 +223,7 @@ export class BTCTransferStrategy implements ITransferStrategy {
 
     if (changeAmount > 546n) {
       psbt.addOutput({
-        address: payment.address,
+        address: this.btcAddress,
         value: changeAmount,
       })
     }
@@ -188,11 +266,12 @@ export class BTCTransferStrategy implements ITransferStrategy {
   private async getFeeRate(rpcUrl: string): Promise<number> {
     try {
       const response = await axios.get<{ [key: string]: number }>(`${rpcUrl}/api/fee-estimates`)
-      return response.data[3]
+      const fee = response.data[3]
+      return Math.max(fee, 3)
     } catch (error) {
       console.error(`Error fetching fee rate from ${rpcUrl}:`, error)
 
-      return 1
+      return 3
     }
   }
 

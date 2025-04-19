@@ -1,9 +1,10 @@
-import { AxiosRequestConfig } from 'axios'
-import { lastValueFrom } from 'rxjs'
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { convertToCamelCase, convertToSnakeCase } from '@bitfi-mock-pmm/shared'
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
+
+import { AxiosRequestConfig } from 'axios'
+import { lastValueFrom } from 'rxjs'
 
 import { ReqModuleConfig } from './req.config'
 import { ReqLoggingInterceptor } from './req.interceptor'

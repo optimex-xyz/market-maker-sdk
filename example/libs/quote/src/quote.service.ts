@@ -1,11 +1,11 @@
 import * as crypto from 'crypto'
-import { ethers } from 'ethers'
-
 import { TokenPrice, TokenRepository } from '@bitfi-mock-pmm/token'
 import { TradeService } from '@bitfi-mock-pmm/trade'
-import { Token, tokenService } from '@bitfixyz/market-maker-sdk'
 import { BadRequestException, HttpException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { Token, tokenService } from '@optimex-xyz/market-maker-sdk'
+
+import { ethers } from 'ethers'
 
 import { QuoteSessionRepository } from './quote-session.repository'
 import {
@@ -19,7 +19,12 @@ import {
 export class QuoteService {
   private readonly EVM_ADDRESS: string
   private readonly BTC_ADDRESS: string
+  private readonly PMM_SOLANA_ADDRESS: string
   private readonly tokenService = tokenService
+  private readonly ONLY_SOLANA: boolean
+  private readonly MIN_TRADE: number
+  private readonly MAX_TRADE: number
+  private readonly BONUS_PERCENTAGE: number
 
   constructor(
     private readonly configService: ConfigService,
@@ -29,6 +34,11 @@ export class QuoteService {
   ) {
     this.EVM_ADDRESS = this.configService.getOrThrow<string>('PMM_EVM_ADDRESS')
     this.BTC_ADDRESS = this.configService.getOrThrow<string>('PMM_BTC_ADDRESS')
+    this.PMM_SOLANA_ADDRESS = this.configService.getOrThrow<string>('PMM_SOLANA_ADDRESS')
+    this.ONLY_SOLANA = this.configService.get<string>('ONLY_SOLANA') === 'true'
+    this.MIN_TRADE = Number(this.configService.getOrThrow<string>('MIN_TRADE'))
+    this.MAX_TRADE = Number(this.configService.getOrThrow<string>('MAX_TRADE'))
+    this.BONUS_PERCENTAGE = Number(this.configService.getOrThrow<string>('BONUS_PERCENTAGE', '103'))
   }
 
   private getPmmAddressByNetworkType(token: Token): string {
@@ -38,6 +48,8 @@ export class QuoteService {
       case 'BTC':
       case 'TBTC':
         return this.BTC_ADDRESS
+      case 'SOLANA':
+        return this.PMM_SOLANA_ADDRESS
       default:
         throw new BadRequestException(`Unsupported network type: ${token.networkType}`)
     }
@@ -51,7 +63,8 @@ export class QuoteService {
     fromToken: Token,
     toToken: Token,
     fromTokenPrice: TokenPrice,
-    toTokenPrice: TokenPrice
+    toTokenPrice: TokenPrice,
+    isCommitment = false
   ): string {
     const amount = ethers.getBigInt(amountIn)
     const fromDecimals = ethers.getBigInt(fromToken.tokenDecimals)
@@ -60,8 +73,45 @@ export class QuoteService {
     const toPrice = ethers.getBigInt(Math.round(toTokenPrice.currentPrice * 1e6))
     const rawQuote = (amount * fromPrice * 10n ** toDecimals) / (toPrice * 10n ** fromDecimals)
 
-    const quoteWithBonus = (rawQuote * 103n) / 100n
+    const bonusPercentage = isCommitment ? this.BONUS_PERCENTAGE + 1 : this.BONUS_PERCENTAGE
+    const quoteWithBonus = (rawQuote * BigInt(bonusPercentage)) / 100n
     return quoteWithBonus.toString()
+  }
+
+  private validateSolanaRequirement(fromToken: Token, toToken: Token) {
+    if (!this.ONLY_SOLANA) {
+      return
+    }
+
+    const isFromTokenSolana = fromToken.networkType.toUpperCase() === 'SOLANA'
+    const isToTokenSolana = toToken.networkType.toUpperCase() === 'SOLANA'
+
+    if (!isFromTokenSolana && !isToTokenSolana) {
+      throw new Error('At least one token must be on the Solana network. Please check your token IDs.')
+    }
+  }
+
+  private validateTradeAmount(amount: string, tokenPrice: TokenPrice, token: Token): void {
+    // Convert amount to actual token units using ethers
+    const actualAmount = ethers.formatUnits(amount, token.tokenDecimals)
+
+    // Calculate USD value using BigInt for precision (2 decimals for USD)
+    const amountInUsd = ethers.parseUnits((Number(actualAmount) * tokenPrice.currentPrice).toFixed(2), 2)
+
+    const minTradeAmount = ethers.parseUnits(this.MIN_TRADE.toFixed(2), 2)
+    const maxTradeAmount = ethers.parseUnits(this.MAX_TRADE.toFixed(2), 2)
+
+    if (amountInUsd < minTradeAmount) {
+      throw new BadRequestException(
+        `Trade amount ${ethers.formatUnits(amountInUsd, 2)} USD is below minimum allowed: ${this.MIN_TRADE} USD`
+      )
+    }
+
+    if (amountInUsd > maxTradeAmount) {
+      throw new BadRequestException(
+        `Trade amount ${ethers.formatUnits(amountInUsd, 2)} USD exceeds maximum allowed: ${this.MAX_TRADE} USD`
+      )
+    }
   }
 
   async getIndicativeQuote(dto: GetIndicativeQuoteDto): Promise<IndicativeQuoteResponse> {
@@ -75,6 +125,8 @@ export class QuoteService {
         throw new BadRequestException(`Failed to fetch tokens: ${error.message}`)
       })
 
+      this.validateSolanaRequirement(fromToken, toToken)
+
       const [fromTokenPrice, toTokenPrice] = await Promise.all([
         this.tokenRepo.getTokenPrice(fromToken.tokenSymbol),
         this.tokenRepo.getTokenPrice(toToken.tokenSymbol),
@@ -82,7 +134,9 @@ export class QuoteService {
         throw new BadRequestException(`Failed to fetch token prices: ${error.message}`)
       })
 
-      const quote = this.calculateBestQuote(dto.amount, fromToken, toToken, fromTokenPrice, toTokenPrice)
+      this.validateTradeAmount(dto.amount, fromTokenPrice, fromToken)
+
+      const quote = this.calculateBestQuote(dto.amount, fromToken, toToken, fromTokenPrice, toTokenPrice, false)
 
       const pmmAddress = this.getPmmAddressByNetworkType(fromToken)
 
@@ -122,6 +176,8 @@ export class QuoteService {
         throw new BadRequestException(`Failed to fetch tokens: ${error.message}`)
       })
 
+      this.validateSolanaRequirement(fromToken, toToken)
+
       const [fromTokenPrice, toTokenPrice] = await Promise.all([
         this.tokenRepo.getTokenPrice(fromToken.tokenSymbol),
         this.tokenRepo.getTokenPrice(toToken.tokenSymbol),
@@ -131,7 +187,7 @@ export class QuoteService {
 
       await this.tradeService.deleteTrade(dto.tradeId)
 
-      const quote = this.calculateBestQuote(dto.amount, fromToken, toToken, fromTokenPrice, toTokenPrice)
+      const quote = this.calculateBestQuote(dto.amount, fromToken, toToken, fromTokenPrice, toTokenPrice, true)
 
       const trade = await this.tradeService
         .createTrade({

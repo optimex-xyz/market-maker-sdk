@@ -1,7 +1,7 @@
+import { TradeStatus } from '@prisma/client'
+
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
-
-import { TradeStatus } from '@prisma/client'
 
 export const CreateTradeSchema = z.object({
   tradeId: z.string(),

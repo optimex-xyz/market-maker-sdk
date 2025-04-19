@@ -18,6 +18,5 @@ services:
   #     dockerfile: ./apps/api-server/Dockerfile
   #   environment:
   #     APP_PORT: ${APP_PORT}
-  #     NODE_ENV: ${NODE_ENV}
   #   ports:
   #     - '3000:3000'

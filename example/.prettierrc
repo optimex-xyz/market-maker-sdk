@@ -7,5 +7,8 @@
   "jsxSingleQuote": true,
   "tabWidth": 2,
   "trailingComma": "es5",
-  "plugins": ["eslint-config-prettier"]
+  "plugins": ["eslint-config-prettier", "@ianvs/prettier-plugin-sort-imports"],
+  "importOrder": ["^@(?!/)(.*)$", "", "^@/(.*)$", "^[^.]", "", "^[.]/(.*)$", "", "^[.]{2}/(.*)$"],
+  "importOrderParserPlugins": ["typescript", "decorators-legacy"],
+  "importOrderTypeScriptVersion": "5.0.0"
 }

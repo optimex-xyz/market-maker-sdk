@@ -7,7 +7,6 @@ import {
   GetSettlementSignatureDto,
   SignalPaymentDto,
   SignalPaymentResponseDto,
-  SubmitTxDTO,
 } from './settlement.dto'
 import { SettlementService } from './settlement.service'
 
@@ -32,11 +31,5 @@ export class SettlementController {
   @UseGuards(TradeExistsGuard)
   signalPayment(@Query() body: SignalPaymentDto, @Req() req: any): Promise<SignalPaymentResponseDto> {
     return this.settlementService.signalPayment(body, req.trade)
-  }
-
-  @Get('submit-tx')
-  @UseGuards(TradeExistsGuard)
-  submitTx(@Query() body: SubmitTxDTO) {
-    return this.settlementService.submitTx(body)
   }
 }

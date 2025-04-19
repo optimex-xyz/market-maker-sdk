@@ -1,7 +1,7 @@
+import { Inject, Injectable, Logger } from '@nestjs/common'
+
 import { AxiosHeaders, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { v7 as uuidv7 } from 'uuid'
-
-import { Inject, Injectable, Logger } from '@nestjs/common'
 
 import { REQ_CONFIG_KEY, ReqModuleConfig } from './req.config'
 

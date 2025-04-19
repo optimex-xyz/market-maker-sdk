@@ -1,19 +1,19 @@
-import { Queue } from 'bull'
-import * as ethers from 'ethers'
-
 import { stringToHex, toString } from '@bitfi-mock-pmm/shared'
 import { TradeService } from '@bitfi-mock-pmm/trade'
+import { InjectQueue } from '@nestjs/bull'
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import {
   getCommitInfoHash,
   getSignature,
   routerService,
   SignatureType,
   signerService,
-} from '@bitfixyz/market-maker-sdk'
-import { InjectQueue } from '@nestjs/bull'
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+} from '@optimex-xyz/market-maker-sdk'
 import { Trade, TradeStatus } from '@prisma/client'
+
+import { Queue } from 'bull'
+import * as ethers from 'ethers'
 
 import { SETTLEMENT_QUEUE } from './const'
 import {
@@ -23,9 +23,8 @@ import {
   SettlementSignatureResponseDto,
   SignalPaymentDto,
   SignalPaymentResponseDto,
-  SubmitTxDTO,
 } from './settlement.dto'
-import { SubmitSettlementEvent, TransferSettlementEvent } from './types'
+import { TransferSettlementEvent } from './types'
 
 @Injectable()
 export class SettlementService {
@@ -39,9 +38,7 @@ export class SettlementService {
     private readonly configService: ConfigService,
     private readonly tradeService: TradeService,
     @InjectQueue(SETTLEMENT_QUEUE.TRANSFER.NAME)
-    private transferSettlementQueue: Queue,
-    @InjectQueue(SETTLEMENT_QUEUE.SUBMIT.NAME)
-    private submitSettlementQueue: Queue
+    private transferSettlementQueue: Queue
   ) {
     const rpcUrl = this.configService.getOrThrow<string>('RPC_URL')
     const pmmPrivateKey = this.configService.getOrThrow<string>('PMM_PRIVATE_KEY')
@@ -57,7 +54,7 @@ export class SettlementService {
       const { tradeId } = trade
 
       const [presigns, tradeData] = await Promise.all([
-        this.routerService.getPresigns(tradeId),
+        this.routerService.getSettlementPresigns(tradeId),
         this.routerService.getTradeData(tradeId),
       ])
 
@@ -69,7 +66,7 @@ export class SettlementService {
         throw new BadRequestException('pmmPresign not found')
       }
 
-      const amountOut = BigInt(dto.committedQuote) - BigInt(dto.solverFee)
+      const amountOut = BigInt(dto.committedQuote)
 
       const commitInfoHash = getCommitInfoHash(
         pmmPresign.pmmId,
@@ -148,7 +145,14 @@ export class SettlementService {
         tradeId: dto.tradeId,
       } as TransferSettlementEvent
 
-      await this.transferSettlementQueue.add(SETTLEMENT_QUEUE.TRANSFER.JOBS.PROCESS, toString(eventData))
+      await this.transferSettlementQueue.add(SETTLEMENT_QUEUE.TRANSFER.JOBS.PROCESS, toString(eventData), {
+        removeOnComplete: {
+          age: 24 * 3600,
+        },
+        removeOnFail: {
+          age: 24 * 3600,
+        },
+      })
 
       // You might want to store the protocol fee amount or handle it in your business logic
       await this.tradeService.updateTradeStatus(dto.tradeId, TradeStatus.SETTLING)
@@ -156,28 +160,6 @@ export class SettlementService {
       return {
         tradeId: dto.tradeId,
         status: 'acknowledged',
-        error: '',
-      }
-    } catch (error: any) {
-      if (error instanceof HttpException) {
-        throw error
-      }
-      throw new BadRequestException(error.message)
-    }
-  }
-
-  async submitTx(dto: SubmitTxDTO) {
-    try {
-      const eventData = {
-        tradeId: dto.tradeId,
-        paymentTxId: dto.paymentTxId,
-      } as SubmitSettlementEvent
-
-      await this.transferSettlementQueue.add(SETTLEMENT_QUEUE.TRANSFER.JOBS.PROCESS, toString(eventData))
-
-      return {
-        tradeId: dto.tradeId,
-        status: 'enqueue ok',
         error: '',
       }
     } catch (error: any) {

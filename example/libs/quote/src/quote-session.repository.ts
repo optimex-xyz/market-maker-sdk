@@ -1,8 +1,8 @@
-import { Cache } from 'cache-manager'
-
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+
+import { Cache } from 'cache-manager'
 
 interface QuoteSession {
   fromToken: string
@@ -18,7 +18,10 @@ export class QuoteSessionRepository {
   private readonly sessionTimeout: number
   private readonly SESSION_PREFIX = 'quote_session:'
 
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache, configService: ConfigService) {
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    configService: ConfigService
+  ) {
     this.sessionTimeout = configService.get<number>('QUOTE_SESSION_TIMEOUT') || 24 * 60 * 60 * 1000
   }
 

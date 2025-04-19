@@ -1,0 +1,129 @@
+name: 'Release'
+
+permissions: write-all
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release'
+        type: string
+        required: true
+
+env:
+  SERVICE: pmm
+  # IMAGE_REPOSITORY: asia-southeast1-docker.pkg.dev/bitfiprod/bitfi-repo/bitfi-backend
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version_tag: ${{ steps.version_tag.outputs.value }}
+      build_date: ${{ steps.build_date.outputs.value }}
+    steps:
+      - name: Format version tag
+        shell: bash
+        id: version_tag
+        env:
+          INPUT_TAG: ${{ github.event.inputs.version }}
+        run: |
+          TAG=${INPUT_TAG#v}
+          echo "::set-output name=value::v$TAG"
+      - name: Build date
+        shell: bash
+        id: build_date
+        run: echo "::set-output name=value::$(date +%FT%T%z)"
+
+  build:
+    needs:
+      - prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: prepare
+        id: before_script
+        env:
+          IMAGE_REPOSITORY: asia-southeast1-docker.pkg.dev/bitfiprod/bitfi-repo/mock-pmm
+          INPUT_TAG: ${{ github.event.inputs.version }}
+        run: |
+          #!/bin/bash
+
+          if [[ "$IMAGE_REPOSITORY" == "" ]]; then
+            echo "IMAGE_REPOSITORY must be define."
+            exit 1
+          fi
+
+          echo "::set-output name=IMAGE_URL::${IMAGE_REPOSITORY}:release-${INPUT_TAG}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Gcloud Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.AR_CREDENTIALS }}'
+
+      - name: Setup Gcloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure docker
+        run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-${{ env.SERVICE }}-buildx
+
+      - name: Docker build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.before_script.outputs.IMAGE_URL }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Move Docker cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  release:
+    needs:
+      - prepare
+      - build
+    runs-on: ubuntu-latest
+    env:
+      VERSION_TAG: ${{ needs.prepare.outputs.version_tag }}
+    steps:
+      #   - name: Setup Go
+      #     uses: actions/setup-go@v5
+      #     with:
+      #       go-version: "1.22.x"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Create tag
+        run: |
+          git tag -d "$VERSION_TAG" 2> /dev/null || echo "Release tag '$VERSION_TAG' does NOT exist"
+          git tag --annotate --message "Optimex PMM $VERSION_TAG" "$VERSION_TAG"
+          git push origin "refs/tags/$VERSION_TAG"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ env.VERSION_TAG }}
+          prerelease: false
+          name: 'Optimex PMM ${{ env.VERSION_TAG }}'

@@ -1,40 +1,19 @@
-import bs58check from 'bs58check'
-import { ethers } from 'ethers'
+import { ensureHexPrefix } from '@bitfi-mock-pmm/shared'
 
-import { Token } from '@bitfixyz/market-maker-sdk'
+import { ethers, toUtf8Bytes, toUtf8String } from 'ethers'
 
-export const encodeAddress = (address: string, token: Token) => {
-  switch (token.networkType.toUpperCase()) {
-    case 'EVM':
-      return ethers.hexlify(address)
-    case 'BTC':
-    case 'TBTC':
-      return ethers.toUtf8Bytes(address)
-    default:
-      throw new Error(`Unsupported network: ${token.networkType}`)
+export const l2Encode = (info: string) => {
+  if (/^0x[0-9a-fA-F]*$/.test(info)) {
+    return info
   }
+
+  return ensureHexPrefix(ethers.hexlify(toUtf8Bytes(info)))
 }
 
-export const encodeUTXO = (address: string, token: Token) => {
-  switch (token.networkType.toUpperCase()) {
-    case 'EVM':
-      return ethers.hexlify(address)
-    case 'BTC':
-    case 'TBTC':
-      return ethers.hexlify(bs58check.decode(address))
-    default:
-      throw new Error(`Unsupported network: ${token.networkType}`)
-  }
-}
-
-export const decodeAddress = (value: string, token: Token) => {
-  switch (token.networkType.toUpperCase()) {
-    case 'EVM':
-      return ethers.getAddress(value)
-    case 'BTC':
-    case 'TBTC':
-      return ethers.toUtf8String(value)
-    default:
-      throw new Error(`Unsupported network: ${token.networkType}`)
+export const l2Decode = (info: string) => {
+  try {
+    return toUtf8String(info)
+  } catch {
+    return info
   }
 }
