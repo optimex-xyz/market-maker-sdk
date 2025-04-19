@@ -32,17 +32,17 @@ const TokenInfoSchema = z.object({
 })
 
 const PMMFinalistSchema = z.object({
-  pmmId: z.string(),
-  pmmReceivingAddress: z.string(),
+  pmmId: z.string().optional().default(''),
+  pmmReceivingAddress: z.string().optional().default(''),
 })
 
 const PaymentBundleSchema = z.object({
-  tradeIds: z.array(z.string()),
-  settlementTx: z.string(),
-  signature: z.string(),
-  startIndex: z.number(),
-  pmmId: z.string(),
-  signedAt: z.number(),
+  tradeIds: z.array(z.string()).nullable(),
+  settlementTx: z.string().optional().default(''),
+  signature: z.string().optional().default('0x'),
+  startIndex: z.number().optional().default(0),
+  pmmId: z.string().optional().default(''),
+  signedAt: z.number().optional().default(0),
 })
 
 const TradeDetailResponseSchema = z.object({
