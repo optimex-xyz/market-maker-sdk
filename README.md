@@ -6,72 +6,31 @@ A comprehensive guide for implementing Private Market Makers (PMMs) in the cross
 
 ## Table of Contents
 
-- [PMM API Integration Documentation](#pmm-api-integration-documentation)
-  - [Table of Contents](#table-of-contents)
-  - [1. Overview](#1-overview)
-    - [1.1. Integration Flow](#11-integration-flow)
-  - [2. Quick Start](#2-quick-start)
-    - [2.1. API Environments](#21-api-environments)
-      - [Development Environment](#development-environment)
-      - [Pre-production Environment](#pre-production-environment)
-      - [Production Environment](#production-environment)
+- [PMM API Integration Documentation](#pmm-api-integration-documentation)  
+  - [1. Overview](#1-overview)    
+  - [2. Quick Start](#2-quick-start)    
   - [3. PMM Backend APIs](#3-pmm-backend-apis)
-    - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)
-      - [Description](#description)
-      - [Request Parameters](#request-parameters)
-      - [Example Request](#example-request)
-      - [Expected Response](#expected-response)
-      - [Example Implementation](#example-implementation)
-    - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)
-      - [Description](#description-1)
-      - [Request Parameters](#request-parameters-1)
-      - [Example Request](#example-request-1)
-      - [Expected Response](#expected-response-1)
-      - [Example Implementation](#example-implementation-1)
-    - [3.3. Endpoint: `/settlement-signature`](#33-endpoint-settlement-signature)
-      - [Description](#description-2)
-      - [Request Parameters](#request-parameters-2)
-      - [Example Request](#example-request-2)
-      - [Expected Response](#expected-response-2)
-      - [Example Implementation](#example-implementation-2)
-    - [3.4. Endpoint: `/ack-settlement`](#34-endpoint-ack-settlement)
-      - [Description](#description-3)
-      - [Request Parameters](#request-parameters-3)
-      - [Example Request](#example-request-3)
-      - [Expected Response](#expected-response-3)
-      - [Example Implementation](#example-implementation-3)
-    - [3.5. Endpoint: `/signal-payment`](#35-endpoint-signal-payment)
-      - [Description](#description-4)
-      - [Request Parameters](#request-parameters-4)
-      - [Example Request](#example-request-4)
-      - [Expected Response](#expected-response-4)
-      - [Example Implementation](#example-implementation-4)
+    - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)      
+    - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)      
+    - [3.3. Endpoint: `/settlement-signature`](#33-endpoint-settlement-signature)      
+    - [3.4. Endpoint: `/ack-settlement`](#34-endpoint-ack-settlement)      
+    - [3.5. Endpoint: `/signal-payment`](#35-endpoint-signal-payment)      
   - [4. Solver API Endpoints for PMMs](#4-solver-api-endpoints-for-pmms)
     - [4.1. Endpoint: `/v1/market-maker/tokens`](#41-endpoint-v1market-makertokens)
-      - [Description](#description-5)
-      - [Request Parameters](#request-parameters-5)
-      - [Example Request](#example-request-5)
-      - [Expected Response](#expected-response-5)
     - [4.2. Endpoint: `/v1/market-maker/submit-settlement-tx`](#42-endpoint-v1market-makersubmit-settlement-tx)
-      - [Description](#description-6)
-      - [Request Parameters](#request-parameters-6)
-      - [Example Request](#example-request-6)
-      - [Expected Response](#expected-response-6)
-      - [Notes](#notes)
     - [4.3. Endpoint: `/v1/market-maker/trades/:tradeId`](#43-endpoint-v1market-makertradestradeid)
-      - [Description](#description-7)
-      - [Request Parameters](#request-parameters-7)
-      - [Example Request](#example-request-7)
-      - [Expected Response](#expected-response-7)
   - [5. PMM Making Payment](#5-pmm-making-payment)
     - [5.1. EVM](#51-evm)
     - [5.2. Bitcoin](#52-bitcoin)
-
 ## 1. Overview
 
-This documentation contains everything needed to integrate your PMM with the solver network. The integration requires implementing specific API endpoints in your PMM service and making calls to the solver backend APIs.
+The PMM integration with Optimex involves bidirectional API communication:
+
+1. **PMM-Provided APIs**: Endpoints that PMMs must implement to receive requests from the Solver
+2. **Solver-Provided APIs**: Endpoints that the Solver provides for PMMs to call
 
 ### 1.1. Integration Flow
+
 
 ```mermaid
 sequenceDiagram
@@ -110,41 +69,43 @@ sequenceDiagram
 | Environment      | Description                                                          |
 | ---------------- | -------------------------------------------------------------------- |
 | `dev`            | Development environment with test networks and staging services      |
-| `prelive` | Pre-production environment with mainnet networks for testing before release |
+| `prelive` | Pre production environment with mainnet networks for testing before release |
 | `production`     | Production environment with mainnet networks and production services |
 
-#### Development Environment
-Development environment with test networks and staging services
+<details>
+<summary><strong>Development Contracts</strong></summary>
 
-- **Signer**: 0xA89F5060B810F3b6027D7663880c43ee77A865C7
-- **Router**: 0x193501E5F72a42DACCF8Eb1C4AB37561c213309D
-- **Payment**: 0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2
-- **ETHVault**: 0x17aD543010fc8E8065b85E203839C0CBEcdfC851
-- **WETHVault**: 0x673Ac1489457F43F04403940cE425ae19a9D639B
-- **USDTVault**: 0x62179B12Ce75B81Fcb4a2B634aD92DDaeF728e9C
-- **WBTCVault**: 0x04D0C9a5bb122958D8A64049068FD8570dDfA3Dc
+**Optimex L2 Testnet**
+- **Signer**: [0xA89F5060B810F3b6027D7663880c43ee77A865C7](https://scan-testnet.optimex.xyz/address/0xA89F5060B810F3b6027D7663880c43ee77A865C7)
+- **Router**: [0x193501E5F72a42DACCF8Eb1C4AB37561c213309D](https://scan-testnet.optimex.xyz/address/0x193501E5F72a42DACCF8Eb1C4AB37561c213309D)
 
-#### Pre-production Environment
-Pre-production environment with mainnet networks for testing before release
+**Ethereum Sepolia**
+- **Payment**: [0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2](https://sepolia.etherscan.io/address/0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2)
+- **ETHVault**: [0x17aD543010fc8E8065b85E203839C0CBEcdfC851](https://sepolia.etherscan.io/address/0x17aD543010fc8E8065b85E203839C0CBEcdfC851)
+- **WETHVault**: [0x673Ac1489457F43F04403940cE425ae19a9D639B](https://sepolia.etherscan.io/address/0x673Ac1489457F43F04403940cE425ae19a9D639B)
+- **USDCVault**: [0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238](https://sepolia.etherscan.io/address/0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238)
+- **USDTVault**: [0x62179B12Ce75B81Fcb4a2B634aD92DDaeF728e9C](https://sepolia.etherscan.io/address/0x62179B12Ce75B81Fcb4a2B634aD92DDaeF728e9C)
+- **WBTCVault**: [0x04D0C9a5bb122958D8A64049068FD8570dDfA3Dc](https://sepolia.etherscan.io/address/0x04D0C9a5bb122958D8A64049068FD8570dDfA3Dc)
+</details>
 
+<details>
+<summary><strong>Production/Prelive Contracts</strong></summary>
+
+
+**Optimex L2 Mainnet**
 - **Signer**: [0xCF9786F123F1071023dB8049808C223e94c384be](https://scan.optimex.xyz/address/0xCF9786F123F1071023dB8049808C223e94c384be)
 - **Router**: [0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A](https://scan.optimex.xyz/address/0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A)
+
+**Ethereum Mainnet**
 - **Payment**: [0x0A497AC4261E37FA4062762C23Cf3cB642C839b8](https://etherscan.io/address/0x0A497AC4261E37FA4062762C23Cf3cB642C839b8)
 - **ETHVault**: [0xF7fedF4A250157010807E6eA60258E3B768149Ff](https://etherscan.io/address/0xF7fedF4A250157010807E6eA60258E3B768149Ff)
 - **WETHVault**: [0xaD3f379AaED8Eca895209Af446F2e34f07145dbC](https://etherscan.io/address/0xaD3f379AaED8Eca895209Af446F2e34f07145dbC)
+- **USDCVault**: [0x4463084C01ed22E8320D345b357721aE525Db93F](https://etherscan.io/address/0x4463084C01ed22E8320D345b357721aE525Db93F)
 - **USDTVault**: [0x0712CAB9e52a37aFC6fA768b20cc9b07325314fB](https://etherscan.io/address/0x0712CAB9e52a37aFC6fA768b20cc9b07325314fB)
 - **WBTCVault**: [0xCd6B5F600559104Ee19320B9F9C3b2c7672cb895](https://etherscan.io/address/0xCd6B5F600559104Ee19320B9F9C3b2c7672cb895)
+</details>
 
-#### Production Environment
-Production environment with mainnet networks and production services
-
-- **Signer**: [0xCF9786F123F1071023dB8049808C223e94c384be](https://scan.optimex.xyz/address/0xCF9786F123F1071023dB8049808C223e94c384be)
-- **Router**: [0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A](https://scan.optimex.xyz/address/0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A)
-- **Payment**: [0x0A497AC4261E37FA4062762C23Cf3cB642C839b8](https://etherscan.io/address/0x0A497AC4261E37FA4062762C23Cf3cB642C839b8)
-- **ETHVault**: [0xF7fedF4A250157010807E6eA60258E3B768149Ff](https://etherscan.io/address/0xF7fedF4A250157010807E6eA60258E3B768149Ff)
-- **WETHVault**: [0xaD3f379AaED8Eca895209Af446F2e34f07145dbC](https://etherscan.io/address/0xaD3f379AaED8Eca895209Af446F2e34f07145dbC)
-- **USDTVault**: [0x0712CAB9e52a37aFC6fA768b20cc9b07325314fB](https://etherscan.io/address/0x0712CAB9e52a37aFC6fA768b20cc9b07325314fB)
-- **WBTCVault**: [0xCd6B5F600559104Ee19320B9F9C3b2c7672cb895](https://etherscan.io/address/0xCd6B5F600559104Ee19320B9F9C3b2c7672cb895)
+> **Note**: The prelive and production environments use the same contract addresses. The difference is in the backend services and configuration that interact with these contracts.
 
 ## 3. PMM Backend APIs
 
@@ -189,7 +150,8 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 - `indicative_quote` (string): The indicative quote value, represented as a string. Should be treated as a BigInt in your implementation.
 - `error` (string): Error message, if any (empty if no error).
 
-#### Example Implementation
+<details>
+<summary><strong>Example Implementation</strong></summary>
 
 ```js
 async function getIndicativeQuote(req, res) {
@@ -240,6 +202,7 @@ async function getIndicativeQuote(req, res) {
   }
 }
 ```
+</details>
 
 ### 3.2. Endpoint: `/commitment-quote`
 
@@ -286,7 +249,8 @@ GET /commitment-quote?session_id=12345&trade_id=0x3bfe2fc4889a98a39b31b348e7b212
 - `commitment_quote` (string): The committed quote value, represented as a string. Should be treated as a BigInt in your implementation.
 - `error` (string): Error message, if any (empty if no error).
 
-#### Example Implementation
+<details>
+<summary><strong>Example Implementation</strong></summary>
 
 ```js
 async function getCommitmentQuote(req, res) {
@@ -366,6 +330,7 @@ async function getCommitmentQuote(req, res) {
   }
 }
 ```
+</details>
 
 ### 3.3. Endpoint: `/settlement-signature`
 
@@ -381,7 +346,6 @@ Returns a signature from the PMM to confirm the settlement quote, required to fi
   - `committed_quote` (string): The committed quote value in base 10. This should be treated as a BigInt in your implementation.
   - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
   - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
-
 
 #### Example Request
 
@@ -408,7 +372,8 @@ GET /settlement-signature?trade_id=0x3d09b8eb94466bffa126aeda68c8c0f330633a7d005
 - `deadline` (integer): The UNIX timestamp (in seconds) indicating the PMM's expected payment deadline.
 - `error` (string): Error message, if any (empty if no error).
 
-#### Example Implementation
+<details>
+<summary><strong>Example Implementation</strong></summary>
 
 ```js
 async function getSettlementSignature(req, res) {
@@ -471,6 +436,7 @@ async function getSettlementSignature(req, res) {
   }
 }
 ```
+</details>
 
 ### 3.4. Endpoint: `/ack-settlement`
 
@@ -513,7 +479,8 @@ trade_id=0x024be4dae899989e0c3d9b4459e5811613bcd04016dc56529f16a19d2a7724c0&trad
 - `status` (string): Status of the acknowledgment (always `"acknowledged"`).
 - `error` (string): Error message, if any (empty if no error).
 
-#### Example Implementation
+<details>
+<summary><strong>Example Implementation</strong></summary>
 
 ```js
 async function ackSettlement(req, res) {
@@ -551,6 +518,7 @@ async function ackSettlement(req, res) {
   }
 }
 ```
+</details>
 
 ### 3.5. Endpoint: `/signal-payment`
 
@@ -593,7 +561,8 @@ trade_id=0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328&tota
 - `status` (string): Status of the acknowledgment (always `"acknowledged"`).
 - `error` (string): Error message, if any (empty if no error).
 
-#### Example Implementation
+<details>
+<summary><strong>Example Implementation</strong></summary>
 
 ```js
 async function signalPayment(req, res) {
@@ -637,14 +606,13 @@ async function signalPayment(req, res) {
   }
 }
 ```
+</details>
 
 ## 4. Solver API Endpoints for PMMs
-
 
 These API endpoints are provided by the Solver backend for PMMs to retrieve token information and submit settlement data.
 
 > **Note**: The base URL for the Solver API endpoints will be provided separately. All endpoint paths in this documentation should be appended to that base URL.
-
 
 ### 4.1. Endpoint: `/v1/market-maker/tokens`
 
@@ -665,7 +633,10 @@ GET /v1/market-maker/tokens
 #### Expected Response
 
 - **HTTP Status**: `200 OK`
-- **Response Body** (JSON):
+- **Response Body**: JSON containing supported networks, tokens, and trading pairs
+
+<details>
+<summary><strong>View Example Response</strong></summary>
 
 ```json
 {
@@ -737,12 +708,12 @@ GET /v1/market-maker/tokens
     }
 }
 ```
+</details>
 
 ### 4.2. Endpoint: `/v1/market-maker/submit-settlement-tx`
 
 #### Description
-
-Allows the PMM to submit the settlement transaction hash for one or more trades. This step is necessary to complete the trade settlement process.
+Allows the PMM to submit settlement transaction hashes for trades. This endpoint is essential for completing the trade settlement process and must be called after making payments.
 
 #### Request Parameters
 
@@ -760,12 +731,44 @@ Allows the PMM to submit the settlement transaction hash for one or more trades.
 }
 ```
 
-- `trade_ids` (array of strings): An array of trade IDs associated with the settlement transaction.
-- `pmm_id` (string): The PMM's ID, which must match the one committed for the trade(s).
-- `settlement_tx` (string): The txHash of the settlement.
-- `signature` (string): The PMM's signature on the settlement transaction.
-- `start_index` (integer): The index indicating the starting point for settlement processing (used for batch settlements).
-- `signed_at` (integer): The UNIX timestamp (in seconds) when the PMM signed the settlement transaction.
+- `trade_ids` (array of strings): Array of trade IDs included in this settlement transaction.
+- `pmm_id` (string): Your PMM identifier, which must match what was used in the commitment phase.
+- `signature` (string): Your cryptographic signature for this submission.
+- `start_index` (integer): Starting position within batch settlements (typically 0 for single trades).
+- `signed_at` (integer): UNIX timestamp (seconds) when you signed this submission.
+- `settlement_tx` (string): Should be hex format with a `0x` prefix
+
+	- **For EVM Chains:**
+		- Use the transaction hash directly without additional encoding
+		- Example: `settlement_tx`: [0x7a87d2c423e13533b5ae0ecc5af900a7b697048103f4f6e32d19edde5e707355](https://etherscan.io/tx/0x7a87d2c423e13533b5ae0ecc5af900a7b697048103f4f6e32d19edde5e707355)
+  
+	- **For Bitcoin or Solana:**
+		- Must encode raw_tx string using the `l2Encode` function
+		- Example raw_tx string: `3d83c7846d6e5b04279175a9592705a15373f3029b866d5224cc0744489fe403`
+		- After encoding
+		  ```
+		  "settlement_tx": "0x33643833633738343664366535623034323739313735613935393237303561313533373366333032396238363664353232346363303734343438396665343033"
+		  ```
+
+<details>
+<summary><strong>Bitcoin l2Encode</strong></summary>
+
+```javascript
+import { ethers, toUtf8Bytes, toUtf8String } from 'ethers'
+
+export const l2Encode = (info: string) => {
+  // Helper function to ensure hex prefix
+  const ensureHexPrefix = (value: string) => { 
+    return value.startsWith('0x') ? value : `0x${value}`
+  }
+  
+  if (/^0x[0-9a-fA-F]*$/.test(info)) {
+    return info
+  }
+  return ensureHexPrefix(ethers.hexlify(toUtf8Bytes(info)))
+}
+```
+</details>
 
 #### Example Request
 
@@ -776,7 +779,7 @@ Content-Type: application/json
 {
   "trade_ids": ["0xabcdef123456...", "0x123456abcdef..."],
   "pmm_id": "pmm001",
-  "settlement_tx": "0xRawTransactionData",
+  "settlement_tx": "0x33643833633738343664366535623034323739313735613935393237303561313533373366333032396238363664353232346363303734343438396665343033",
   "signature": "0xSignatureData",
   "start_index": 0,
   "signed_at": 1719158400
@@ -815,21 +818,98 @@ Returns detailed information about a specific trade by its trade ID. This endpoi
 #### Example Request
 
 ```
-GET /v1/market-maker/trades/0x650e2c921a85eb0b8831ff838d4d98c0a5cd2ede5c0cb6bb4a15969f51c75424
+GET /v1/market-maker/trades/0xfc24b9bc1299b50896027cb4c85d041c911e062147ffaf7ae9c7e51b670086c2
 ```
 
 #### Expected Response
 
 - **HTTP Status**: `200 OK`
-- **Response Body** (JSON): See the detailed response format in the updated PMM Integration API Documentation.
+- **Response Body**: JSON containing detailed trade information.
+
+<details>
+<summary><strong>View Example Response</strong></summary>
+
+```json
+{
+  "code": 0,
+  "message": "",
+  "data": {
+    "trade_id": "0xfc24b9bc1299b50896027cb4c85d041c911e062147ffaf7ae9c7e51b670086c2",
+    "session_id": "0xa5c2aa8dbff701e1a05707212ce3fb824a6ddd970e5dff5e340d7422ce6bcd97",
+    "solver_address": "0xe291307c85f8f0c710180fea7cca25108782dee1",
+    "from_token": {
+      "token_id": "ETH",
+      "chain": "ethereum",
+      "address": "native",
+      "fee_in": true,
+      "fee_out": true
+    },
+    "to_token": {
+      "token_id": "BTC",
+      "chain": "bitcoin",
+      "address": "native",
+      "fee_in": false,
+      "fee_out": false
+    },
+    "amount_before_fees": "3250849775444909",
+    "amount_after_fees": "3244348075894020",
+    "from_user_address": "0x2997cb0850a0c92db99e6e8745ac83bfb93c10ac",
+    "user_receiving_address": "bc1p68q6hew27ljf4ghvlnwqz0fq32qg7tsgc7jr5levfy8r74p5k52qqphk07",
+    "script_timeout": 1745544704,
+    "protocol_fee_in_bps": "20",
+    "affiliate_fee_in_bps": "0",
+    "total_fee": "6501699550889",
+    "protocol_fee": "6501699550889",
+    "affiliate_fee": "0",
+    "mpc_asset_chain_pubkey": "0x03c36bcf548094cfc74ec1ea89fc5fe0304461653813cdaa98bc26e2d5221eba9b",
+    "best_indicative_quote": "4404",
+    "display_indicative_quote": "4404",
+    "pmm_finalists": [
+      {
+        "pmm_id": "pmm_test",
+        "pmm_receiving_address": "0xtestaddress"
+      }
+    ],
+    "settlement_quote": "5014",
+    "receiving_amount": "5014",
+    "selected_pmm": "kypseli",
+    "selected_pmm_receiving_address": "0xbee0225697a311af58096ce2f03a2b65f1702f00",
+    "selected_pmm_operator": "0x01c4f660ccdc4e5bdc5ee477ab0016dc424c473a",
+    "selected_pmm_sig_deadline": 1745472704,
+    "commitment_retries": 1,
+    "pmm_failure_stats": {},
+    "commited_signature": "0x842f32d384e6627755bdaa9285727c09731ed44e92555555c7d211fb3333a4c970b8a717ac79560be35fb2f22dc3fb2d80443e88234605fd353c12011fb8d8851c",
+    "min_amount_out": null,
+    "trade_timeout": 1745472704,
+    "user_deposit_tx": "0x202186375a3b8d55de4d8d1afb7f6a5bec8978cef3b705e6cb379729d03b16c7",
+    "deposit_vault": "0xf7fedf4a250157010807e6ea60258e3b768149ff",
+    "payment_bundle": {
+      "trade_ids": [
+        "0xfc24b9bc1299b50896027cb4c85d041c911e062147ffaf7ae9c7e51b670086c2"
+      ],
+      "settlement_tx": "3d83c7846d6e5b04279175a9592705a15373f3029b866d5224cc0744489fe403",
+      "signature": "0x479a5a89e7a871026b60307351ea650fc667890b25d3d02df7ed2e93f94db90d7c3f8dbd823220896b8ad49b13a90851199236e82a644ffbe99e53503929fe151b",
+      "start_index": 0,
+      "pmm_id": "kypseli",
+      "signed_at": 1745459448
+    },
+    "user_signature": "0xfe4d3288db2b7d6ebc273dad1e1c55ecf9af2991fb89cc3e52fc0956c13746a043195cc22ed3c38bfa67c81e7819b53095b4282c5ee1d0c23a955baa38d754821b",
+    "trade_submission_tx": "0x38dfc953a9d08d95d7218e993302f81180c4d1a9c85f84836f005770167b0133",
+    "trade_select_pmm_tx": "0xc68dbf08e5774edd87ae78076ae498ebc4e489ae905f34b13682198f6dbcc6c0",
+    "trade_make_payment_tx": "0x962a1d6cced99b1fa53450c50cf4f95cbf600dd25dcd145a98311d275ef22a38",
+    "state": "Done",
+    "last_update_msg": "Done. Changed at version 10",
+    "version": 10
+  }
+}
+```
+</details>
 
 ## 5. PMM Making Payment
 
 ### 5.1. EVM
 
 In case the target chain is EVM-based, the transaction should emit the event from the `l1 payment contract` with the correct values for pmmAmountOut and protocolFee.
-
-Example implementation:
 
 ```js
 const { ethers } = require('ethers');
@@ -886,8 +966,6 @@ async function makeEVMPayment(tradeId, toAddress, amount, token, protocolFeeAmou
 ### 5.2. Bitcoin
 
 In case the target chain is Bitcoin, the transaction should have at least N + 1 outputs, with the first N outputs being the settlement UTXOs for trades, and one of them being the change UTXO for the user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds.
-
-Example implementation:
 
 ```js
 import * as bitcoin from 'bitcoinjs-lib'
