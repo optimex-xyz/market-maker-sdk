@@ -123,7 +123,11 @@ Provides an indicative quote for the given token pair and trade amount. The quot
 - **Query Parameters**:
   - `from_token_id` (string): The ID of the source token.
   - `to_token_id` (string): The ID of the destination token.
-  - `amount` (string): The amount of the source token to be traded, represented as a string in base 10 to accommodate large numbers. This should be treated as a BigInt in your implementation.
+  - `amount` (string): The amount of the source token to be traded, represented as a string in base 10 to accommodate large numbers.
+  - `session_id` (string, optional): A unique identifier for the session.
+  - `deposited` (boolean, optional): Whether the deposit has been confirmed. This allows the PMM to decide the returned quote.
+  - `trade_timeout` (string, optional): The deadline when user is expected to receive tokens from PMM in UNIX timestamp. We expect the trade to be completed before this timeout. But if not, some actions can still be taken.
+  - `script_timeout` (string, optional): The hard timeout for the trade, UNIX timestamp. After this timeout, the trade will not be processed further.
 
 #### Example Request
 
@@ -741,7 +745,7 @@ Allows the PMM to submit settlement transaction hashes for trades. This endpoint
 	- **For EVM Chains:**
 		- Use the transaction hash directly without additional encoding
 		- Example: `settlement_tx`: [0x7a87d2c423e13533b5ae0ecc5af900a7b697048103f4f6e32d19edde5e707355](https://etherscan.io/tx/0x7a87d2c423e13533b5ae0ecc5af900a7b697048103f4f6e32d19edde5e707355)
-  
+
 	- **For Bitcoin or Solana:**
 		- Must encode raw_tx string using the `l2Encode` function
 		- Example raw_tx string: `3d83c7846d6e5b04279175a9592705a15373f3029b866d5224cc0744489fe403`
@@ -758,10 +762,10 @@ import { ethers, toUtf8Bytes, toUtf8String } from 'ethers'
 
 export const l2Encode = (info: string) => {
   // Helper function to ensure hex prefix
-  const ensureHexPrefix = (value: string) => { 
+  const ensureHexPrefix = (value: string) => {
     return value.startsWith('0x') ? value : `0x${value}`
   }
-  
+
   if (/^0x[0-9a-fA-F]*$/.test(info)) {
     return info
   }
