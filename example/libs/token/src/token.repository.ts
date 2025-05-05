@@ -1,6 +1,6 @@
-import { ReqService } from '@bitfi-mock-pmm/req'
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { ReqService } from '@optimex-pmm/req'
 
 import { normalizeSymbol } from './helper'
 import { CoinGeckoToken, TokenPrice } from './type'

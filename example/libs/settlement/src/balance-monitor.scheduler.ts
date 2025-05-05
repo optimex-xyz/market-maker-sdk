@@ -1,7 +1,7 @@
-import { TokenRepository } from '@bitfi-mock-pmm/token'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Cron } from '@nestjs/schedule'
+import { TokenRepository } from '@optimex-pmm/token'
 import { Connection, PublicKey } from '@solana/web3.js'
 
 import axios from 'axios'

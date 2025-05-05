@@ -1,7 +1,7 @@
-import { toObject } from '@bitfi-mock-pmm/shared'
 import { Process, Processor } from '@nestjs/bull'
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { toObject } from '@optimex-pmm/shared'
 import {
   getMakePaymentHash,
   getSignature,

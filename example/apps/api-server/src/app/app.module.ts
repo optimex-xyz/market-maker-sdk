@@ -1,11 +1,11 @@
-import { QuoteController, QuoteModule } from '@bitfi-mock-pmm/quote'
-import { SettlementController, SettlementModule } from '@bitfi-mock-pmm/settlement'
-import { TokenModule } from '@bitfi-mock-pmm/token'
 import { ExpressAdapter } from '@bull-board/express'
 import { BullBoardModule } from '@bull-board/nestjs'
 import { BullModule } from '@nestjs/bull'
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { QuoteController, QuoteModule } from '@optimex-pmm/quote'
+import { SettlementController, SettlementModule } from '@optimex-pmm/settlement'
+import { TokenModule } from '@optimex-pmm/token'
 
 import { LoggerModule } from 'nestjs-pino'
 import { PrismaModule, PrismaServiceOptions } from 'nestjs-prisma'
@@ -14,7 +14,6 @@ import { PrismaModule, PrismaServiceOptions } from 'nestjs-prisma'
 import pretty from 'pino-pretty'
 
 /* prettier-ignore-end */
-
 import { AppController } from './app.controller'
 
 import { IpWhitelistMiddleware } from '../middlewares/ip-whitelist.middleware'

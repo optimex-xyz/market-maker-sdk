@@ -1,6 +1,6 @@
-import { errorDecoder, getProvider } from '@bitfi-mock-pmm/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { errorDecoder, getProvider } from '@optimex-pmm/shared'
 import { config, ERC20__factory, Payment__factory, routerService } from '@optimex-xyz/market-maker-sdk'
 
 import { ethers, TransactionRequest, ZeroAddress } from 'ethers'

@@ -1,6 +1,6 @@
-import { SnakeToCamelInterceptor } from '@bitfi-mock-pmm/shared'
-import { TradeExistsGuard } from '@bitfi-mock-pmm/trade'
-import { Controller, Get, Post, Query, Req, UseGuards, UseInterceptors } from '@nestjs/common'
+import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common'
+import { TransformedBody, TransformedQuery } from '@optimex-pmm/shared'
+import { TradeExistsGuard } from '@optimex-pmm/trade'
 
 import {
   AckSettlementDto,
@@ -11,25 +11,24 @@ import {
 import { SettlementService } from './settlement.service'
 
 @Controller()
-@UseInterceptors(SnakeToCamelInterceptor)
 export class SettlementController {
   constructor(private readonly settlementService: SettlementService) {}
 
   @Get('settlement-signature')
   @UseGuards(TradeExistsGuard)
-  getSettlementSignature(@Query() query: GetSettlementSignatureDto, @Req() req: any) {
+  getSettlementSignature(@TransformedQuery() query: GetSettlementSignatureDto, @Req() req: any) {
     return this.settlementService.getSettlementSignature(query, req.trade)
   }
 
-  @Get('ack-settlement')
+  @Post('ack-settlement')
   @UseGuards(TradeExistsGuard)
-  ackSettlement(@Query() query: AckSettlementDto, @Req() req: any) {
-    return this.settlementService.ackSettlement(query, req.trade)
+  ackSettlement(@TransformedBody() body: AckSettlementDto) {
+    return this.settlementService.ackSettlement(body)
   }
 
   @Post('signal-payment')
   @UseGuards(TradeExistsGuard)
-  signalPayment(@Query() body: SignalPaymentDto, @Req() req: any): Promise<SignalPaymentResponseDto> {
+  signalPayment(@TransformedBody() body: SignalPaymentDto, @Req() req: any): Promise<SignalPaymentResponseDto> {
     return this.settlementService.signalPayment(body, req.trade)
   }
 }

@@ -1,15 +1,13 @@
-import { TokenModule } from '@bitfi-mock-pmm/token'
-import { TradeModule } from '@bitfi-mock-pmm/trade'
 import { BullAdapter } from '@bull-board/api/bullAdapter'
 import { BullBoardModule } from '@bull-board/nestjs'
+import KeyvRedis from '@keyv/redis'
 import { BullModule } from '@nestjs/bull'
 import { CacheModule } from '@nestjs/cache-manager'
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { ScheduleModule } from '@nestjs/schedule'
-
-import { redisStore } from 'cache-manager-redis-yet'
-import { RedisClientOptions } from 'redis'
+import { TokenModule } from '@optimex-pmm/token'
+import { TradeModule } from '@optimex-pmm/trade'
 
 import { BalanceMonitorScheduler } from './balance-monitor.scheduler'
 import { SETTLEMENT_QUEUE, SETTLEMENT_QUEUE_NAMES } from './const'
@@ -29,14 +27,14 @@ const QUEUE_BOARDS = Object.values(SETTLEMENT_QUEUE).map((queue) => ({
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    CacheModule.registerAsync<RedisClientOptions>({
+    CacheModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          url: configService.getOrThrow<string>('REDIS_URL'),
+      useFactory: async (configService: ConfigService) => {
+        return {
           ttl: 0,
-        }),
-      }),
+          stores: [new KeyvRedis(configService.getOrThrow<string>('REDIS_URL'))],
+        }
+      },
       inject: [ConfigService],
     }),
     BullModule.registerQueue(...SETTLEMENT_QUEUE_NAMES.map((name) => ({ name }))),

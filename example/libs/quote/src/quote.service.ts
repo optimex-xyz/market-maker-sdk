@@ -1,8 +1,8 @@
 import * as crypto from 'crypto'
-import { TokenPrice, TokenRepository } from '@bitfi-mock-pmm/token'
-import { TradeService } from '@bitfi-mock-pmm/trade'
 import { BadRequestException, HttpException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { TokenPrice, TokenRepository } from '@optimex-pmm/token'
+import { TradeService } from '@optimex-pmm/trade'
 import { Token, tokenService } from '@optimex-xyz/market-maker-sdk'
 
 import { ethers } from 'ethers'

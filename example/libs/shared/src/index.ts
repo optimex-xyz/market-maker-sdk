@@ -1,5 +1,6 @@
 export * from './casing'
 export * from './constants'
+export * from './decorators'
 export * from './errorABIs'
 export * from './errorDecoder'
 export * from './hex'

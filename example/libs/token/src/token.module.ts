@@ -1,10 +1,8 @@
-import { ReqModule } from '@bitfi-mock-pmm/req'
+import KeyvRedis from '@keyv/redis'
 import { CacheModule } from '@nestjs/cache-manager'
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-
-import { redisStore } from 'cache-manager-redis-yet'
-import { RedisClientOptions } from 'redis'
+import { ReqModule } from '@optimex-pmm/req'
 
 import { TokenRepository } from './token.repository'
 
@@ -18,14 +16,13 @@ import { TokenRepository } from './token.repository'
       inject: [ConfigService],
       serviceKey: 'COINGECKO_REQ_SERVICE',
     }),
-    CacheModule.registerAsync<RedisClientOptions>({
+    CacheModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          url: configService.getOrThrow<string>('REDIS_URL'),
-          ttl: 0,
-        }),
-      }),
+      useFactory: async (configService: ConfigService) => {
+        return {
+          stores: [new KeyvRedis(configService.getOrThrow<string>('REDIS_URL'))],
+        }
+      },
       inject: [ConfigService],
     }),
   ],

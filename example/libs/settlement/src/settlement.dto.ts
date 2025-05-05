@@ -23,9 +23,7 @@ export const AckSettlementSchema = z.object({
   tradeId: z.string(),
   tradeDeadline: z.string(),
   scriptDeadline: z.string(),
-  chosen: z.string().refine((val) => val === 'true' || val === 'false', {
-    message: "chosen must be 'true' or 'false'",
-  }),
+  chosen: z.boolean(),
 })
 
 export class AckSettlementDto extends createZodDto(AckSettlementSchema) {}

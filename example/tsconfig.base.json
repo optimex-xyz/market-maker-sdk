@@ -17,13 +17,13 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@bitfi-mock-pmm/database": ["libs/database/src/index.ts"],
-      "@bitfi-mock-pmm/quote": ["libs/quote/src/index.ts"],
-      "@bitfi-mock-pmm/req": ["libs/req/src/index.ts"],
-      "@bitfi-mock-pmm/settlement": ["libs/settlement/src/index.ts"],
-      "@bitfi-mock-pmm/shared": ["libs/shared/src/index.ts"],
-      "@bitfi-mock-pmm/token": ["libs/token/src/index.ts"],
-      "@bitfi-mock-pmm/trade": ["libs/trade/src/index.ts"]
+      "@optimex-pmm/database": ["libs/database/src/index.ts"],
+      "@optimex-pmm/quote": ["libs/quote/src/index.ts"],
+      "@optimex-pmm/req": ["libs/req/src/index.ts"],
+      "@optimex-pmm/settlement": ["libs/settlement/src/index.ts"],
+      "@optimex-pmm/shared": ["libs/shared/src/index.ts"],
+      "@optimex-pmm/token": ["libs/token/src/index.ts"],
+      "@optimex-pmm/trade": ["libs/trade/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

@@ -1,5 +1,5 @@
-import { DatabaseService } from '@bitfi-mock-pmm/database'
 import { Injectable } from '@nestjs/common'
+import { DatabaseService } from '@optimex-pmm/database'
 import { Trade, TradeStatus } from '@prisma/client'
 
 import { CreateTradeDto, UpdateSettlementDto, UpdateTradeQuoteDto } from './trade.dto'

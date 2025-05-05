@@ -6,6 +6,7 @@
 import { Logger } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { SnakeToCamelInterceptor } from '@optimex-pmm/shared'
 import { Environment, sdk } from '@optimex-xyz/market-maker-sdk'
 
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino'
@@ -27,10 +28,14 @@ async function bootstrap() {
 
   patchNestJsSwagger()
   app.useGlobalPipes(new ZodValidationPipe())
-  app.useGlobalInterceptors(new ResponseLoggerInterceptor())
 
   app.useGlobalFilters(new ResponseExceptionFilter(), new ZodValidationExceptionFilter())
-  app.useGlobalInterceptors(new LoggerErrorInterceptor(), new TraceIdInterceptor())
+  app.useGlobalInterceptors(
+    new ResponseLoggerInterceptor(),
+    new LoggerErrorInterceptor(),
+    new TraceIdInterceptor(),
+    new SnakeToCamelInterceptor()
+  )
 
   app.useLogger(app.get(PinoLogger))
 

@@ -1,4 +1,4 @@
-import { ensureHexPrefix } from '@bitfi-mock-pmm/shared'
+import { ensureHexPrefix } from '@optimex-pmm/shared'
 
 import { ethers, toUtf8Bytes, toUtf8String } from 'ethers'
 

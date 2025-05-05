@@ -1,6 +1,6 @@
-import { BTC, BTC_TESTNET } from '@bitfi-mock-pmm/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { BTC, BTC_TESTNET } from '@optimex-pmm/shared'
 import { getTradeIdsHash, Token } from '@optimex-xyz/market-maker-sdk'
 
 import axios from 'axios'
@@ -29,6 +29,7 @@ export class BTCTransferStrategy implements ITransferStrategy {
   private readonly privateKey: string
   private readonly btcAddress: string
   private readonly ECPair = ECPairFactory(ecc)
+  private maxFeeRate: number
 
   private readonly networkMap = new Map<string, bitcoin.Network>([
     [BTC_TESTNET, bitcoin.networks.testnet],
@@ -44,6 +45,7 @@ export class BTCTransferStrategy implements ITransferStrategy {
     private configService: ConfigService,
     private readonly telegramHelper: TelegramHelper
   ) {
+    this.maxFeeRate = this.configService.getOrThrow<number>('PMM_BTC_MAX_FEE_RATE', 5)
     this.privateKey = this.configService.getOrThrow<string>('PMM_BTC_PRIVATE_KEY')
     this.btcAddress = this.configService.getOrThrow<string>('PMM_BTC_ADDRESS')
     bitcoin.initEccLib(ecc)
@@ -101,7 +103,7 @@ export class BTCTransferStrategy implements ITransferStrategy {
         }
         return true
       } catch (error) {
-        this.logger.error(`Error checking balance (Attempt ${retryCount}/${maxRetries}):`, error)
+        this.logger.error(error, `Error checking balance (Attempt ${retryCount}/${maxRetries}):`)
 
         if (retryCount < maxRetries) {
           this.logger.log(`Retrying in ${sleepTime / 1000} seconds...`)
@@ -136,7 +138,7 @@ export class BTCTransferStrategy implements ITransferStrategy {
 
       return txId
     } catch (error) {
-      this.logger.error('BTC transfer failed:', error)
+      this.logger.error(error, 'BTC transfer failed:')
       throw error
     }
   }
@@ -151,6 +153,15 @@ export class BTCTransferStrategy implements ITransferStrategy {
       payment: p2tr,
       keypair: this.ECPair.fromWIF(this.privateKey, network),
     }
+  }
+
+  private calculateTxSize(inputCount: number, outputCount: number): number {
+    const baseTxSize = 10 // version, locktime, etc.
+    const inputSize = 107 // outpoint (41) + sequence (1) + witness (65)
+    const p2trOutputSize = 42 // value (8) + script (34)
+    const opReturnOutputSize = 41 // value (8) + OP_RETURN (1) + data (32)
+
+    return baseTxSize + inputSize * inputCount + p2trOutputSize * outputCount + opReturnOutputSize
   }
 
   private async sendBTC(
@@ -209,9 +220,13 @@ export class BTCTransferStrategy implements ITransferStrategy {
     }
 
     const feeRate = await this.getFeeRate(rpcUrl)
-    const fee = BigInt(Math.ceil(200 * feeRate))
+    this.logger.log(`Fee rate: ${feeRate}`)
+
+    const txSize = this.calculateTxSize(utxos.length, amountInSatoshis > 546n ? 2 : 1)
+    const fee = BigInt(Math.ceil(txSize * feeRate))
     const changeAmount = totalInput - amountInSatoshis - fee
 
+    this.logger.log(`txSize: ${txSize.toString()} satoshis`)
     this.logger.log(`Network fee: ${fee.toString()} satoshis`)
     this.logger.log(`Amount to send: ${amountInSatoshis.toString()} satoshis`)
     this.logger.log(`Change amount: ${changeAmount.toString()} satoshis`)
@@ -266,12 +281,12 @@ export class BTCTransferStrategy implements ITransferStrategy {
   private async getFeeRate(rpcUrl: string): Promise<number> {
     try {
       const response = await axios.get<{ [key: string]: number }>(`${rpcUrl}/api/fee-estimates`)
-      const fee = response.data[3]
-      return Math.max(fee, 3)
+      const fee = response.data[1] * 1.125
+      return Math.min(fee, this.maxFeeRate)
     } catch (error) {
       console.error(`Error fetching fee rate from ${rpcUrl}:`, error)
 
-      return 3
+      return this.maxFeeRate
     }
   }
 

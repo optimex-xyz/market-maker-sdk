@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { convertToCamelCase, convertToSnakeCase } from '@bitfi-mock-pmm/shared'
 import { HttpService } from '@nestjs/axios'
 import { Injectable } from '@nestjs/common'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { convertToCamelCase, convertToSnakeCase } from '@optimex-pmm/shared'
 
 import { AxiosRequestConfig } from 'axios'
 import { lastValueFrom } from 'rxjs'
