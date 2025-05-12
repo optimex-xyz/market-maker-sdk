@@ -5,6 +5,7 @@ export interface EnvironmentConfig {
   rpcUrl: string
   routerAddress: string
   paymentAddressMap: Record<string, string>
+  protocolFetcherProxyAddress: string
 }
 
 export interface AppConfig extends EnvironmentConfig {
@@ -20,6 +21,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     backendUrl: 'https://api-dev.bitdex.xyz',
     rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
     routerAddress: '0x193501E5F72a42DACCF8Eb1C4AB37561c213309D',
+    protocolFetcherProxyAddress: '0x0267Fc04eE866b31907dEe123aBdCdB67d03B297',
     paymentAddressMap: {
       ethereum_sepolia: '0x1d8b58438D5Ccc8Fcb4b738C89078f7b4168C9c0',
     },
@@ -28,6 +30,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     backendUrl: 'https://api-stg.bitdex.xyz',
     rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
     routerAddress: '0x193501E5F72a42DACCF8Eb1C4AB37561c213309D',
+    protocolFetcherProxyAddress: '0x0000000000000000000000000000000000000000',
     paymentAddressMap: {
       ethereum_sepolia: '0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2',
     },
@@ -36,6 +39,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     backendUrl: 'https://pre-api.optimex.xyz',
     rpcUrl: 'https://rpc.optimex.xyz',
     routerAddress: '0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A',
+    protocolFetcherProxyAddress: '0x0000000000000000000000000000000000000000',
     paymentAddressMap: {
       ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
@@ -44,6 +48,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     backendUrl: 'https://api.optimex.xyz',
     rpcUrl: 'https://rpc.optimex.xyz',
     routerAddress: '0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A',
+    protocolFetcherProxyAddress: '0x0000000000000000000000000000000000000000',
     paymentAddressMap: {
       ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
@@ -120,6 +125,10 @@ class Config {
 
   public getPaymentAddress(networkId: string): string | undefined {
     return this.config.paymentAddressMap[networkId]
+  }
+
+  public getProtocolFetcherAddress(): string {
+    return this.config.protocolFetcherProxyAddress
   }
 }
 
