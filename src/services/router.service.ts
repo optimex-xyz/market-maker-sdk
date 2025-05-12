@@ -35,7 +35,7 @@ export class RouterService implements ConfigObserver {
     return await this.contract.getPMMSelection(tradeId)
   }
 
-  async getPresigns(tradeId: BytesLike): Promise<ITypes.SettlementPresignStructOutput[]> {
+  async getSettlementPresigns(tradeId: BytesLike): Promise<ITypes.SettlementPresignStructOutput[]> {
     return await this.contract.getSettlementPresigns(tradeId)
   }
 
