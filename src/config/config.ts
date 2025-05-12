@@ -21,7 +21,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
     routerAddress: '0x193501E5F72a42DACCF8Eb1C4AB37561c213309D',
     paymentAddressMap: {
-      ethereum_sepolia: '0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2',
+      ethereum_sepolia: '0x1d8b58438D5Ccc8Fcb4b738C89078f7b4168C9c0',
     },
   },
   staging: {
