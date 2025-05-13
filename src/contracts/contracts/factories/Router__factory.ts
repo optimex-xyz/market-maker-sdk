@@ -34,22 +34,17 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "InconsistentCoreType",
+    name: "DepositAlreadySubmitted",
     type: "error",
   },
   {
     inputs: [],
-    name: "InconsistentPMM",
+    name: "LengthMismatch",
     type: "error",
   },
   {
     inputs: [],
     name: "RegisteredAlready",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "RouteNotFound",
     type: "error",
   },
   {
@@ -68,7 +63,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "mpc",
+        name: "solver",
         type: "address",
       },
       {
@@ -77,23 +72,24 @@ const _abi = [
         name: "tradeId",
         type: "bytes32",
       },
+    ],
+    name: "Abort",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "pFeeRate",
-        type: "uint256",
+        indexed: true,
+        internalType: "address",
+        name: "mpc",
+        type: "address",
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "aFeeRate",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "bytes[]",
-        name: "list",
-        type: "bytes[]",
+        indexed: true,
+        internalType: "bytes32",
+        name: "depositId",
+        type: "bytes32",
       },
     ],
     name: "ConfirmDeposit",
@@ -116,6 +112,25 @@ const _abi = [
       },
     ],
     name: "ConfirmPayment",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "mpc",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "tradeId",
+        type: "bytes32",
+      },
+    ],
+    name: "ConfirmPresign",
     type: "event",
   },
   {
@@ -231,6 +246,25 @@ const _abi = [
       {
         indexed: true,
         internalType: "bytes32",
+        name: "depositId",
+        type: "bytes32",
+      },
+    ],
+    name: "SubmitDeposit",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "solver",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
         name: "tradeId",
         type: "bytes32",
       },
@@ -248,21 +282,15 @@ const _abi = [
         type: "address",
       },
       {
-        indexed: true,
-        internalType: "uint256",
-        name: "version",
-        type: "uint256",
-      },
-      {
         indexed: false,
         internalType: "bytes",
-        name: "fromChain",
+        name: "fromNetwork",
         type: "bytes",
       },
       {
         indexed: false,
         internalType: "bytes",
-        name: "toChain",
+        name: "toNetwork",
         type: "bytes",
       },
     ],
@@ -280,6 +308,41 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "tradeId",
+        type: "bytes32",
+      },
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "minAmountOut",
+            type: "uint256",
+          },
+          {
+            internalType: "uint64",
+            name: "tradeTimeout",
+            type: "uint64",
+          },
+          {
+            internalType: "bytes",
+            name: "rfqInfoSignature",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct ITypes.RFQInfo",
+        name: "rfqInfo",
+        type: "tuple",
+      },
+    ],
+    name: "abort",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -326,7 +389,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
       {
@@ -372,6 +435,24 @@ const _abi = [
       },
       {
         internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "confirmPresign",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "tradeId",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes",
         name: "releaseTxId",
         type: "bytes",
       },
@@ -390,7 +471,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
     ],
@@ -425,14 +506,9 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes",
-        name: "fromChain",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "toChain",
-        type: "bytes",
+        internalType: "address",
+        name: "handler",
+        type: "address",
       },
     ],
     name: "getCurrentEpoch",
@@ -460,7 +536,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
     ],
@@ -468,27 +544,13 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "stage",
         type: "uint256",
       },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
       {
-        internalType: "bytes32",
-        name: "tradeId",
-        type: "bytes32",
-      },
-    ],
-    name: "getDepositAddressList",
-    outputs: [
-      {
-        internalType: "bytes[]",
-        name: "",
-        type: "bytes[]",
+        internalType: "string",
+        name: "swapType",
+        type: "string",
       },
     ],
     stateMutability: "view",
@@ -498,7 +560,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
     ],
@@ -529,7 +591,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
     ],
@@ -575,12 +637,12 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes",
-        name: "fromChain",
+        name: "fromNetwork",
         type: "bytes",
       },
       {
         internalType: "bytes",
-        name: "toChain",
+        name: "toNetwork",
         type: "bytes",
       },
     ],
@@ -604,7 +666,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
     ],
@@ -627,149 +689,17 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "tradeId",
-        type: "bytes32",
-      },
-    ],
-    name: "getLastSignedPayment",
-    outputs: [
-      {
-        internalType: "uint64",
-        name: "",
-        type: "uint64",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "bytes",
-        name: "networkId",
-        type: "bytes",
-      },
-    ],
-    name: "getLatestMPCInfo",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "address",
-            name: "mpcL2Address",
-            type: "address",
-          },
-          {
-            internalType: "uint64",
-            name: "expireTime",
-            type: "uint64",
-          },
-          {
-            internalType: "bytes",
-            name: "mpcL2Pubkey",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes",
-            name: "mpcAssetPubkey",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct ITypes.MPCInfo",
-        name: "",
-        type: "tuple",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "networkId",
+        name: "fromNetwork",
         type: "bytes",
       },
       {
         internalType: "bytes",
-        name: "pubkey",
+        name: "toNetwork",
         type: "bytes",
       },
     ],
-    name: "getMPCInfo",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "address",
-            name: "mpcL2Address",
-            type: "address",
-          },
-          {
-            internalType: "uint64",
-            name: "expireTime",
-            type: "uint64",
-          },
-          {
-            internalType: "bytes",
-            name: "mpcL2Pubkey",
-            type: "bytes",
-          },
-          {
-            internalType: "bytes",
-            name: "mpcAssetPubkey",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct ITypes.MPCInfo",
-        name: "info",
-        type: "tuple",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getManagementOwner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "fromChain",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "toChain",
-        type: "bytes",
-      },
-    ],
-    name: "getMaxAffiliateFeeRate",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getPFeeRate",
+    name: "getHistoryCount",
     outputs: [
       {
         internalType: "uint256",
@@ -784,36 +714,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "pmmId",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint256",
-        name: "fromIdx",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "toIdx",
-        type: "uint256",
-      },
-    ],
-    name: "getPMMAccounts",
-    outputs: [
-      {
-        internalType: "address[]",
-        name: "list",
-        type: "address[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
     ],
@@ -882,6 +783,11 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "handler",
+        type: "address",
+      },
+      {
         internalType: "uint256",
         name: "epochNo",
         type: "uint256",
@@ -895,16 +801,6 @@ const _abi = [
         internalType: "uint256",
         name: "toIdx",
         type: "uint256",
-      },
-      {
-        internalType: "bytes",
-        name: "fromChain",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "toChain",
-        type: "bytes",
       },
     ],
     name: "getPendingTrades",
@@ -921,19 +817,14 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "handler",
+        type: "address",
+      },
+      {
         internalType: "uint256",
         name: "epochNo",
         type: "uint256",
-      },
-      {
-        internalType: "bytes",
-        name: "fromChain",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "toChain",
-        type: "bytes",
       },
     ],
     name: "getPendingTradesCount",
@@ -948,27 +839,14 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "getProtocolState",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
     ],
-    name: "getRefundPresigns",
+    name: "getRefundPresign",
     outputs: [
       {
         components: [
@@ -994,8 +872,42 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "fromIdx",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "toIdx",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes",
+        name: "fromNetwork",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "toNetwork",
+        type: "bytes",
+      },
+    ],
+    name: "getRegisteredHandlers",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "list",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
     ],
@@ -1030,34 +942,17 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "fromIdx",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "toIdx",
-        type: "uint256",
+        internalType: "bytes32",
+        name: "referenceId",
+        type: "bytes32",
       },
     ],
-    name: "getTokens",
+    name: "getSolver",
     outputs: [
       {
-        components: [
-          {
-            internalType: "bytes[5]",
-            name: "info",
-            type: "bytes[5]",
-          },
-          {
-            internalType: "uint256",
-            name: "decimals",
-            type: "uint256",
-          },
-        ],
-        internalType: "struct ITypes.TokenInfo[]",
-        name: "list",
-        type: "tuple[]",
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -1067,7 +962,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
     ],
@@ -1137,7 +1032,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
     ],
@@ -1185,173 +1080,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "isMPCNode",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "isSolver",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "enum ITypes.STAGE",
-        name: "stage",
-        type: "uint8",
-      },
-    ],
-    name: "isSuspended",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "networkId",
-        type: "bytes",
-      },
-    ],
-    name: "isValidNetwork",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "pmmId",
-        type: "bytes32",
-      },
-    ],
-    name: "isValidPMM",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "pmmId",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "isValidPMMAccount",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "networkId",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "pubkey",
-        type: "bytes",
-      },
-    ],
-    name: "isValidPubkey",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "networkId",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "tokenId",
-        type: "bytes",
-      },
-    ],
-    name: "isValidToken",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "management",
     outputs: [
@@ -1367,40 +1095,26 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "pmmId",
-        type: "bytes32",
+        internalType: "bytes32[]",
+        name: "referenceIds",
+        type: "bytes32[]",
       },
-    ],
-    name: "numOfPMMAccounts",
-    outputs: [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
+        internalType: "address[]",
+        name: "handlers",
+        type: "address[]",
       },
     ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "numOfSupportedTokens",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
+    name: "migrate",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
       {
@@ -1423,12 +1137,17 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "tradeId",
+        name: "referenceId",
         type: "bytes32",
       },
       {
         internalType: "bytes",
         name: "msgError",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "referenceInfo",
         type: "bytes",
       },
       {
@@ -1533,16 +1252,102 @@ const _abi = [
       },
       {
         internalType: "bytes",
-        name: "fromChain",
+        name: "fromNetwork",
         type: "bytes",
       },
       {
         internalType: "bytes",
-        name: "toChain",
+        name: "toNetwork",
         type: "bytes",
       },
     ],
     name: "setRoute",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "depositId",
+        type: "bytes32",
+      },
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "sessionId",
+            type: "uint256",
+          },
+          {
+            components: [
+              {
+                internalType: "uint256",
+                name: "amountIn",
+                type: "uint256",
+              },
+              {
+                internalType: "bytes[3]",
+                name: "fromChain",
+                type: "bytes[3]",
+              },
+              {
+                internalType: "bytes[3]",
+                name: "toChain",
+                type: "bytes[3]",
+              },
+            ],
+            internalType: "struct ITypes.TradeInfo",
+            name: "tradeInfo",
+            type: "tuple",
+          },
+          {
+            components: [
+              {
+                internalType: "bytes[5]",
+                name: "depositInfo",
+                type: "bytes[5]",
+              },
+              {
+                internalType: "address",
+                name: "userEphemeralL2Address",
+                type: "address",
+              },
+              {
+                internalType: "uint64",
+                name: "scriptTimeout",
+                type: "uint64",
+              },
+            ],
+            internalType: "struct ITypes.ScriptInfo",
+            name: "scriptInfo",
+            type: "tuple",
+          },
+        ],
+        internalType: "struct ITypes.TradeData",
+        name: "tradeData",
+        type: "tuple",
+      },
+      {
+        components: [
+          {
+            internalType: "bytes",
+            name: "refundAddress",
+            type: "bytes",
+          },
+          {
+            internalType: "bytes[]",
+            name: "presigns",
+            type: "bytes[]",
+          },
+        ],
+        internalType: "struct ITypes.RefundPresign",
+        name: "refundPresign",
+        type: "tuple",
+      },
+    ],
+    name: "submitDeposit",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1675,25 +1480,6 @@ const _abi = [
     name: "submitTrade",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "version",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
     type: "function",
   },
 ] as const;
