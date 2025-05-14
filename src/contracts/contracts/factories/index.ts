@@ -3,5 +3,6 @@
 /* eslint-disable */
 export { ERC20__factory } from "./ERC20__factory";
 export { Payment__factory } from "./Payment__factory";
+export { ProtocolFetcherProxy__factory } from "./ProtocolFetcherProxy__factory";
 export { Router__factory } from "./Router__factory";
 export { Signer__factory } from "./Signer__factory";
