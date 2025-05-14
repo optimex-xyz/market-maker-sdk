@@ -1,63 +1,37 @@
 # PMM API Integration Documentation
 
+> **CHANGELOG (v0.7.1)**: 
+> - **Breaking Changes:**
+>   - Environment key `dev` has been renamed to `staging` - please update your environment configuration accordingly
+>   - Several functions from `routerService` moved to `protocolService`
+> - **Upgrade Notes:**
+>   - For PMMs using version 6.2, you can update to v0.7.1 without needing to change anything
+>   - If you need to use the Router, please use the values provided in the environment configuration section
+
 > **Note**: If you prefer using the SDK instead of direct API integration, please refer to the [PMM SDK Integration Guide](sdk-integration.md).
 
 A comprehensive guide for implementing Private Market Makers (PMMs) in the cross-chain trading network. This documentation covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
 
 ## Table of Contents
 
-- [PMM API Integration Documentation](#pmm-api-integration-documentation)
-  - [Table of Contents](#table-of-contents)
-  - [1. Overview](#1-overview)
-    - [1.1. Integration Flow](#11-integration-flow)
-  - [2. Quick Start](#2-quick-start)
-    - [2.1. API Environments](#21-api-environments)
+- [PMM API Integration Documentation](#pmm-api-integration-documentation)  
+  - [1. Overview](#1-overview)    
+  - [2. Quick Start](#2-quick-start)    
   - [3. PMM Backend APIs](#3-pmm-backend-apis)
-    - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)
-      - [Description](#description)
-      - [Request Parameters](#request-parameters)
-      - [Example Request](#example-request)
-      - [Expected Response](#expected-response)
-    - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)
-      - [Description](#description-1)
-      - [Request Parameters](#request-parameters-1)
-      - [Example Request](#example-request-1)
-      - [Expected Response](#expected-response-1)
-    - [3.3. Endpoint: `/settlement-signature`](#33-endpoint-settlement-signature)
-      - [Description](#description-2)
-      - [Request Parameters](#request-parameters-2)
-      - [Example Request](#example-request-2)
-      - [Expected Response](#expected-response-2)
-    - [3.4. Endpoint: `/ack-settlement`](#34-endpoint-ack-settlement)
-      - [Description](#description-3)
-      - [Request Parameters](#request-parameters-3)
-      - [Example Request](#example-request-3)
-      - [Expected Response](#expected-response-3)
-    - [3.5. Endpoint: `/signal-payment`](#35-endpoint-signal-payment)
-      - [Description](#description-4)
-      - [Request Parameters](#request-parameters-4)
-      - [Example Request](#example-request-4)
-      - [Expected Response](#expected-response-4)
+    - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)      
+    - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)      
+    - [3.3. Endpoint: `/settlement-signature`](#33-endpoint-settlement-signature)      
+    - [3.4. Endpoint: `/ack-settlement`](#34-endpoint-ack-settlement)      
+    - [3.5. Endpoint: `/signal-payment`](#35-endpoint-signal-payment)      
   - [4. Solver API Endpoints for PMMs](#4-solver-api-endpoints-for-pmms)
     - [4.1. Endpoint: `/v1/market-maker/tokens`](#41-endpoint-v1market-makertokens)
-      - [Description](#description-5)
-      - [Request Parameters](#request-parameters-5)
-      - [Example Request](#example-request-5)
-      - [Expected Response](#expected-response-5)
     - [4.2. Endpoint: `/v1/market-maker/submit-settlement-tx`](#42-endpoint-v1market-makersubmit-settlement-tx)
-      - [Description](#description-6)
-      - [Request Parameters](#request-parameters-6)
-      - [Example Request](#example-request-6)
-      - [Expected Response](#expected-response-6)
-      - [Notes](#notes)
     - [4.3. Endpoint: `/v1/market-maker/trades/:tradeId`](#43-endpoint-v1market-makertradestradeid)
-      - [Description](#description-7)
-      - [Request Parameters](#request-parameters-7)
-      - [Example Request](#example-request-7)
-      - [Expected Response](#expected-response-7)
   - [5. PMM Making Payment](#5-pmm-making-payment)
     - [5.1. EVM](#51-evm)
     - [5.2. Bitcoin](#52-bitcoin)
+
+
 ## 1. Overview
 
 The PMM integration with Optimex involves bidirectional API communication:
