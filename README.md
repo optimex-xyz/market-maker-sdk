@@ -6,19 +6,55 @@ A comprehensive guide for implementing Private Market Makers (PMMs) in the cross
 
 ## Table of Contents
 
-- [PMM API Integration Documentation](#pmm-api-integration-documentation)  
-  - [1. Overview](#1-overview)    
-  - [2. Quick Start](#2-quick-start)    
+- [PMM API Integration Documentation](#pmm-api-integration-documentation)
+  - [Table of Contents](#table-of-contents)
+  - [1. Overview](#1-overview)
+    - [1.1. Integration Flow](#11-integration-flow)
+  - [2. Quick Start](#2-quick-start)
+    - [2.1. API Environments](#21-api-environments)
   - [3. PMM Backend APIs](#3-pmm-backend-apis)
-    - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)      
-    - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)      
-    - [3.3. Endpoint: `/settlement-signature`](#33-endpoint-settlement-signature)      
-    - [3.4. Endpoint: `/ack-settlement`](#34-endpoint-ack-settlement)      
-    - [3.5. Endpoint: `/signal-payment`](#35-endpoint-signal-payment)      
+    - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)
+      - [Description](#description)
+      - [Request Parameters](#request-parameters)
+      - [Example Request](#example-request)
+      - [Expected Response](#expected-response)
+    - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)
+      - [Description](#description-1)
+      - [Request Parameters](#request-parameters-1)
+      - [Example Request](#example-request-1)
+      - [Expected Response](#expected-response-1)
+    - [3.3. Endpoint: `/settlement-signature`](#33-endpoint-settlement-signature)
+      - [Description](#description-2)
+      - [Request Parameters](#request-parameters-2)
+      - [Example Request](#example-request-2)
+      - [Expected Response](#expected-response-2)
+    - [3.4. Endpoint: `/ack-settlement`](#34-endpoint-ack-settlement)
+      - [Description](#description-3)
+      - [Request Parameters](#request-parameters-3)
+      - [Example Request](#example-request-3)
+      - [Expected Response](#expected-response-3)
+    - [3.5. Endpoint: `/signal-payment`](#35-endpoint-signal-payment)
+      - [Description](#description-4)
+      - [Request Parameters](#request-parameters-4)
+      - [Example Request](#example-request-4)
+      - [Expected Response](#expected-response-4)
   - [4. Solver API Endpoints for PMMs](#4-solver-api-endpoints-for-pmms)
     - [4.1. Endpoint: `/v1/market-maker/tokens`](#41-endpoint-v1market-makertokens)
+      - [Description](#description-5)
+      - [Request Parameters](#request-parameters-5)
+      - [Example Request](#example-request-5)
+      - [Expected Response](#expected-response-5)
     - [4.2. Endpoint: `/v1/market-maker/submit-settlement-tx`](#42-endpoint-v1market-makersubmit-settlement-tx)
+      - [Description](#description-6)
+      - [Request Parameters](#request-parameters-6)
+      - [Example Request](#example-request-6)
+      - [Expected Response](#expected-response-6)
+      - [Notes](#notes)
     - [4.3. Endpoint: `/v1/market-maker/trades/:tradeId`](#43-endpoint-v1market-makertradestradeid)
+      - [Description](#description-7)
+      - [Request Parameters](#request-parameters-7)
+      - [Example Request](#example-request-7)
+      - [Expected Response](#expected-response-7)
   - [5. PMM Making Payment](#5-pmm-making-payment)
     - [5.1. EVM](#51-evm)
     - [5.2. Bitcoin](#52-bitcoin)
@@ -68,16 +104,18 @@ sequenceDiagram
 
 | Environment      | Description                                                          |
 | ---------------- | -------------------------------------------------------------------- |
-| `dev`            | Development environment with test networks and staging services      |
+| `dev`            | internal environment with test networks and development services     |
+| `staging`        | Staging environment with test networks and staging services      |
 | `prelive` | Pre production environment with mainnet networks for testing before release |
 | `production`     | Production environment with mainnet networks and production services |
 
 <details>
-<summary><strong>Development Contracts</strong></summary>
+<summary><strong>Staging Contracts</strong></summary>
 
 **Optimex L2 Testnet**
 - **Signer**: [0xA89F5060B810F3b6027D7663880c43ee77A865C7](https://scan-testnet.optimex.xyz/address/0xA89F5060B810F3b6027D7663880c43ee77A865C7)
-- **Router**: [0x193501E5F72a42DACCF8Eb1C4AB37561c213309D](https://scan-testnet.optimex.xyz/address/0x193501E5F72a42DACCF8Eb1C4AB37561c213309D)
+- **Router**: [0xa6E13A3c6c63C64d45bB453E0402B7D2eE53E564](https://scan-testnet.optimex.xyz/address/0xa6E13A3c6c63C64d45bB453E0402B7D2eE53E564)
+- **ProtocolFetcherProxy**: [0x7c07151ca4DFd93F352Ab9B132A95866697c38c2](https://scan-testnet.optimex.xyz/address/0x7c07151ca4DFd93F352Ab9B132A95866697c38c2)
 
 **Ethereum Sepolia**
 - **Payment**: [0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2](https://sepolia.etherscan.io/address/0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2)
@@ -94,7 +132,8 @@ sequenceDiagram
 
 **Optimex L2 Mainnet**
 - **Signer**: [0xCF9786F123F1071023dB8049808C223e94c384be](https://scan.optimex.xyz/address/0xCF9786F123F1071023dB8049808C223e94c384be)
-- **Router**: [0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A](https://scan.optimex.xyz/address/0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A)
+- **Router**: [0xF7fedF4A250157010807E6eA60258E3B768149Ff](https://scan.optimex.xyz/address/0xF7fedF4A250157010807E6eA60258E3B768149Ff)
+- **ProtocolFetcherProxy**: [0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b](https://scan.optimex.xyz/address/0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b)
 
 **Ethereum Mainnet**
 - **Payment**: [0x0A497AC4261E37FA4062762C23Cf3cB642C839b8](https://etherscan.io/address/0x0A497AC4261E37FA4062762C23Cf3cB642C839b8)
