@@ -38,8 +38,8 @@ const environments: Record<Environment, EnvironmentConfig> = {
   prelive: {
     backendUrl: 'https://pre-api.optimex.xyz',
     rpcUrl: 'https://rpc.optimex.xyz',
-    routerAddress: '0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A',
-    protocolFetcherProxyAddress: '0x0000000000000000000000000000000000000000',
+    routerAddress: '0xF7fedF4A250157010807E6eA60258E3B768149Ff',
+    protocolFetcherProxyAddress: '0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b',
     paymentAddressMap: {
       ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
@@ -47,8 +47,8 @@ const environments: Record<Environment, EnvironmentConfig> = {
   production: {
     backendUrl: 'https://api.optimex.xyz',
     rpcUrl: 'https://rpc.optimex.xyz',
-    routerAddress: '0xcceAb862dD41f6691d81Cc016216Cd45d7BD6D4A',
-    protocolFetcherProxyAddress: '0x0000000000000000000000000000000000000000',
+    routerAddress: '0xF7fedF4A250157010807E6eA60258E3B768149Ff',
+    protocolFetcherProxyAddress: '0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b',
     paymentAddressMap: {
       ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
