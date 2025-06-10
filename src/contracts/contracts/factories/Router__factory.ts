@@ -88,7 +88,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "bytes32",
-        name: "depositId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -246,7 +246,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "bytes32",
-        name: "depositId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -270,6 +270,25 @@ const _abi = [
       },
     ],
     name: "SubmitTradeInfo",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newManagement",
+        type: "address",
+      },
+    ],
+    name: "UpdatedManagement",
     type: "event",
   },
   {
@@ -389,7 +408,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
       {
@@ -471,7 +490,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -536,7 +555,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -560,7 +579,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -591,7 +610,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -666,7 +685,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -714,7 +733,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -842,7 +861,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -907,7 +926,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -943,7 +962,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -962,7 +981,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -1032,7 +1051,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
     ],
@@ -1114,7 +1133,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
       {
@@ -1137,7 +1156,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "referenceId",
+        name: "tradeId",
         type: "bytes32",
       },
       {
@@ -1270,7 +1289,7 @@ const _abi = [
     inputs: [
       {
         internalType: "bytes32",
-        name: "depositId",
+        name: "tradeId",
         type: "bytes32",
       },
       {
