@@ -281,6 +281,7 @@ export interface RouterInterface extends Interface {
       | "SelectPMM"
       | "SubmitDeposit"
       | "SubmitTradeInfo"
+      | "UpdatedManagement"
       | "UpdatedRoute"
   ): EventFragment;
 
@@ -538,11 +539,11 @@ export namespace AbortEvent {
 }
 
 export namespace ConfirmDepositEvent {
-  export type InputTuple = [mpc: AddressLike, depositId: BytesLike];
-  export type OutputTuple = [mpc: string, depositId: string];
+  export type InputTuple = [mpc: AddressLike, tradeId: BytesLike];
+  export type OutputTuple = [mpc: string, tradeId: string];
   export interface OutputObject {
     mpc: string;
-    depositId: string;
+    tradeId: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -647,11 +648,11 @@ export namespace SelectPMMEvent {
 }
 
 export namespace SubmitDepositEvent {
-  export type InputTuple = [solver: AddressLike, depositId: BytesLike];
-  export type OutputTuple = [solver: string, depositId: string];
+  export type InputTuple = [solver: AddressLike, tradeId: BytesLike];
+  export type OutputTuple = [solver: string, tradeId: string];
   export interface OutputObject {
     solver: string;
-    depositId: string;
+    tradeId: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -665,6 +666,19 @@ export namespace SubmitTradeInfoEvent {
   export interface OutputObject {
     solver: string;
     tradeId: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace UpdatedManagementEvent {
+  export type InputTuple = [operator: AddressLike, newManagement: AddressLike];
+  export type OutputTuple = [operator: string, newManagement: string];
+  export interface OutputObject {
+    operator: string;
+    newManagement: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -752,11 +766,7 @@ export interface Router extends BaseContract {
   >;
 
   confirmDeposit: TypedContractMethod<
-    [
-      referenceId: BytesLike,
-      signature: BytesLike,
-      depositFromList: BytesLike[]
-    ],
+    [tradeId: BytesLike, signature: BytesLike, depositFromList: BytesLike[]],
     [void],
     "nonpayable"
   >;
@@ -780,7 +790,7 @@ export interface Router extends BaseContract {
   >;
 
   getAffiliateInfo: TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.AffiliateStructOutput],
     "view"
   >;
@@ -792,19 +802,19 @@ export interface Router extends BaseContract {
   >;
 
   getCurrentStage: TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [[bigint, string] & { stage: bigint; swapType: string }],
     "view"
   >;
 
   getFailureInfo: TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.FailureDetailsStructOutput],
     "view"
   >;
 
   getFeeDetails: TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.FeeDetailsStructOutput],
     "view"
   >;
@@ -816,7 +826,7 @@ export interface Router extends BaseContract {
   >;
 
   getHandlerOf: TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [[string, string] & { handler: string; handlerType: string }],
     "view"
   >;
@@ -828,7 +838,7 @@ export interface Router extends BaseContract {
   >;
 
   getPMMSelection: TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.PMMSelectionStructOutput],
     "view"
   >;
@@ -851,7 +861,7 @@ export interface Router extends BaseContract {
   >;
 
   getRefundPresign: TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.RefundPresignStructOutput],
     "view"
   >;
@@ -868,21 +878,21 @@ export interface Router extends BaseContract {
   >;
 
   getSettlementPresigns: TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.SettlementPresignStructOutput[]],
     "view"
   >;
 
-  getSolver: TypedContractMethod<[referenceId: BytesLike], [string], "view">;
+  getSolver: TypedContractMethod<[tradeId: BytesLike], [string], "view">;
 
   getTradeData: TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.TradeDataStructOutput],
     "view"
   >;
 
   getTradeFinalization: TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.TradeFinalizationStructOutput],
     "view"
   >;
@@ -896,14 +906,14 @@ export interface Router extends BaseContract {
   >;
 
   refund: TypedContractMethod<
-    [referenceId: BytesLike, refundTxId: BytesLike, signature: BytesLike],
+    [tradeId: BytesLike, refundTxId: BytesLike, signature: BytesLike],
     [void],
     "nonpayable"
   >;
 
   report: TypedContractMethod<
     [
-      referenceId: BytesLike,
+      tradeId: BytesLike,
       msgError: BytesLike,
       referenceInfo: BytesLike,
       signature: BytesLike
@@ -932,7 +942,7 @@ export interface Router extends BaseContract {
 
   submitDeposit: TypedContractMethod<
     [
-      depositId: BytesLike,
+      tradeId: BytesLike,
       tradeData: ITypes.TradeDataStruct,
       refundPresign: ITypes.RefundPresignStruct
     ],
@@ -976,11 +986,7 @@ export interface Router extends BaseContract {
   getFunction(
     nameOrSignature: "confirmDeposit"
   ): TypedContractMethod<
-    [
-      referenceId: BytesLike,
-      signature: BytesLike,
-      depositFromList: BytesLike[]
-    ],
+    [tradeId: BytesLike, signature: BytesLike, depositFromList: BytesLike[]],
     [void],
     "nonpayable"
   >;
@@ -1008,7 +1014,7 @@ export interface Router extends BaseContract {
   getFunction(
     nameOrSignature: "getAffiliateInfo"
   ): TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.AffiliateStructOutput],
     "view"
   >;
@@ -1022,21 +1028,21 @@ export interface Router extends BaseContract {
   getFunction(
     nameOrSignature: "getCurrentStage"
   ): TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [[bigint, string] & { stage: bigint; swapType: string }],
     "view"
   >;
   getFunction(
     nameOrSignature: "getFailureInfo"
   ): TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.FailureDetailsStructOutput],
     "view"
   >;
   getFunction(
     nameOrSignature: "getFeeDetails"
   ): TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.FeeDetailsStructOutput],
     "view"
   >;
@@ -1050,7 +1056,7 @@ export interface Router extends BaseContract {
   getFunction(
     nameOrSignature: "getHandlerOf"
   ): TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [[string, string] & { handler: string; handlerType: string }],
     "view"
   >;
@@ -1064,7 +1070,7 @@ export interface Router extends BaseContract {
   getFunction(
     nameOrSignature: "getPMMSelection"
   ): TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.PMMSelectionStructOutput],
     "view"
   >;
@@ -1090,7 +1096,7 @@ export interface Router extends BaseContract {
   getFunction(
     nameOrSignature: "getRefundPresign"
   ): TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.RefundPresignStructOutput],
     "view"
   >;
@@ -1109,24 +1115,24 @@ export interface Router extends BaseContract {
   getFunction(
     nameOrSignature: "getSettlementPresigns"
   ): TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.SettlementPresignStructOutput[]],
     "view"
   >;
   getFunction(
     nameOrSignature: "getSolver"
-  ): TypedContractMethod<[referenceId: BytesLike], [string], "view">;
+  ): TypedContractMethod<[tradeId: BytesLike], [string], "view">;
   getFunction(
     nameOrSignature: "getTradeData"
   ): TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.TradeDataStructOutput],
     "view"
   >;
   getFunction(
     nameOrSignature: "getTradeFinalization"
   ): TypedContractMethod<
-    [referenceId: BytesLike],
+    [tradeId: BytesLike],
     [ITypes.TradeFinalizationStructOutput],
     "view"
   >;
@@ -1143,7 +1149,7 @@ export interface Router extends BaseContract {
   getFunction(
     nameOrSignature: "refund"
   ): TypedContractMethod<
-    [referenceId: BytesLike, refundTxId: BytesLike, signature: BytesLike],
+    [tradeId: BytesLike, refundTxId: BytesLike, signature: BytesLike],
     [void],
     "nonpayable"
   >;
@@ -1151,7 +1157,7 @@ export interface Router extends BaseContract {
     nameOrSignature: "report"
   ): TypedContractMethod<
     [
-      referenceId: BytesLike,
+      tradeId: BytesLike,
       msgError: BytesLike,
       referenceInfo: BytesLike,
       signature: BytesLike
@@ -1180,7 +1186,7 @@ export interface Router extends BaseContract {
     nameOrSignature: "submitDeposit"
   ): TypedContractMethod<
     [
-      depositId: BytesLike,
+      tradeId: BytesLike,
       tradeData: ITypes.TradeDataStruct,
       refundPresign: ITypes.RefundPresignStruct
     ],
@@ -1277,6 +1283,13 @@ export interface Router extends BaseContract {
     SubmitTradeInfoEvent.InputTuple,
     SubmitTradeInfoEvent.OutputTuple,
     SubmitTradeInfoEvent.OutputObject
+  >;
+  getEvent(
+    key: "UpdatedManagement"
+  ): TypedContractEvent<
+    UpdatedManagementEvent.InputTuple,
+    UpdatedManagementEvent.OutputTuple,
+    UpdatedManagementEvent.OutputObject
   >;
   getEvent(
     key: "UpdatedRoute"
@@ -1406,6 +1419,17 @@ export interface Router extends BaseContract {
       SubmitTradeInfoEvent.InputTuple,
       SubmitTradeInfoEvent.OutputTuple,
       SubmitTradeInfoEvent.OutputObject
+    >;
+
+    "UpdatedManagement(address,address)": TypedContractEvent<
+      UpdatedManagementEvent.InputTuple,
+      UpdatedManagementEvent.OutputTuple,
+      UpdatedManagementEvent.OutputObject
+    >;
+    UpdatedManagement: TypedContractEvent<
+      UpdatedManagementEvent.InputTuple,
+      UpdatedManagementEvent.OutputTuple,
+      UpdatedManagementEvent.OutputObject
     >;
 
     "UpdatedRoute(address,bytes,bytes)": TypedContractEvent<
