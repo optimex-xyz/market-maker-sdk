@@ -46,6 +46,10 @@ export class ProtocolService implements ConfigObserver {
     ])
     return Number(feeRate.toString())
   }
+
+  async getRouter(): Promise<string> {
+    return this.contract.router()
+  }
 }
 
 // Export a singleton instance
