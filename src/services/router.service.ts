@@ -1,54 +1,77 @@
 import { BytesLike, JsonRpcProvider } from 'ethers'
 
+import { protocolService } from './protocol.service'
+
 import { AppConfig, config, ConfigObserver } from '../config'
 import { ITypes, Router__factory } from '../contracts'
 
 export class RouterService implements ConfigObserver {
   private provider: JsonRpcProvider
-  private contract: ReturnType<typeof Router__factory.connect>
+  private contract: ReturnType<typeof Router__factory.connect> | null = null
 
   constructor() {
     this.provider = new JsonRpcProvider(config.getRpcUrl())
-    this.contract = Router__factory.connect(config.getRouterAddress(), this.provider)
 
     // Register as an observer
     config.registerObserver(this)
   }
-  /**
-   * Implementation of ConfigObserver interface
-   * Updates service when config changes
-   */
+
   onConfigUpdate(newConfig: AppConfig): void {
     this.provider = new JsonRpcProvider(newConfig.rpcUrl)
-    this.contract = Router__factory.connect(newConfig.routerAddress, this.provider)
+    // Reset contract to null so it will be re-initialized with new config
+    // This ensures router address is fetched again from protocolService with updated config
+    this.contract = null
+  }
+
+  /**
+   * Force refresh the contract instance
+   * Useful when router address might have changed
+   */
+  public refreshContract(): void {
+    this.contract = null
+  }
+
+  private async getContract() {
+    if (!this.contract) {
+      const routerAddress = await protocolService.getRouter()
+      this.contract = Router__factory.connect(routerAddress, this.provider)
+    }
+    return this.contract
   }
 
   async getSigner(): Promise<string> {
-    return await this.contract.SIGNER()
+    const contract = await this.getContract()
+    return await contract.SIGNER()
   }
 
   async getHandler(fromChain: BytesLike, toChain: BytesLike): Promise<[string, string]> {
-    return await this.contract.getHandler(fromChain, toChain)
+    const contract = await this.getContract()
+    return await contract.getHandler(fromChain, toChain)
   }
 
   async getPMMSelection(tradeId: BytesLike): Promise<ITypes.PMMSelectionStructOutput> {
-    return await this.contract.getPMMSelection(tradeId)
+    const contract = await this.getContract()
+    return await contract.getPMMSelection(tradeId)
   }
 
   async getSettlementPresigns(tradeId: BytesLike): Promise<ITypes.SettlementPresignStructOutput[]> {
-    return await this.contract.getSettlementPresigns(tradeId)
+    const contract = await this.getContract()
+    return await contract.getSettlementPresigns(tradeId)
   }
 
   async getFeeDetails(tradeId: BytesLike): Promise<ITypes.FeeDetailsStructOutput> {
-    return await this.contract.getFeeDetails(tradeId)
+    const contract = await this.getContract()
+    return await contract.getFeeDetails(tradeId)
   }
 
   async getTradeData(tradeId: BytesLike): Promise<ITypes.TradeDataStructOutput> {
-    return await this.contract.getTradeData(tradeId)
+    const contract = await this.getContract()
+    return await contract.getTradeData(tradeId)
   }
 
   async getManagement(): Promise<string> {
-    return await this.contract.management()
+    const contract = await this.getContract()
+    return await contract.management()
   }
 }
 
