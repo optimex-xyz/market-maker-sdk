@@ -1,11 +1,12 @@
 # PMM API Integration Documentation
 
-> **CHANGELOG (v0.7.1)**: 
+> **CHANGELOG (v0.8.0)**: 
 > - **Breaking Changes:**
->   - Environment key `dev` has been renamed to `staging` - please update your environment configuration accordingly
->   - Several functions from `routerService` moved to `protocolService`
+>   - Update to get router contract from protocol fetcher
+>   - Use consistent trade_id across all protocol
+>   - Add `user_receiving_address`, `user_refund_pubkey`, `from_user_address` to `indicative_quote` api requirement as optional fields.
 > - **Upgrade Notes:**
->   - For PMMs using version 6.2, you can update to v0.7.1 without needing to change anything
+>   - For PMMs older version you can update to v0.8.0 without needing to change anything
 >   - If you need to use the Router, please use the values provided in the environment configuration section
 
 > **Note**: If you prefer using the SDK instead of direct API integration, please refer to the [PMM SDK Integration Guide](sdk-integration.md).
@@ -88,7 +89,7 @@ sequenceDiagram
 
 **Optimex L2 Testnet**
 - **Signer**: [0xA89F5060B810F3b6027D7663880c43ee77A865C7](https://scan-testnet.optimex.xyz/address/0xA89F5060B810F3b6027D7663880c43ee77A865C7)
-- **Router**: [0xa6E13A3c6c63C64d45bB453E0402B7D2eE53E564](https://scan-testnet.optimex.xyz/address/0xa6E13A3c6c63C64d45bB453E0402B7D2eE53E564)
+- **Router**: [0x31C88ebd9E430455487b6a5c8971e8eF63e97ED4](https://scan-testnet.optimex.xyz/address/0x31C88ebd9E430455487b6a5c8971e8eF63e97ED4)
 - **ProtocolFetcherProxy**: [0x7c07151ca4DFd93F352Ab9B132A95866697c38c2](https://scan-testnet.optimex.xyz/address/0x7c07151ca4DFd93F352Ab9B132A95866697c38c2)
 
 **Ethereum Sepolia**
@@ -106,7 +107,7 @@ sequenceDiagram
 
 **Optimex L2 Mainnet**
 - **Signer**: [0xCF9786F123F1071023dB8049808C223e94c384be](https://scan.optimex.xyz/address/0xCF9786F123F1071023dB8049808C223e94c384be)
-- **Router**: [0xF7fedF4A250157010807E6eA60258E3B768149Ff](https://scan.optimex.xyz/address/0xF7fedF4A250157010807E6eA60258E3B768149Ff)
+- **Router**: [0x1e878cCa765a8aAFEBecCa672c767441b4859634](https://scan.optimex.xyz/address/0x1e878cCa765a8aAFEBecCa672c767441b4859634)
 - **ProtocolFetcherProxy**: [0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b](https://scan.optimex.xyz/address/0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b)
 
 **Ethereum Mainnet**
