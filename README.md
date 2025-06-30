@@ -141,6 +141,9 @@ Provides an indicative quote for the given token pair and trade amount. The quot
   - `deposited` (boolean, optional): Whether the deposit has been confirmed. This allows the PMM to decide the returned quote.
   - `trade_timeout` (string, optional): The deadline when user is expected to receive tokens from PMM in UNIX timestamp. We expect the trade to be completed before this timeout. But if not, some actions can still be taken.
   - `script_timeout` (string, optional): The hard timeout for the trade, UNIX timestamp. After this timeout, the trade will not be processed further.
+  - `from_user_address` (string, optional): The user's address from which the input token will be sent from.
+  - `user_receiving_address` (string, optional): The user's address to which the output token will be sent to.
+  - `user_refund_pubkey` (string, optional): The user's public key to which the refund will be sent.
 
 #### Example Request
 
