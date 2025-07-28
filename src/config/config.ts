@@ -121,8 +121,12 @@ class Config {
     return this.config.rpcUrl
   }
 
-  public getPaymentAddress(networkId: string): string | undefined {
+  public getPaymentAddress(networkId: string): string {
     return this.config.paymentAddressMap[networkId]
+  }
+
+  public getLiquidationAddress(networkId: string): string {
+    return this.config.liquidationAddressMap[networkId]
   }
 
   public getProtocolFetcherAddress(): string {
