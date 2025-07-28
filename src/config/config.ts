@@ -1,4 +1,4 @@
-export type Environment = 'dev' | 'prelive' | 'production' | 'staging'
+export type Environment = 'development' | 'prelive' | 'production' | 'staging'
 
 export interface EnvironmentConfig {
   backendUrl: string
@@ -17,7 +17,7 @@ export interface ConfigObserver {
 }
 
 const environments: Record<Environment, EnvironmentConfig> = {
-  dev: {
+  development: {
     backendUrl: 'https://api-dev.bitdex.xyz',
     rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
     protocolFetcherProxyAddress: '0x0267Fc04eE866b31907dEe123aBdCdB67d03B297',
