@@ -4,6 +4,7 @@ export interface EnvironmentConfig {
   backendUrl: string
   rpcUrl: string
   paymentAddressMap: Record<string, string>
+  liquidationAddressMap: Record<string, string>
   protocolFetcherProxyAddress: string
 }
 
@@ -23,6 +24,9 @@ const environments: Record<Environment, EnvironmentConfig> = {
     paymentAddressMap: {
       ethereum_sepolia: '0x1d8b58438D5Ccc8Fcb4b738C89078f7b4168C9c0',
     },
+    liquidationAddressMap: {
+      ethereum_sepolia: '0x63f56c6e602f288821bea31ccdd9b1e189305f38',
+    },
   },
   staging: {
     backendUrl: 'https://api-stg.bitdex.xyz',
@@ -31,6 +35,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     paymentAddressMap: {
       ethereum_sepolia: '0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2',
     },
+    liquidationAddressMap: {},
   },
   prelive: {
     backendUrl: 'https://pre-api.optimex.xyz',
@@ -39,6 +44,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     paymentAddressMap: {
       ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
+    liquidationAddressMap: {},
   },
   production: {
     backendUrl: 'https://api.optimex.xyz',
@@ -47,6 +53,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     paymentAddressMap: {
       ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
+    liquidationAddressMap: {},
   },
 }
 
