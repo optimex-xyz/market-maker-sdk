@@ -31,6 +31,7 @@ export interface LendingLiquidationInterface extends Interface {
       | "VALIDATOR_FORCE_CLOSE_TYPEHASH"
       | "eip712Domain"
       | "onMorphoLiquidate"
+      | "onMorphoRepay"
       | "optimexDomain"
       | "owBtc"
       | "payment"
@@ -59,6 +60,10 @@ export interface LendingLiquidationInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "onMorphoLiquidate",
+    values: [BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "onMorphoRepay",
     values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
@@ -93,6 +98,10 @@ export interface LendingLiquidationInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "onMorphoLiquidate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "onMorphoRepay",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -149,6 +158,7 @@ export namespace LiquidateEvent {
     positionManager: AddressLike,
     positionId: BytesLike,
     tradeId: BytesLike,
+    sender: AddressLike,
     marketId: BytesLike,
     seizedCollateral: BigNumberish,
     remainingCollateral: BigNumberish,
@@ -159,6 +169,7 @@ export namespace LiquidateEvent {
     positionManager: string,
     positionId: string,
     tradeId: string,
+    sender: string,
     marketId: string,
     seizedCollateral: bigint,
     remainingCollateral: bigint,
@@ -169,6 +180,7 @@ export namespace LiquidateEvent {
     positionManager: string;
     positionId: string;
     tradeId: string;
+    sender: string;
     marketId: string;
     seizedCollateral: bigint;
     remainingCollateral: bigint;
@@ -286,6 +298,12 @@ export interface LendingLiquidation extends BaseContract {
     "nonpayable"
   >;
 
+  onMorphoRepay: TypedContractMethod<
+    [repaidAssets: BigNumberish, data: BytesLike],
+    [void],
+    "nonpayable"
+  >;
+
   optimexDomain: TypedContractMethod<
     [],
     [[string, string] & { name: string; version: string }],
@@ -339,6 +357,13 @@ export interface LendingLiquidation extends BaseContract {
   >;
   getFunction(
     nameOrSignature: "onMorphoLiquidate"
+  ): TypedContractMethod<
+    [repaidAssets: BigNumberish, data: BytesLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "onMorphoRepay"
   ): TypedContractMethod<
     [repaidAssets: BigNumberish, data: BytesLike],
     [void],
@@ -421,7 +446,7 @@ export interface LendingLiquidation extends BaseContract {
       ForceCloseEvent.OutputObject
     >;
 
-    "Liquidate(address,bytes32,bytes32,bytes32,uint256,uint256,uint256,uint256)": TypedContractEvent<
+    "Liquidate(address,bytes32,bytes32,address,bytes32,uint256,uint256,uint256,uint256)": TypedContractEvent<
       LiquidateEvent.InputTuple,
       LiquidateEvent.OutputTuple,
       LiquidateEvent.OutputObject

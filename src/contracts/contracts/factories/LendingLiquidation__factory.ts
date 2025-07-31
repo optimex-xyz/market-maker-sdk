@@ -68,6 +68,22 @@ const _abi = [
     type: "error",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "expected",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "actual",
+        type: "address",
+      },
+    ],
+    name: "InconsistentAsset",
+    type: "error",
+  },
+  {
     inputs: [],
     name: "InvalidMorpho",
     type: "error",
@@ -91,6 +107,22 @@ const _abi = [
   {
     inputs: [],
     name: "NotEnoughPaymentAmount",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ReentrancyGuardReentrantCall",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "SafeERC20FailedOperation",
     type: "error",
   },
   {
@@ -173,6 +205,12 @@ const _abi = [
         internalType: "bytes32",
         name: "tradeId",
         type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sender",
+        type: "address",
       },
       {
         indexed: false,
@@ -358,6 +396,24 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "repaidAssets",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "onMorphoRepay",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "optimexDomain",
     outputs: [
@@ -396,7 +452,7 @@ const _abi = [
         type: "bytes32",
       },
       {
-        internalType: "contract IAccountPositionManager",
+        internalType: "address",
         name: "positionManager",
         type: "address",
       },
