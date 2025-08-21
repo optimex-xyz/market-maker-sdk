@@ -35,7 +35,9 @@ const environments: Record<Environment, EnvironmentConfig> = {
     paymentAddressMap: {
       ethereum_sepolia: '0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2',
     },
-    liquidationAddressMap: {},
+    liquidationAddressMap: {
+      ethereum_sepolia: '0x656F8d8c36eBBb205770b8Fd978Bc7Ce306E9451',
+    },
   },
   prelive: {
     backendUrl: 'https://pre-api.optimex.xyz',
