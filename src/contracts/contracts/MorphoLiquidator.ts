@@ -23,17 +23,14 @@ import type {
   TypedContractMethod,
 } from "./common";
 
-export interface LendingLiquidationInterface extends Interface {
+export interface MorphoLiquidatorInterface extends Interface {
   getFunction(
     nameOrSignature:
-      | "LENDING_MANAGEMENT"
-      | "MORPHO"
-      | "VALIDATOR_FORCE_CLOSE_TYPEHASH"
+      | "MORPHO_MANAGEMENT"
       | "eip712Domain"
       | "onMorphoLiquidate"
       | "onMorphoRepay"
       | "optimexDomain"
-      | "owBtc"
       | "payment"
   ): FunctionFragment;
 
@@ -42,16 +39,15 @@ export interface LendingLiquidationInterface extends Interface {
       | "EIP712DomainChanged"
       | "ForceClose"
       | "Liquidate"
+      | "OnMorphoLiquidate"
+      | "OnMorphoRepay"
       | "Payment"
+      | "ProfitTaken"
+      | "Refunded"
   ): EventFragment;
 
   encodeFunctionData(
-    functionFragment: "LENDING_MANAGEMENT",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "MORPHO", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "VALIDATOR_FORCE_CLOSE_TYPEHASH",
+    functionFragment: "MORPHO_MANAGEMENT",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -70,7 +66,6 @@ export interface LendingLiquidationInterface extends Interface {
     functionFragment: "optimexDomain",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "owBtc", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "payment",
     values: [
@@ -84,12 +79,7 @@ export interface LendingLiquidationInterface extends Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "LENDING_MANAGEMENT",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "MORPHO", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "VALIDATOR_FORCE_CLOSE_TYPEHASH",
+    functionFragment: "MORPHO_MANAGEMENT",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -108,7 +98,6 @@ export interface LendingLiquidationInterface extends Interface {
     functionFragment: "optimexDomain",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owBtc", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "payment", data: BytesLike): Result;
 }
 
@@ -126,26 +115,26 @@ export namespace ForceCloseEvent {
   export type InputTuple = [
     positionManager: AddressLike,
     positionId: BytesLike,
-    tradeId: BytesLike,
     marketId: BytesLike,
-    repaidLoan: BigNumberish,
-    userRefund: BigNumberish
+    totalCollateral: BigNumberish,
+    totalPayment: BigNumberish,
+    repaidDebt: BigNumberish
   ];
   export type OutputTuple = [
     positionManager: string,
     positionId: string,
-    tradeId: string,
     marketId: string,
-    repaidLoan: bigint,
-    userRefund: bigint
+    totalCollateral: bigint,
+    totalPayment: bigint,
+    repaidDebt: bigint
   ];
   export interface OutputObject {
     positionManager: string;
     positionId: string;
-    tradeId: string;
     marketId: string;
-    repaidLoan: bigint;
-    userRefund: bigint;
+    totalCollateral: bigint;
+    totalPayment: bigint;
+    repaidDebt: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -157,35 +146,73 @@ export namespace LiquidateEvent {
   export type InputTuple = [
     positionManager: AddressLike,
     positionId: BytesLike,
-    tradeId: BytesLike,
-    sender: AddressLike,
     marketId: BytesLike,
+    totalCollateral: BigNumberish,
     seizedCollateral: BigNumberish,
-    remainingCollateral: BigNumberish,
-    repaidLoan: BigNumberish,
-    bonusLoan: BigNumberish
+    totalPayment: BigNumberish,
+    repaidDebt: BigNumberish
   ];
   export type OutputTuple = [
     positionManager: string,
     positionId: string,
-    tradeId: string,
-    sender: string,
     marketId: string,
+    totalCollateral: bigint,
     seizedCollateral: bigint,
-    remainingCollateral: bigint,
-    repaidLoan: bigint,
-    bonusLoan: bigint
+    totalPayment: bigint,
+    repaidDebt: bigint
   ];
   export interface OutputObject {
     positionManager: string;
     positionId: string;
-    tradeId: string;
-    sender: string;
     marketId: string;
+    totalCollateral: bigint;
     seizedCollateral: bigint;
-    remainingCollateral: bigint;
-    repaidLoan: bigint;
-    bonusLoan: bigint;
+    totalPayment: bigint;
+    repaidDebt: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace OnMorphoLiquidateEvent {
+  export type InputTuple = [
+    positionManager: AddressLike,
+    repaidAssets: BigNumberish,
+    data: BytesLike
+  ];
+  export type OutputTuple = [
+    positionManager: string,
+    repaidAssets: bigint,
+    data: string
+  ];
+  export interface OutputObject {
+    positionManager: string;
+    repaidAssets: bigint;
+    data: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace OnMorphoRepayEvent {
+  export type InputTuple = [
+    positionManager: AddressLike,
+    repaidAssets: BigNumberish,
+    data: BytesLike
+  ];
+  export type OutputTuple = [
+    positionManager: string,
+    repaidAssets: bigint,
+    data: string
+  ];
+  export interface OutputObject {
+    positionManager: string;
+    repaidAssets: bigint;
+    data: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -195,27 +222,27 @@ export namespace LiquidateEvent {
 
 export namespace PaymentEvent {
   export type InputTuple = [
+    tradeId: BytesLike,
     positionManager: AddressLike,
     positionId: BytesLike,
-    tradeId: BytesLike,
     sender: AddressLike,
     marketId: BytesLike,
     amount: BigNumberish,
     collateral: BigNumberish
   ];
   export type OutputTuple = [
+    tradeId: string,
     positionManager: string,
     positionId: string,
-    tradeId: string,
     sender: string,
     marketId: string,
     amount: bigint,
     collateral: bigint
   ];
   export interface OutputObject {
+    tradeId: string;
     positionManager: string;
     positionId: string;
-    tradeId: string;
     sender: string;
     marketId: string;
     amount: bigint;
@@ -227,11 +254,61 @@ export namespace PaymentEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export interface LendingLiquidation extends BaseContract {
-  connect(runner?: ContractRunner | null): LendingLiquidation;
+export namespace ProfitTakenEvent {
+  export type InputTuple = [
+    positionId: BytesLike,
+    token: AddressLike,
+    pFeeReceiver: AddressLike,
+    amount: BigNumberish
+  ];
+  export type OutputTuple = [
+    positionId: string,
+    token: string,
+    pFeeReceiver: string,
+    amount: bigint
+  ];
+  export interface OutputObject {
+    positionId: string;
+    token: string;
+    pFeeReceiver: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace RefundedEvent {
+  export type InputTuple = [
+    positionId: BytesLike,
+    token: AddressLike,
+    recipient: AddressLike,
+    refundedAmount: BigNumberish
+  ];
+  export type OutputTuple = [
+    positionId: string,
+    token: string,
+    recipient: string,
+    refundedAmount: bigint
+  ];
+  export interface OutputObject {
+    positionId: string;
+    token: string;
+    recipient: string;
+    refundedAmount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export interface MorphoLiquidator extends BaseContract {
+  connect(runner?: ContractRunner | null): MorphoLiquidator;
   waitForDeployment(): Promise<this>;
 
-  interface: LendingLiquidationInterface;
+  interface: MorphoLiquidatorInterface;
 
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
@@ -270,11 +347,7 @@ export interface LendingLiquidation extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  LENDING_MANAGEMENT: TypedContractMethod<[], [string], "view">;
-
-  MORPHO: TypedContractMethod<[], [string], "view">;
-
-  VALIDATOR_FORCE_CLOSE_TYPEHASH: TypedContractMethod<[], [string], "view">;
+  MORPHO_MANAGEMENT: TypedContractMethod<[], [string], "view">;
 
   eip712Domain: TypedContractMethod<
     [],
@@ -310,8 +383,6 @@ export interface LendingLiquidation extends BaseContract {
     "view"
   >;
 
-  owBtc: TypedContractMethod<[], [string], "view">;
-
   payment: TypedContractMethod<
     [
       tradeId: BytesLike,
@@ -330,13 +401,7 @@ export interface LendingLiquidation extends BaseContract {
   ): T;
 
   getFunction(
-    nameOrSignature: "LENDING_MANAGEMENT"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "MORPHO"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "VALIDATOR_FORCE_CLOSE_TYPEHASH"
+    nameOrSignature: "MORPHO_MANAGEMENT"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "eip712Domain"
@@ -377,9 +442,6 @@ export interface LendingLiquidation extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "owBtc"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
     nameOrSignature: "payment"
   ): TypedContractMethod<
     [
@@ -416,11 +478,39 @@ export interface LendingLiquidation extends BaseContract {
     LiquidateEvent.OutputObject
   >;
   getEvent(
+    key: "OnMorphoLiquidate"
+  ): TypedContractEvent<
+    OnMorphoLiquidateEvent.InputTuple,
+    OnMorphoLiquidateEvent.OutputTuple,
+    OnMorphoLiquidateEvent.OutputObject
+  >;
+  getEvent(
+    key: "OnMorphoRepay"
+  ): TypedContractEvent<
+    OnMorphoRepayEvent.InputTuple,
+    OnMorphoRepayEvent.OutputTuple,
+    OnMorphoRepayEvent.OutputObject
+  >;
+  getEvent(
     key: "Payment"
   ): TypedContractEvent<
     PaymentEvent.InputTuple,
     PaymentEvent.OutputTuple,
     PaymentEvent.OutputObject
+  >;
+  getEvent(
+    key: "ProfitTaken"
+  ): TypedContractEvent<
+    ProfitTakenEvent.InputTuple,
+    ProfitTakenEvent.OutputTuple,
+    ProfitTakenEvent.OutputObject
+  >;
+  getEvent(
+    key: "Refunded"
+  ): TypedContractEvent<
+    RefundedEvent.InputTuple,
+    RefundedEvent.OutputTuple,
+    RefundedEvent.OutputObject
   >;
 
   filters: {
@@ -435,7 +525,7 @@ export interface LendingLiquidation extends BaseContract {
       EIP712DomainChangedEvent.OutputObject
     >;
 
-    "ForceClose(address,bytes32,bytes32,bytes32,uint256,uint256)": TypedContractEvent<
+    "ForceClose(address,bytes32,bytes32,uint256,uint256,uint256)": TypedContractEvent<
       ForceCloseEvent.InputTuple,
       ForceCloseEvent.OutputTuple,
       ForceCloseEvent.OutputObject
@@ -446,7 +536,7 @@ export interface LendingLiquidation extends BaseContract {
       ForceCloseEvent.OutputObject
     >;
 
-    "Liquidate(address,bytes32,bytes32,address,bytes32,uint256,uint256,uint256,uint256)": TypedContractEvent<
+    "Liquidate(address,bytes32,bytes32,uint256,uint256,uint256,uint256)": TypedContractEvent<
       LiquidateEvent.InputTuple,
       LiquidateEvent.OutputTuple,
       LiquidateEvent.OutputObject
@@ -457,7 +547,29 @@ export interface LendingLiquidation extends BaseContract {
       LiquidateEvent.OutputObject
     >;
 
-    "Payment(address,bytes32,bytes32,address,bytes32,uint256,uint256)": TypedContractEvent<
+    "OnMorphoLiquidate(address,uint256,bytes)": TypedContractEvent<
+      OnMorphoLiquidateEvent.InputTuple,
+      OnMorphoLiquidateEvent.OutputTuple,
+      OnMorphoLiquidateEvent.OutputObject
+    >;
+    OnMorphoLiquidate: TypedContractEvent<
+      OnMorphoLiquidateEvent.InputTuple,
+      OnMorphoLiquidateEvent.OutputTuple,
+      OnMorphoLiquidateEvent.OutputObject
+    >;
+
+    "OnMorphoRepay(address,uint256,bytes)": TypedContractEvent<
+      OnMorphoRepayEvent.InputTuple,
+      OnMorphoRepayEvent.OutputTuple,
+      OnMorphoRepayEvent.OutputObject
+    >;
+    OnMorphoRepay: TypedContractEvent<
+      OnMorphoRepayEvent.InputTuple,
+      OnMorphoRepayEvent.OutputTuple,
+      OnMorphoRepayEvent.OutputObject
+    >;
+
+    "Payment(bytes32,address,bytes32,address,bytes32,uint256,uint256)": TypedContractEvent<
       PaymentEvent.InputTuple,
       PaymentEvent.OutputTuple,
       PaymentEvent.OutputObject
@@ -466,6 +578,28 @@ export interface LendingLiquidation extends BaseContract {
       PaymentEvent.InputTuple,
       PaymentEvent.OutputTuple,
       PaymentEvent.OutputObject
+    >;
+
+    "ProfitTaken(bytes32,address,address,uint256)": TypedContractEvent<
+      ProfitTakenEvent.InputTuple,
+      ProfitTakenEvent.OutputTuple,
+      ProfitTakenEvent.OutputObject
+    >;
+    ProfitTaken: TypedContractEvent<
+      ProfitTakenEvent.InputTuple,
+      ProfitTakenEvent.OutputTuple,
+      ProfitTakenEvent.OutputObject
+    >;
+
+    "Refunded(bytes32,address,address,uint256)": TypedContractEvent<
+      RefundedEvent.InputTuple,
+      RefundedEvent.OutputTuple,
+      RefundedEvent.OutputObject
+    >;
+    Refunded: TypedContractEvent<
+      RefundedEvent.InputTuple,
+      RefundedEvent.OutputTuple,
+      RefundedEvent.OutputObject
     >;
   };
 }

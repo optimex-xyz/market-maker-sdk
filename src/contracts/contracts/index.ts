@@ -2,14 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { ERC20 } from "./ERC20";
-export type { LendingLiquidation } from "./LendingLiquidation";
+export type { MorphoLiquidator } from "./MorphoLiquidator";
 export type { Payment } from "./Payment";
 export type { ProtocolFetcherProxy } from "./ProtocolFetcherProxy";
 export type { Router } from "./Router";
 export type { Signer } from "./Signer";
 export * as factories from "./factories";
 export { ERC20__factory } from "./factories/ERC20__factory";
-export { LendingLiquidation__factory } from "./factories/LendingLiquidation__factory";
+export { MorphoLiquidator__factory } from "./factories/MorphoLiquidator__factory";
 export { Payment__factory } from "./factories/Payment__factory";
 export { ProtocolFetcherProxy__factory } from "./factories/ProtocolFetcherProxy__factory";
 export { Router__factory } from "./factories/Router__factory";

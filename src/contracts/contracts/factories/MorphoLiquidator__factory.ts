@@ -4,26 +4,16 @@
 
 import { Contract, Interface, type ContractRunner } from "ethers";
 import type {
-  LendingLiquidation,
-  LendingLiquidationInterface,
-} from "../LendingLiquidation";
+  MorphoLiquidator,
+  MorphoLiquidatorInterface,
+} from "../MorphoLiquidator";
 
 const _abi = [
   {
     inputs: [
       {
         internalType: "address",
-        name: "_owBtc",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_morpho",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_lendingManagement",
+        name: "morphoManagement",
         type: "address",
       },
       {
@@ -89,6 +79,17 @@ const _abi = [
     type: "error",
   },
   {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "positionId",
+        type: "bytes32",
+      },
+    ],
+    name: "InvalidPositionId",
+    type: "error",
+  },
+  {
     inputs: [],
     name: "InvalidShortString",
     type: "error",
@@ -118,6 +119,27 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "spender",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "currentAllowance",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "requestedDecrease",
+        type: "uint256",
+      },
+    ],
+    name: "SafeERC20FailedDecreaseAllowance",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "token",
         type: "address",
       },
@@ -134,6 +156,16 @@ const _abi = [
       },
     ],
     name: "StringTooLong",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ZeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ZeroAmount",
     type: "error",
   },
   {
@@ -158,12 +190,6 @@ const _abi = [
         type: "bytes32",
       },
       {
-        indexed: true,
-        internalType: "bytes32",
-        name: "tradeId",
-        type: "bytes32",
-      },
-      {
         indexed: false,
         internalType: "bytes32",
         name: "marketId",
@@ -172,13 +198,19 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "repaidLoan",
+        name: "totalCollateral",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "userRefund",
+        name: "totalPayment",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "repaidDebt",
         type: "uint256",
       },
     ],
@@ -201,22 +233,16 @@ const _abi = [
         type: "bytes32",
       },
       {
-        indexed: true,
-        internalType: "bytes32",
-        name: "tradeId",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "sender",
-        type: "address",
-      },
-      {
         indexed: false,
         internalType: "bytes32",
         name: "marketId",
         type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "totalCollateral",
+        type: "uint256",
       },
       {
         indexed: false,
@@ -227,19 +253,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "remainingCollateral",
+        name: "totalPayment",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "repaidLoan",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "bonusLoan",
+        name: "repaidDebt",
         type: "uint256",
       },
     ],
@@ -256,15 +276,65 @@ const _abi = [
         type: "address",
       },
       {
-        indexed: true,
-        internalType: "bytes32",
-        name: "positionId",
-        type: "bytes32",
+        indexed: false,
+        internalType: "uint256",
+        name: "repaidAssets",
+        type: "uint256",
       },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "OnMorphoLiquidate",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "positionManager",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "repaidAssets",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "OnMorphoRepay",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
       {
         indexed: true,
         internalType: "bytes32",
         name: "tradeId",
+        type: "bytes32",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "positionManager",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "positionId",
         type: "bytes32",
       },
       {
@@ -296,39 +366,75 @@ const _abi = [
     type: "event",
   },
   {
-    inputs: [],
-    name: "LENDING_MANAGEMENT",
-    outputs: [
+    anonymous: false,
+    inputs: [
       {
-        internalType: "contract ILendingManagement",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MORPHO",
-    outputs: [
-      {
-        internalType: "contract IMorpho",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "VALIDATOR_FORCE_CLOSE_TYPEHASH",
-    outputs: [
-      {
+        indexed: true,
         internalType: "bytes32",
-        name: "",
+        name: "positionId",
         type: "bytes32",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "pFeeReceiver",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "ProfitTaken",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "positionId",
+        type: "bytes32",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "recipient",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "refundedAmount",
+        type: "uint256",
+      },
+    ],
+    name: "Refunded",
+    type: "event",
+  },
+  {
+    inputs: [],
+    name: "MORPHO_MANAGEMENT",
+    outputs: [
+      {
+        internalType: "contract IMorphoManagement",
+        name: "",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -432,19 +538,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "owBtc",
-    outputs: [
-      {
-        internalType: "contract OW_BTC",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "bytes32",
@@ -484,15 +577,15 @@ const _abi = [
   },
 ] as const;
 
-export class LendingLiquidation__factory {
+export class MorphoLiquidator__factory {
   static readonly abi = _abi;
-  static createInterface(): LendingLiquidationInterface {
-    return new Interface(_abi) as LendingLiquidationInterface;
+  static createInterface(): MorphoLiquidatorInterface {
+    return new Interface(_abi) as MorphoLiquidatorInterface;
   }
   static connect(
     address: string,
     runner?: ContractRunner | null
-  ): LendingLiquidation {
-    return new Contract(address, _abi, runner) as unknown as LendingLiquidation;
+  ): MorphoLiquidator {
+    return new Contract(address, _abi, runner) as unknown as MorphoLiquidator;
   }
 }
