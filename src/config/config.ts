@@ -25,7 +25,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
       ethereum_sepolia: '0x1d8b58438D5Ccc8Fcb4b738C89078f7b4168C9c0',
     },
     liquidationAddressMap: {
-      ethereum_sepolia: '0xeEeD356dCa26e6F0957c55FCa46451814cCF134f',
+      ethereum_sepolia: '0xc2F376B105BcAcE161Cb5A04B4Eb32e1439b215F',
     },
   },
   staging: {
