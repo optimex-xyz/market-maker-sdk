@@ -58,24 +58,13 @@ const _abi = [
     type: "error",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "expected",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "actual",
-        type: "address",
-      },
-    ],
-    name: "InconsistentAsset",
+    inputs: [],
+    name: "InvalidAmount",
     type: "error",
   },
   {
     inputs: [],
-    name: "InvalidMorpho",
+    name: "InvalidBorrowShares",
     type: "error",
   },
   {
@@ -102,12 +91,7 @@ const _abi = [
         type: "address",
       },
     ],
-    name: "NotAuthorizedValidator",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "NotEnoughPaymentAmount",
+    name: "InvalidValidator",
     type: "error",
   },
   {
@@ -159,6 +143,33 @@ const _abi = [
     type: "error",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "expected",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "actual",
+        type: "address",
+      },
+    ],
+    name: "TokenMismatch",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "Unauthorized",
+    type: "error",
+  },
+  {
     inputs: [],
     name: "ZeroAddress",
     type: "error",
@@ -179,20 +190,33 @@ const _abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "address",
-        name: "positionManager",
-        type: "address",
-      },
-      {
-        indexed: true,
         internalType: "bytes32",
         name: "positionId",
         type: "bytes32",
       },
       {
+        indexed: true,
+        internalType: "address",
+        name: "apm",
+        type: "address",
+      },
+      {
         indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "FinalizePosition",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
         internalType: "bytes32",
-        name: "marketId",
+        name: "positionId",
         type: "bytes32",
       },
       {
@@ -222,20 +246,8 @@ const _abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "address",
-        name: "positionManager",
-        type: "address",
-      },
-      {
-        indexed: true,
         internalType: "bytes32",
         name: "positionId",
-        type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "marketId",
         type: "bytes32",
       },
       {
@@ -272,7 +284,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "positionManager",
+        name: "apm",
         type: "address",
       },
       {
@@ -297,7 +309,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "positionManager",
+        name: "apm",
         type: "address",
       },
       {
@@ -322,26 +334,20 @@ const _abi = [
       {
         indexed: true,
         internalType: "bytes32",
-        name: "tradeId",
+        name: "positionId",
         type: "bytes32",
       },
       {
         indexed: true,
         internalType: "address",
-        name: "positionManager",
+        name: "apm",
         type: "address",
       },
       {
         indexed: true,
         internalType: "bytes32",
-        name: "positionId",
+        name: "tradeId",
         type: "bytes32",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "sender",
-        type: "address",
       },
       {
         indexed: false,
@@ -351,15 +357,15 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
+        internalType: "address",
+        name: "payer",
+        type: "address",
       },
       {
         indexed: false,
-        internalType: "uint256",
-        name: "collateral",
-        type: "uint256",
+        internalType: "bool",
+        name: "isLiquidated",
+        type: "bool",
       },
     ],
     name: "Payment",
@@ -383,7 +389,7 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
-        name: "pFeeReceiver",
+        name: "recipient",
         type: "address",
       },
       {
@@ -420,11 +426,11 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "refundedAmount",
+        name: "amount",
         type: "uint256",
       },
     ],
-    name: "Refunded",
+    name: "Refund",
     type: "event",
   },
   {
@@ -486,6 +492,29 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "apm",
+        type: "address",
+      },
+      {
+        internalType: "bytes32",
+        name: "positionId",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "finalizePosition",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "repaidAssets",
         type: "uint256",
@@ -540,24 +569,24 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "tradeId",
-        type: "bytes32",
-      },
-      {
         internalType: "address",
-        name: "positionManager",
+        name: "apm",
         type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
       },
       {
         internalType: "bytes32",
         name: "positionId",
         type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "tradeId",
+        type: "bytes32",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
       },
       {
         internalType: "bool",
@@ -566,7 +595,7 @@ const _abi = [
       },
       {
         internalType: "bytes",
-        name: "validatorSignature",
+        name: "signature",
         type: "bytes",
       },
     ],
