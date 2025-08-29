@@ -36,7 +36,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
       ethereum_sepolia: '0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2',
     },
     liquidationAddressMap: {
-      ethereum_sepolia: '0x656F8d8c36eBBb205770b8Fd978Bc7Ce306E9451',
+      ethereum_sepolia: '0x1CcD45Be1508E70d760b11b32ccd5Ac288756b1a',
     },
   },
   prelive: {
