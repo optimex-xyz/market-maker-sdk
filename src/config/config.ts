@@ -6,6 +6,7 @@ export interface EnvironmentConfig {
   paymentAddressMap: Record<string, string>
   liquidationAddressMap: Record<string, string>
   protocolFetcherProxyAddress: string
+  isTestnet: boolean
 }
 
 export interface AppConfig extends EnvironmentConfig {
@@ -27,6 +28,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     liquidationAddressMap: {
       ethereum_sepolia: '0x2AEDAF2470EfFD35B295D710fB2e5FDAdE642B0A',
     },
+    isTestnet: true,
   },
   staging: {
     backendUrl: 'https://api-stg.bitdex.xyz',
@@ -38,6 +40,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
     liquidationAddressMap: {
       ethereum_sepolia: '0x1CcD45Be1508E70d760b11b32ccd5Ac288756b1a',
     },
+    isTestnet: true,
   },
   prelive: {
     backendUrl: 'https://pre-api.optimex.xyz',
@@ -46,7 +49,10 @@ const environments: Record<Environment, EnvironmentConfig> = {
     paymentAddressMap: {
       ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
-    liquidationAddressMap: {},
+    liquidationAddressMap: {
+      ethereum_sepolia: '0x1CcD45Be1508E70d760b11b32ccd5Ac288756b1a',
+    },
+    isTestnet: false,
   },
   production: {
     backendUrl: 'https://api.optimex.xyz',
@@ -55,7 +61,10 @@ const environments: Record<Environment, EnvironmentConfig> = {
     paymentAddressMap: {
       ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
     },
-    liquidationAddressMap: {},
+    liquidationAddressMap: {
+      ethereum_sepolia: '0x1CcD45Be1508E70d760b11b32ccd5Ac288756b1a',
+    },
+    isTestnet: false,
   },
 }
 
@@ -133,6 +142,10 @@ class Config {
 
   public getProtocolFetcherAddress(): string {
     return this.config.protocolFetcherProxyAddress
+  }
+
+  public isTestnet(): boolean {
+    return this.config.isTestnet
   }
 }
 
