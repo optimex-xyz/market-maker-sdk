@@ -1,10 +1,13 @@
-export enum ContractRole {
+export enum AssetChainContractRole {
   // AcrossAdapter = 'AcrossAdapter',
   AcrossTransitVault = 'AcrossTransitVault',
-  // OptimexManagement = 'OptimexManagement',
   // NativeVault = 'NativeVault',
   // TokenVault = 'TokenVault',
   Payment = 'OptimexSwapPayment',
+  OptimexManagement = 'OptimexManagement',
+  MorphoSupplier = 'MorphoSupplier',
+  MorphoLiquidator = 'MorphoLiquidator',
+  MorphoManagement = 'MorphoManagement',
 }
 
 export enum L2ContractRole {

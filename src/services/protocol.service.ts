@@ -2,7 +2,7 @@ import { ethers, JsonRpcProvider, keccak256, toUtf8Bytes } from 'ethers'
 
 import { AppConfig, config, ConfigObserver } from '../config'
 import { ITypes, ProtocolFetcherProxy__factory } from '../contracts'
-import { ContractRole, L2ContractRole, OptimexEvmNetwork, OptimexL2Network } from '../shared'
+import { AssetChainContractRole, L2ContractRole, OptimexEvmNetwork, OptimexL2Network } from '../shared'
 
 export class ProtocolService implements ConfigObserver {
   private provider: JsonRpcProvider
@@ -55,7 +55,7 @@ export class ProtocolService implements ConfigObserver {
     return this.contract.router()
   }
 
-  async getAssetChainConfig(network: OptimexEvmNetwork, role: ContractRole) {
+  async getAssetChainConfig(network: OptimexEvmNetwork, role: AssetChainContractRole) {
     const hashRole = keccak256(toUtf8Bytes([network, role].join(':')))
     return this.contract.getRoleMembers(hashRole)
   }
