@@ -3,8 +3,6 @@ export type Environment = 'development' | 'prelive' | 'production' | 'staging'
 export interface EnvironmentConfig {
   backendUrl: string
   rpcUrl: string
-  paymentAddressMap: Record<string, string>
-  liquidationAddressMap: Record<string, string>
   protocolFetcherProxyAddress: string
   isTestnet: boolean
 }
@@ -22,48 +20,24 @@ const environments: Record<Environment, EnvironmentConfig> = {
     backendUrl: 'https://api-dev.bitdex.xyz',
     rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
     protocolFetcherProxyAddress: '0x0267Fc04eE866b31907dEe123aBdCdB67d03B297',
-    paymentAddressMap: {
-      ethereum_sepolia: '0x1d8b58438D5Ccc8Fcb4b738C89078f7b4168C9c0',
-    },
-    liquidationAddressMap: {
-      ethereum_sepolia: '0x1A0a58aF331Cc792Db92CFD9fE5E3124639E2a80',
-    },
     isTestnet: true,
   },
   staging: {
     backendUrl: 'https://api-stg.bitdex.xyz',
     rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
     protocolFetcherProxyAddress: '0x7c07151ca4DFd93F352Ab9B132A95866697c38c2',
-    paymentAddressMap: {
-      ethereum_sepolia: '0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2',
-    },
-    liquidationAddressMap: {
-      ethereum_sepolia: '0x1CcD45Be1508E70d760b11b32ccd5Ac288756b1a',
-    },
     isTestnet: true,
   },
   prelive: {
     backendUrl: 'https://pre-api.optimex.xyz',
     rpcUrl: 'https://rpc.optimex.xyz',
     protocolFetcherProxyAddress: '0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b',
-    paymentAddressMap: {
-      ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
-    },
-    liquidationAddressMap: {
-      ethereum_sepolia: '0x1CcD45Be1508E70d760b11b32ccd5Ac288756b1a',
-    },
     isTestnet: false,
   },
   production: {
     backendUrl: 'https://api.optimex.xyz',
     rpcUrl: 'https://rpc.optimex.xyz',
     protocolFetcherProxyAddress: '0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b',
-    paymentAddressMap: {
-      ethereum: '0x0A497AC4261E37FA4062762C23Cf3cB642C839b8',
-    },
-    liquidationAddressMap: {
-      ethereum_sepolia: '0x1CcD45Be1508E70d760b11b32ccd5Ac288756b1a',
-    },
     isTestnet: false,
   },
 }
@@ -130,14 +104,6 @@ class Config {
 
   public getRpcUrl(): string {
     return this.config.rpcUrl
-  }
-
-  public getPaymentAddress(networkId: string): string {
-    return this.config.paymentAddressMap[networkId]
-  }
-
-  public getLiquidationAddress(networkId: string): string {
-    return this.config.liquidationAddressMap[networkId]
   }
 
   public getProtocolFetcherAddress(): string {
