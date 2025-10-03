@@ -6,7 +6,7 @@ export enum AssetChainContractRole {
   Payment = 'OptimexSwapPayment',
   OptimexManagement = 'OptimexManagement',
   MorphoSupplier = 'MorphoSupplier',
-  MorphoLiquidator = 'MorphoLiquidator',
+  MorphoLiquidationGateway = 'MorphoLiquidationGateway',
   MorphoManagement = 'MorphoManagement',
 }
 
