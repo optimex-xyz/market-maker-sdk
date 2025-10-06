@@ -330,7 +330,7 @@ When executing the liquidation, PMM calls the payment function from the **Morpho
 function payment(
     address token,
     uint256 amount,
-    bytes calldata externalCall
+    bytes calldata payment_metadata
 )
 ```
 
@@ -338,7 +338,7 @@ function payment(
 
 - `token`: Address of the token being paid
 - `amount`: Amount of tokens to pay
-- `externalCall`: Encoded call data for the liquidation execution
+- `payment_metadata`: Encoded call data for the liquidation execution save from liquidation-quote API
 
 ---
 
