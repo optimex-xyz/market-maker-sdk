@@ -1,15 +1,11 @@
 # PMM Liquidation Flow
 
-The liquidation process uses the Morpho liquidation Gateway contract instead of the standard payment contract. However, **the flow when calling the contract is similar to the normal payment flow**, following the same sequential steps from initial quote to final settlement.
-
-When executing the liquidation, PMM calls the payment function from the **MorphoLiquidationGateway** instead of the swap **Payment** contract.
+The liquidation process uses the **Morpho Liquidation Gateway** contract instead of the standard **Payment** contract. However, **the flow when calling the contract is similar to the normal swap payment flow**, following the same sequential steps from initial quote to final settlement.
 
 
 ---
 
 ## Flow Overview
-
-The liquidation process uses the Morpho liquidation Gateway contract instead of the standard payment contract. However, the flow when calling the contract is similar to the normal payment flow, following the same sequential steps from initial quote to final settlement.
 
 1. **Indicative Quote** - Initial price discovery
 2. **Liquidation Quote** - Firm commitment quote
