@@ -125,7 +125,7 @@ After user deposits funds, solver requests a firm commitment quote for the liqui
   - `session_id`: Session identifier
   - `trade_id`: Unique trade identifier
   - `from_token_id`, `to_token_id`, `amount`: Trade details
-  - `payment_metadata`: Base64 encoded data for smart contract payment method
+  - `payment_metadata`: Hex string encoded data for smart contract payment method
   - `from_user_address`: User's source address
   - `to_user_address`: User's receiving address
   - `user_deposit_tx`: Transaction hash of user's deposit

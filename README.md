@@ -369,7 +369,7 @@ Provides a firm commitment quote for a liquidation trade. This endpoint is calle
   - `from_token_id` (string): The ID of the source token.
   - `to_token_id` (string): The ID of the destination token.
   - `amount` (string): The amount of the source token to be traded, in base 10. This should be treated as a BigInt in your implementation.
-  - `payment_metadata` (string, optional): Base64 encoded data for smart contract payment method.
+  - `payment_metadata` (string, optional): Hex string encoded data for smart contract payment method.
   - `from_user_address` (string): The user's address from which the input token will be sent.
   - `to_user_address` (string): The user's address to which the output token will be sent.
   - `user_deposit_tx` (string): Transaction hash of user's deposit.
