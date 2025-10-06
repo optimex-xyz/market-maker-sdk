@@ -19,11 +19,12 @@ A comprehensive guide for implementing Private Market Makers (PMMs) in the cross
   - [1. Overview](#1-overview)    
   - [2. Quick Start](#2-quick-start)    
   - [3. PMM Backend APIs](#3-pmm-backend-apis)
-    - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)      
-    - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)      
-    - [3.3. Endpoint: `/settlement-signature`](#33-endpoint-settlement-signature)      
-    - [3.4. Endpoint: `/ack-settlement`](#34-endpoint-ack-settlement)      
-    - [3.5. Endpoint: `/signal-payment`](#35-endpoint-signal-payment)      
+    - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)
+    - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)
+    - [3.3. Endpoint: `/liquidation-quote`](#33-endpoint-liquidation-quote)
+    - [3.4. Endpoint: `/settlement-signature`](#34-endpoint-settlement-signature)
+    - [3.5. Endpoint: `/ack-settlement`](#35-endpoint-ack-settlement)
+    - [3.6. Endpoint: `/signal-payment`](#36-endpoint-signal-payment)      
   - [4. Solver API Endpoints for PMMs](#4-solver-api-endpoints-for-pmms)
     - [4.1. Endpoint: `/v1/market-maker/tokens`](#41-endpoint-v1market-makertokens)
     - [4.2. Endpoint: `/v1/market-maker/submit-settlement-tx`](#42-endpoint-v1market-makersubmit-settlement-tx)
@@ -353,7 +354,136 @@ async function getCommitmentQuote(req, res) {
 ```
 </details>
 
-### 3.3. Endpoint: `/settlement-signature`
+### 3.3. Endpoint: `/liquidation-quote`
+
+#### Description
+
+Provides a firm commitment quote for a liquidation trade. This endpoint is called after the user deposits funds and represents a binding commitment to execute the liquidation at the quoted rate.
+
+#### Request Parameters
+
+- **HTTP Method**: `GET`
+- **Query Parameters**:
+  - `session_id` (string): Session identifier from the indicative quote.
+  - `trade_id` (string): Unique trade identifier.
+  - `from_token_id` (string): The ID of the source token.
+  - `to_token_id` (string): The ID of the destination token.
+  - `amount` (string): The amount of the source token to be traded, in base 10. This should be treated as a BigInt in your implementation.
+  - `payment_metadata` (string, optional): Base64 encoded data for smart contract payment method.
+  - `from_user_address` (string): The user's address from which the input token will be sent.
+  - `to_user_address` (string): The user's address to which the output token will be sent.
+  - `user_deposit_tx` (string): Transaction hash of user's deposit.
+  - `user_deposit_vault` (string): Vault containing user's deposit.
+  - `trade_deadline` (string): Expected payment deadline (UNIX timestamp).
+  - `script_deadline` (string): Withdrawal deadline if unpaid (UNIX timestamp).
+
+#### Example Request
+
+```
+GET /liquidation-quote?session_id=12345&trade_id=0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328&from_token_id=ETH&to_token_id=BTC&amount=1000000000000000000&from_user_address=0xUserAddress&to_user_address=bc1p68q6hew27ljf4ghvlnwqz0fq32qg7tsgc7jr5levfy8r74p5k52qqphk07&user_deposit_tx=0xDepositTxHash&user_deposit_vault=VaultData&trade_deadline=1696012800&script_deadline=1696016400
+```
+
+#### Expected Response
+
+- **HTTP Status**: `200 OK`
+- **Response Body** (JSON):
+
+```json
+{
+  "trade_id": "0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328",
+  "liquidation_quote": "987654321000000000",
+  "error": ""
+}
+```
+
+- `trade_id` (string): The trade ID associated with the request.
+- `liquidation_quote` (string): **Firm committed quote** - PMM must honor this price. Should be treated as a BigInt in your implementation.
+- `error` (string): Error message, if any (empty if no error).
+
+<details>
+<summary><strong>Example Implementation</strong></summary>
+
+```js
+async function getLiquidationQuote(req, res) {
+  try {
+    const {
+      session_id,
+      trade_id,
+      from_token_id,
+      to_token_id,
+      amount,
+      from_user_address,
+      to_user_address,
+      user_deposit_tx,
+      user_deposit_vault,
+      trade_deadline,
+      script_deadline
+    } = req.query;
+
+    // Validate the session exists
+    const session = await sessionRepository.findById(session_id);
+    if (!session) {
+      return res.status(400).json({
+        trade_id,
+        liquidation_quote: '0',
+        error: 'Session not found'
+      });
+    }
+
+    // Fetch token information from Solver API
+    const tokensResponse = await fetch('https://api.solver.example/v1/market-maker/tokens');
+    const tokensData = await tokensResponse.json();
+
+    // Find the from token and to token
+    const fromToken = tokensData.data.tokens.find(token => token.token_id === from_token_id);
+    const toToken = tokensData.data.tokens.find(token => token.token_id === to_token_id);
+
+    if (!fromToken || !toToken) {
+      return res.status(400).json({
+        trade_id,
+        liquidation_quote: '0',
+        error: 'Token not found'
+      });
+    }
+
+    // Calculate the firm liquidation quote (implementation specific to your PMM)
+    // Note: Treat numeric values as BigInt
+    const amountBigInt = BigInt(amount);
+    const quote = calculateLiquidationQuote(fromToken, toToken, amountBigInt, trade_deadline);
+
+    // Store the trade in the database
+    await tradeRepository.create({
+      tradeId: trade_id,
+      sessionId: session_id,
+      fromTokenId: from_token_id,
+      toTokenId: to_token_id,
+      amount: amountBigInt.toString(),
+      fromUserAddress: from_user_address,
+      toUserAddress: to_user_address,
+      userDepositTx: user_deposit_tx,
+      userDepositVault: user_deposit_vault,
+      tradeDeadline: trade_deadline,
+      scriptDeadline: script_deadline,
+      liquidationQuote: quote.toString()
+    });
+
+    return res.status(200).json({
+      trade_id,
+      liquidation_quote: quote.toString(),
+      error: ''
+    });
+  } catch (error) {
+    return res.status(500).json({
+      trade_id: req.query.trade_id || '',
+      liquidation_quote: '0',
+      error: error.message
+    });
+  }
+}
+```
+</details>
+
+### 3.4. Endpoint: `/settlement-signature`
 
 #### Description
 
@@ -459,7 +589,7 @@ async function getSettlementSignature(req, res) {
 ```
 </details>
 
-### 3.4. Endpoint: `/ack-settlement`
+### 3.5. Endpoint: `/ack-settlement`
 
 #### Description
 
@@ -541,7 +671,7 @@ async function ackSettlement(req, res) {
 ```
 </details>
 
-### 3.5. Endpoint: `/signal-payment`
+### 3.6. Endpoint: `/signal-payment`
 
 #### Description
 
