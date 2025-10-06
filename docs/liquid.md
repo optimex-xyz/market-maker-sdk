@@ -285,7 +285,7 @@ After receiving the payment signal, PMM must submit the settlement transaction t
 
 **Staging Environment:**
 
-- Liquidation Contract: `0x1CcD45Be1508E70d760b11b32ccd5Ac288756b1a`
+- Liquidation Contract: `0x123`
 - Network: Sepolia
 
 **Production Environment:**
