@@ -2,7 +2,6 @@
 
 The liquidation process uses the **Morpho Liquidation Gateway** contract instead of the standard **Payment** contract. However, **the flow when calling the contract is similar to the normal swap payment flow**, following the same sequential steps from initial quote to final settlement.
 
-
 ---
 
 ## Flow Overview
@@ -326,15 +325,55 @@ When executing the liquidation, PMM calls the payment function from the **Morpho
 function payment(
     address token,
     uint256 amount,
-    bytes calldata payment_metadata
+    bytes calldata externalCall
 )
 ```
 
 **Parameters:**
 
-- `token`: Address of the token being paid
+- `token`: Address of the token being paid (or "zeroAddress" for native chain tokens)
 - `amount`: Amount of tokens to pay
-- `payment_metadata`: Encoded call data for the liquidation execution save from liquidation-quote API
+- `externalCall`: Encoded call data for the liquidation execution (provided in `payment_metadata` from `/liquidation-quote`)
+
+### Implementation Example
+
+Here's how PMM executes the liquidation payment:
+
+```typescript
+import { MorphoLiquidationGateway__factory } from '@optimex-xyz/market-maker-sdk'
+
+// 1. Get liquidation contract address
+const liquidAddress = await protocolService.getAssetChainConfig(
+  networkId,
+  AssetChainContractRole.MorphoLiquidationGateway
+)
+
+// 2. Get payment metadata from trade
+const externalCall = trade.metadata.paymentMetadata // From /liquidation-quote request
+
+// 3. Execute liquidation payment
+const txResult = await transactionService.executeContractMethod(
+  MorphoLiquidationGateway__factory,
+  liquidAddress,
+  'payment',
+  [tokenAddress, amount, externalCall], // Match the solidity signature
+  networkId,
+  {
+    description: `Liquidation payment for trade ${tradeId}`,
+    gasBufferPercentage: 40, // Higher buffer for complex liquidation transactions
+  }
+)
+
+// 4. Submit settlement transaction to solver
+await submitSettlementTx({
+  trade_ids: [tradeId],
+  pmm_id: 'pmm001',
+  settlement_tx: txResult.hash,
+  signature: settlementSignature,
+  start_index: 0,
+  signed_at: Math.floor(Date.now() / 1000),
+})
+```
 
 ---
 
@@ -358,14 +397,14 @@ Total length = 66 characters (including 0x prefix)
 
 ### Common Error Codes
 
-| Error Code | Error Name | Description |
-|------------|------------|-------------|
-| `0xadb068de` | NotAuthorizedValidator(address) | Invalid validator signature during forceClose |
-| `0x5ebb051b` | NotEnoughPaymentAmount() | PMM payment insufficient for liquidation |
-| `0xf645eedf` | ECDSAInvalidSignature() | Validator signature is incorrect |
-| `0xfce698f7` | ECDSAInvalidSignatureLength(uint256) | Invalid signature length |
-| `0xd78bce0c` | ECDSAInvalidSignatureS(bytes32) | Wrong signature s value |
-| `0x08c379a0` | Error(string) | Generic error (e.g., position becomes healthy during liquidation) |
+| Error Code   | Error Name                           | Description                                                       |
+| ------------ | ------------------------------------ | ----------------------------------------------------------------- |
+| `0xadb068de` | NotAuthorizedValidator(address)      | Invalid validator signature during forceClose                     |
+| `0x5ebb051b` | NotEnoughPaymentAmount()             | PMM payment insufficient for liquidation                          |
+| `0xf645eedf` | ECDSAInvalidSignature()              | Validator signature is incorrect                                  |
+| `0xfce698f7` | ECDSAInvalidSignatureLength(uint256) | Invalid signature length                                          |
+| `0xd78bce0c` | ECDSAInvalidSignatureS(bytes32)      | Wrong signature s value                                           |
+| `0x08c379a0` | Error(string)                        | Generic error (e.g., position becomes healthy during liquidation) |
 
 ### Error Handling Flow
 
