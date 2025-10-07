@@ -32,7 +32,17 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "InvalidAmount",
+    name: "IncompleteConsumption",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NoHelper",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ReentrancyGuardReentrantCall",
     type: "error",
   },
   {
@@ -84,6 +94,30 @@ const _abi = [
     type: "error",
   },
   {
+    inputs: [],
+    name: "ZeroAmount",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newHelper",
+        type: "address",
+      },
+    ],
+    name: "HelperUpdated",
+    type: "event",
+  },
+  {
     anonymous: false,
     inputs: [
       {
@@ -110,12 +144,6 @@ const _abi = [
         name: "amount",
         type: "uint256",
       },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "data",
-        type: "bytes",
-      },
     ],
     name: "PaymentExecuted",
     type: "event",
@@ -138,6 +166,19 @@ const _abi = [
     ],
     name: "ProtocolUpdated",
     type: "event",
+  },
+  {
+    inputs: [],
+    name: "gatewayHelper",
+    outputs: [
+      {
+        internalType: "contract IGatewayHelper",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [],
@@ -214,6 +255,19 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newHelper",
+        type: "address",
+      },
+    ],
+    name: "setHelper",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

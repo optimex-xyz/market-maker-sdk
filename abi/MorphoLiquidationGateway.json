@@ -22,7 +22,17 @@
   },
   {
     "inputs": [],
-    "name": "InvalidAmount",
+    "name": "IncompleteConsumption",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NoHelper",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReentrancyGuardReentrantCall",
     "type": "error"
   },
   {
@@ -74,6 +84,30 @@
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "ZeroAmount",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newHelper",
+        "type": "address"
+      }
+    ],
+    "name": "HelperUpdated",
+    "type": "event"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -99,12 +133,6 @@
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
       }
     ],
     "name": "PaymentExecuted",
@@ -128,6 +156,19 @@
     ],
     "name": "ProtocolUpdated",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "gatewayHelper",
+    "outputs": [
+      {
+        "internalType": "contract IGatewayHelper",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [],
@@ -204,6 +245,19 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newHelper",
+        "type": "address"
+      }
+    ],
+    "name": "setHelper",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

@@ -26,17 +26,26 @@ import type {
 export interface MorphoLiquidationGatewayInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "gatewayHelper"
       | "getProtocol"
       | "optimexDomain"
       | "payment"
       | "paymentDetails"
+      | "setHelper"
       | "setProtocol"
   ): FunctionFragment;
 
   getEvent(
-    nameOrSignatureOrTopic: "PaymentExecuted" | "ProtocolUpdated"
+    nameOrSignatureOrTopic:
+      | "HelperUpdated"
+      | "PaymentExecuted"
+      | "ProtocolUpdated"
   ): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "gatewayHelper",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getProtocol",
     values?: undefined
@@ -54,10 +63,18 @@ export interface MorphoLiquidationGatewayInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "setHelper",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setProtocol",
     values: [AddressLike]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "gatewayHelper",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getProtocol",
     data: BytesLike
@@ -71,10 +88,24 @@ export interface MorphoLiquidationGatewayInterface extends Interface {
     functionFragment: "paymentDetails",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setHelper", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setProtocol",
     data: BytesLike
   ): Result;
+}
+
+export namespace HelperUpdatedEvent {
+  export type InputTuple = [operator: AddressLike, newHelper: AddressLike];
+  export type OutputTuple = [operator: string, newHelper: string];
+  export interface OutputObject {
+    operator: string;
+    newHelper: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace PaymentExecutedEvent {
@@ -82,22 +113,19 @@ export namespace PaymentExecutedEvent {
     payer: AddressLike,
     liquidator: AddressLike,
     token: AddressLike,
-    amount: BigNumberish,
-    data: BytesLike
+    amount: BigNumberish
   ];
   export type OutputTuple = [
     payer: string,
     liquidator: string,
     token: string,
-    amount: bigint,
-    data: string
+    amount: bigint
   ];
   export interface OutputObject {
     payer: string;
     liquidator: string;
     token: string;
     amount: bigint;
-    data: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -161,6 +189,8 @@ export interface MorphoLiquidationGateway extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  gatewayHelper: TypedContractMethod<[], [string], "view">;
+
   getProtocol: TypedContractMethod<[], [string], "view">;
 
   optimexDomain: TypedContractMethod<
@@ -187,6 +217,12 @@ export interface MorphoLiquidationGateway extends BaseContract {
     "view"
   >;
 
+  setHelper: TypedContractMethod<
+    [newHelper: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
   setProtocol: TypedContractMethod<
     [newProtocol: AddressLike],
     [void],
@@ -197,6 +233,9 @@ export interface MorphoLiquidationGateway extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "gatewayHelper"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "getProtocol"
   ): TypedContractMethod<[], [string], "view">;
@@ -228,9 +267,19 @@ export interface MorphoLiquidationGateway extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "setHelper"
+  ): TypedContractMethod<[newHelper: AddressLike], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "setProtocol"
   ): TypedContractMethod<[newProtocol: AddressLike], [void], "nonpayable">;
 
+  getEvent(
+    key: "HelperUpdated"
+  ): TypedContractEvent<
+    HelperUpdatedEvent.InputTuple,
+    HelperUpdatedEvent.OutputTuple,
+    HelperUpdatedEvent.OutputObject
+  >;
   getEvent(
     key: "PaymentExecuted"
   ): TypedContractEvent<
@@ -247,7 +296,18 @@ export interface MorphoLiquidationGateway extends BaseContract {
   >;
 
   filters: {
-    "PaymentExecuted(address,address,address,uint256,bytes)": TypedContractEvent<
+    "HelperUpdated(address,address)": TypedContractEvent<
+      HelperUpdatedEvent.InputTuple,
+      HelperUpdatedEvent.OutputTuple,
+      HelperUpdatedEvent.OutputObject
+    >;
+    HelperUpdated: TypedContractEvent<
+      HelperUpdatedEvent.InputTuple,
+      HelperUpdatedEvent.OutputTuple,
+      HelperUpdatedEvent.OutputObject
+    >;
+
+    "PaymentExecuted(address,address,address,uint256)": TypedContractEvent<
       PaymentExecutedEvent.InputTuple,
       PaymentExecutedEvent.OutputTuple,
       PaymentExecutedEvent.OutputObject
