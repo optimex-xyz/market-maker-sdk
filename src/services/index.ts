@@ -1,3 +1,4 @@
+export * from './protocol.service'
 export * from './router.service'
 export * from './signer.service'
 export * from './solver.service'
