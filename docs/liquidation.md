@@ -2,15 +2,30 @@
 
 The liquidation process uses the **Morpho Liquidation Gateway** contract instead of the standard **Payment** contract. However, **the flow when calling the contract is similar to the normal swap payment flow**, following the same sequential steps from initial quote to final settlement.
 
+## Table of Contents
+
+- [Quick Flow Overview](#quick-flow-overview)
+- [API Endpoints](#api-endpoints)
+  - [1. Indicative Quote](#1-indicative-quote---initial-quote-request)
+  - [2. Liquidation Quote](#2-liquidation-quote---liquidation-commitment-quote-liquidation-specific) (Liquidation-Specific)
+  - [3. Settlement Signature](#3-settlement-signature---settlement-authorization)
+  - [4. Ack Settlement](#4-ack-settlement---selection-acknowledgment)
+  - [5. Signal Payment](#5-signal-payment---payment-execution-signal)
+- [Settlement & Submission](#settlement--submission)
+- [Smart Contract Integration](#smart-contract-integration)
+- [Error Handling](#error-handling)
+
 ---
 
-## Flow Overview
+## Quick Flow Overview
 
 1. **Indicative Quote** - Initial price discovery
-2. **Liquidation Quote** - Firm commitment quote
+2. **Liquidation Quote** - Firm commitment quote (liquidation-specific)
 3. **Settlement Signature** - PMM signs the settlement
 4. **Ack Settlement** - Solver notifies if PMM is chosen
 5. **Signal Payment** - Solver signals PMM to execute payment
+6. **Settlement Submission** - PMM submits settlement transaction
+7. **Contract Execution** - Liquidation executed via MorphoLiquidationGateway
 
 ```mermaid
 sequenceDiagram
@@ -69,25 +84,27 @@ sequenceDiagram
 
 ---
 
-## 1. `/indicative-quote` - Initial Quote Request
+## API Endpoints
 
-### Purpose
+### 1. `/indicative-quote` - Initial Quote Request
 
-Solver requests an indicative quote before the user makes a deposit. This helps estimate the trade parameters.
+<details>
+<summary><strong>Click to expand</strong> - Shared with Swap flow</summary>
 
-### Request from Solver
+**Purpose:** Solver requests an indicative quote before the user makes a deposit. This helps estimate the trade parameters.
 
-- **Method:** `GET`
-- **Key Parameters:**
-  - `swap_type`: "0" (Optimistic) or "1" (Basic)
-  - `from_token_id`: Source token ID
-  - `to_token_id`: Destination token ID
-  - `amount`: Amount to trade (base 10 string)
-  - `trade_timeout`: Deadline for user to receive tokens (UNIX timestamp)
-  - `script_timeout`: Hard timeout for the trade (UNIX timestamp)
-  - `deposited`: Whether deposit is confirmed (optional)
+**Method:** `GET`
 
-### Response from PMM
+**Key Parameters:**
+- `swap_type`: "0" (Optimistic) or "1" (Basic)
+- `from_token_id`: Source token ID
+- `to_token_id`: Destination token ID
+- `amount`: Amount to trade (base 10 string)
+- `trade_timeout`: Deadline for user to receive tokens (UNIX timestamp)
+- `script_timeout`: Hard timeout for the trade (UNIX timestamp)
+- `deposited`: Whether deposit is confirmed (optional)
+
+**Response:**
 
 ```json
 {
@@ -99,36 +116,34 @@ Solver requests an indicative quote before the user makes a deposit. This helps 
 }
 ```
 
-### Key Fields
-
+**Key Fields:**
 - `pmm_receiving_address`: Where user will send the input tokens
 - `indicative_quote`: Estimated output amount
 - `quote_timeout`: When this quote expires (0 if no timeout)
 
+</details>
+
 ---
 
-## 2. `/liquidation-quote` - Liquidation Commitment Quote
+### 2. `/liquidation-quote` - Liquidation Commitment Quote (Liquidation-Specific)
 
-### Purpose
+**Purpose:** Solver requests a firm commitment quote for the liquidation after user deposits funds.
 
-After user deposits funds, solver requests a firm commitment quote for the liquidation.
+**Method:** `GET`
 
-### Request from Solver
+**Key Parameters:**
+- `session_id`: Session identifier
+- `trade_id`: Unique trade identifier
+- `from_token_id`, `to_token_id`, `amount`: Trade details
+- `payment_metadata`: Hex string encoded data for smart contract payment method
+- `from_user_address`: User's source address
+- `to_user_address`: User's receiving address
+- `user_deposit_tx`: Transaction hash of user's deposit
+- `user_deposit_vault`: Vault containing user's deposit
+- `trade_deadline`: Expected payment deadline (UNIX timestamp)
+- `script_deadline`: Withdrawal deadline if unpaid (UNIX timestamp)
 
-- **Method:** `GET`
-- **Key Parameters:**
-  - `session_id`: Session identifier
-  - `trade_id`: Unique trade identifier
-  - `from_token_id`, `to_token_id`, `amount`: Trade details
-  - `payment_metadata`: Hex string encoded data for smart contract payment method
-  - `from_user_address`: User's source address
-  - `to_user_address`: User's receiving address
-  - `user_deposit_tx`: Transaction hash of user's deposit
-  - `user_deposit_vault`: Vault containing user's deposit
-  - `trade_deadline`: Expected payment deadline (UNIX timestamp)
-  - `script_deadline`: Withdrawal deadline if unpaid (UNIX timestamp)
-
-### Response from PMM
+**Response:**
 
 ```json
 {
@@ -138,29 +153,28 @@ After user deposits funds, solver requests a firm commitment quote for the liqui
 }
 ```
 
-### Key Fields
-
+**Key Fields:**
 - `liquidation_quote`: **Firm committed quote** - PMM must honor this price
 - This is a binding commitment to execute the liquidation at this rate
 
 ---
 
-## 3. `/settlement-signature` - Settlement Authorization
+### 3. `/settlement-signature` - Settlement Authorization
 
-### Purpose
+<details>
+<summary><strong>Click to expand</strong> - Shared with Swap flow</summary>
 
-**Similar to Swap flow:** PMM provides a cryptographic signature to authorize the settlement at the committed quote.
+**Purpose:** PMM provides a cryptographic signature to authorize the settlement at the committed quote.
 
-### Request from Solver
+**Method:** `GET`
 
-- **Method:** `GET`
-- **Parameters:**
-  - `trade_id`: Unique trade identifier
-  - `committed_quote`: The agreed quote value (base 10 string)
-  - `trade_deadline`: Expected payment deadline (UNIX timestamp)
-  - `script_deadline`: Withdrawal deadline (UNIX timestamp)
+**Parameters:**
+- `trade_id`: Unique trade identifier
+- `committed_quote`: The agreed quote value (base 10 string)
+- `trade_deadline`: Expected payment deadline (UNIX timestamp)
+- `script_deadline`: Withdrawal deadline (UNIX timestamp)
 
-### Response from PMM
+**Response:**
 
 ```json
 {
@@ -171,24 +185,25 @@ After user deposits funds, solver requests a firm commitment quote for the liqui
 }
 ```
 
-### Key Fields
-
+**Key Fields:**
 - `signature`: PMM's signature authorizing the settlement
 - `deadline`: PMM's expected payment deadline
 - This signature will be used to finalize the trade on-chain
 
+</details>
+
 ---
 
-## 4. `/ack-settlement` - Selection Acknowledgment
+### 4. `/ack-settlement` - Selection Acknowledgment
 
-### Purpose
+<details>
+<summary><strong>Click to expand</strong> - Shared with Swap flow</summary>
 
-**Similar to Swap flow:** Solver notifies the PMM whether it was selected to execute the liquidation (solver may query multiple PMMs).
+**Purpose:** Solver notifies the PMM whether it was selected to execute the liquidation (solver may query multiple PMMs).
 
-### Request from Solver
+**Method:** `POST`
 
-- **Method:** `POST`
-- **Body:**
+**Request Body:**
 
 ```json
 {
@@ -199,7 +214,7 @@ After user deposits funds, solver requests a firm commitment quote for the liqui
 }
 ```
 
-### Response from PMM
+**Response:**
 
 ```json
 {
@@ -209,24 +224,25 @@ After user deposits funds, solver requests a firm commitment quote for the liqui
 }
 ```
 
-### Key Fields
-
+**Key Fields:**
 - `chosen`: "true" if PMM is selected, "false" if not
 - If chosen, PMM should prepare to execute the liquidation
 - If not chosen, PMM can release reserved liquidity
 
+</details>
+
 ---
 
-## 5. `/signal-payment` - Payment Execution Signal
+### 5. `/signal-payment` - Payment Execution Signal
 
-### Purpose
+<details>
+<summary><strong>Click to expand</strong> - Shared with Swap flow</summary>
 
-**Similar to Swap flow:** Solver signals the chosen PMM to start submitting the liquidation payment transaction.
+**Purpose:** Solver signals the chosen PMM to start submitting the liquidation payment transaction.
 
-### Request from Solver
+**Method:** `POST`
 
-- **Method:** `POST`
-- **Body:**
+**Request Body:**
 
 ```json
 {
@@ -237,7 +253,7 @@ After user deposits funds, solver requests a firm commitment quote for the liqui
 }
 ```
 
-### Response from PMM
+**Response:**
 
 ```json
 {
@@ -247,17 +263,18 @@ After user deposits funds, solver requests a firm commitment quote for the liqui
 }
 ```
 
-### PMM Actions After Signal
-
+**PMM Actions After Signal:**
 1. **Prepare settlement transaction** using the liquidation contract
 2. **Submit to solver** via `/submit-settlement-tx` endpoint:
    - Include `trade_ids`, `pmm_id`, `settlement_tx`
    - Provide signature and timestamp
 3. **Execute payment** before the deadline
 
+</details>
+
 ---
 
-## Settlement Submission
+## Settlement & Submission
 
 After receiving the payment signal, PMM must submit the settlement transaction to the solver backend.
 
@@ -374,7 +391,7 @@ await submitSettlementTx({
 
 ---
 
-## Error Handling for Settlement Simulation
+## Error Handling
 
 When settlement simulation reverts, PMM must create a dummy settlement transaction using the 4-byte error code from the contract revert, padded to match normal Ethereum transaction size.
 
