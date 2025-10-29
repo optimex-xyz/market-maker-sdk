@@ -310,12 +310,12 @@ After receiving the payment signal, PMM must submit the settlement transaction t
 **Staging Environment:**
 
 - **Network:** Sepolia
-- **Liquidation Contract:** [0xF3fB62E0CC08eB1fE9fa090aa4f18A09B49e4f96](https://sepolia.etherscan.io/address/0xF3fB62E0CC08eB1fE9fa090aa4f18A09B49e4f96#code)
+- **MorphoLiquidationGateway Contract:** [0x390Bd58173F7C0433f8fa9b0fF08913A261d0Ba7](https://sepolia.etherscan.io/address/0x390Bd58173F7C0433f8fa9b0fF08913A261d0Ba7#code)
 
 **Production Environment:**
 
 - **Network:** Ethereum Mainnet
-- **Liquidation Contract:** ``
+- **MorphoLiquidationGateway Contract:** [0x4be396E85c09972728C114F781Aa0e84A5f908E5](https://etherscan.io/address/0x4be396E85c09972728C114F781Aa0e84A5f908E5)
 
 ### Payment Function
 
