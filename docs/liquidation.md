@@ -29,7 +29,7 @@ sequenceDiagram
     Solver->>Vault: Verify deposit transaction
     Vault-->>Solver: Deposit confirmed
 
-    Note over Solver,PMM: Step 2: Firm Commitment - Liquidation quote
+    Note over Solver,PMM: Step 2: Firm liquidation commitment - Liquidation quote
     Solver->>PMM: GET /liquidation-quote
     activate PMM
     Note right of PMM: PMM commits to<br/>liquidation price
@@ -63,10 +63,7 @@ sequenceDiagram
         Solver-->>PMM: success
         deactivate Solver
 
-        PMM->>Blockchain: Execute liquidation payment
-        Blockchain-->>User: Receive output tokens
-    else PMM not chosen
-        Note right of PMM: Release reserved<br/>liquidity
+        PMM->>Blockchain: Execute liquidation via MorphoLiquidationGateway            
     end
 ```
 
@@ -110,7 +107,7 @@ Solver requests an indicative quote before the user makes a deposit. This helps 
 
 ---
 
-## 2. `/liquidation-quote` - Commitment Quote
+## 2. `/liquidation-quote` - Liquidation Commitment Quote
 
 ### Purpose
 
