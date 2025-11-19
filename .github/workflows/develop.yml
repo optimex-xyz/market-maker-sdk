@@ -3,9 +3,9 @@ name: Build and Publish Dev Package
 on:
   push:
     branches:
-      - 'develop'
+      - "develop"
     paths-ignore:
-      - 'package.json' # Ignore changes to package.json to avoid infinite loops
+      - "package.json" # Ignore changes to package.json to avoid infinite loops
 
 permissions:
   id-token: write # Required for OIDC
@@ -24,8 +24,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org/'
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org/"
 
       - name: Get current package info
         id: package
@@ -82,7 +82,7 @@ jobs:
           fi
 
       - name: Publish to NPM
-        run: npm publish --provenance --access public --tag dev
+        run: npm publish --tag dev
 
       - name: Send Telegram Notification
         uses: appleboy/telegram-action@master
