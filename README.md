@@ -1,6 +1,7 @@
 # PMM API Integration Documentation
 
-> **CHANGELOG (v0.8.0)**: 
+> **CHANGELOG (v0.8.0)**:
+>
 > - **Breaking Changes:**
 >   - Update to get router contract from protocol fetcher
 >   - Use consistent trade_id across all protocol
@@ -15,24 +16,63 @@ A comprehensive guide for implementing Private Market Makers (PMMs) in the cross
 
 ## Table of Contents
 
-- [PMM API Integration Documentation](#pmm-api-integration-documentation)  
-  - [1. Overview](#1-overview)    
-  - [2. Quick Start](#2-quick-start)    
+- [PMM API Integration Documentation](#pmm-api-integration-documentation)
+  - [Table of Contents](#table-of-contents)
+  - [1. Overview](#1-overview)
+    - [1.1. Integration Flow](#11-integration-flow)
+  - [2. Quick Start](#2-quick-start)
+    - [2.1. API Environments](#21-api-environments)
   - [3. PMM Backend APIs](#3-pmm-backend-apis)
     - [3.1. Endpoint: `/indicative-quote`](#31-endpoint-indicative-quote)
+      - [Description](#description)
+      - [Request Parameters](#request-parameters)
+      - [Example Request](#example-request)
+      - [Expected Response](#expected-response)
     - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)
+      - [Description](#description-1)
+      - [Request Parameters](#request-parameters-1)
+      - [Example Request](#example-request-1)
+      - [Expected Response](#expected-response-1)
     - [3.3. Endpoint: `/liquidation-quote`](#33-endpoint-liquidation-quote)
+      - [Description](#description-2)
+      - [Request Parameters](#request-parameters-2)
+      - [Example Request](#example-request-2)
+      - [Expected Response](#expected-response-2)
     - [3.4. Endpoint: `/settlement-signature`](#34-endpoint-settlement-signature)
+      - [Description](#description-3)
+      - [Request Parameters](#request-parameters-3)
+      - [Example Request](#example-request-3)
+      - [Expected Response](#expected-response-3)
     - [3.5. Endpoint: `/ack-settlement`](#35-endpoint-ack-settlement)
-    - [3.6. Endpoint: `/signal-payment`](#36-endpoint-signal-payment)      
+      - [Description](#description-4)
+      - [Request Parameters](#request-parameters-4)
+      - [Example Request](#example-request-4)
+      - [Expected Response](#expected-response-4)
+    - [3.6. Endpoint: `/signal-payment`](#36-endpoint-signal-payment)
+      - [Description](#description-5)
+      - [Request Parameters](#request-parameters-5)
+      - [Example Request](#example-request-5)
+      - [Expected Response](#expected-response-5)
   - [4. Solver API Endpoints for PMMs](#4-solver-api-endpoints-for-pmms)
     - [4.1. Endpoint: `/v1/market-maker/tokens`](#41-endpoint-v1market-makertokens)
+      - [Description](#description-6)
+      - [Request Parameters](#request-parameters-6)
+      - [Example Request](#example-request-6)
+      - [Expected Response](#expected-response-6)
     - [4.2. Endpoint: `/v1/market-maker/submit-settlement-tx`](#42-endpoint-v1market-makersubmit-settlement-tx)
+      - [Description](#description-7)
+      - [Request Parameters](#request-parameters-7)
+      - [Example Request](#example-request-7)
+      - [Expected Response](#expected-response-7)
+      - [Notes](#notes)
     - [4.3. Endpoint: `/v1/market-maker/trades/:tradeId`](#43-endpoint-v1market-makertradestradeid)
+      - [Description](#description-8)
+      - [Request Parameters](#request-parameters-8)
+      - [Example Request](#example-request-8)
+      - [Expected Response](#expected-response-8)
   - [5. PMM Making Payment](#5-pmm-making-payment)
     - [5.1. EVM](#51-evm)
     - [5.2. Bitcoin](#52-bitcoin)
-
 
 ## 1. Overview
 
@@ -42,7 +82,6 @@ The PMM integration with Optimex involves bidirectional API communication:
 2. **Solver-Provided APIs**: Endpoints that the Solver provides for PMMs to call
 
 ### 1.1. Integration Flow
-
 
 ```mermaid
 sequenceDiagram
@@ -78,22 +117,24 @@ sequenceDiagram
 
 ### 2.1. API Environments
 
-| Environment      | Description                                                          |
-| ---------------- | -------------------------------------------------------------------- |
-| `dev`            | internal environment with test networks and development services     |
-| `staging`        | Staging environment with test networks and staging services      |
-| `prelive` | Pre production environment with mainnet networks for testing before release |
-| `production`     | Production environment with mainnet networks and production services |
+| Environment  | Description                                                                 |
+| ------------ | --------------------------------------------------------------------------- |
+| `dev`        | internal environment with test networks and development services            |
+| `staging`    | Staging environment with test networks and staging services                 |
+| `prelive`    | Pre production environment with mainnet networks for testing before release |
+| `production` | Production environment with mainnet networks and production services        |
 
 <details>
 <summary><strong>Staging Contracts</strong></summary>
 
 **Optimex L2 Testnet**
+
 - **Signer**: [0xA89F5060B810F3b6027D7663880c43ee77A865C7](https://scan-testnet.optimex.xyz/address/0xA89F5060B810F3b6027D7663880c43ee77A865C7)
 - **Router**: [0x31C88ebd9E430455487b6a5c8971e8eF63e97ED4](https://scan-testnet.optimex.xyz/address/0x31C88ebd9E430455487b6a5c8971e8eF63e97ED4)
 - **ProtocolFetcherProxy**: [0x7c07151ca4DFd93F352Ab9B132A95866697c38c2](https://scan-testnet.optimex.xyz/address/0x7c07151ca4DFd93F352Ab9B132A95866697c38c2)
 
 **Ethereum Sepolia**
+
 - **Payment**: [0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2](https://sepolia.etherscan.io/address/0x7387DcCfE2f1D5F80b4ECDF91eF58541517e90D2)
 - **ETHVault**: [0x17aD543010fc8E8065b85E203839C0CBEcdfC851](https://sepolia.etherscan.io/address/0x17aD543010fc8E8065b85E203839C0CBEcdfC851)
 - **WETHVault**: [0x673Ac1489457F43F04403940cE425ae19a9D639B](https://sepolia.etherscan.io/address/0x673Ac1489457F43F04403940cE425ae19a9D639B)
@@ -105,13 +146,14 @@ sequenceDiagram
 <details>
 <summary><strong>Production/Prelive Contracts</strong></summary>
 
-
 **Optimex L2 Mainnet**
+
 - **Signer**: [0xCF9786F123F1071023dB8049808C223e94c384be](https://scan.optimex.xyz/address/0xCF9786F123F1071023dB8049808C223e94c384be)
 - **Router**: [0x1e878cCa765a8aAFEBecCa672c767441b4859634](https://scan.optimex.xyz/address/0x1e878cCa765a8aAFEBecCa672c767441b4859634)
 - **ProtocolFetcherProxy**: [0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b](https://scan.optimex.xyz/address/0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b)
 
 **Ethereum Mainnet**
+
 - **Payment**: [0x0A497AC4261E37FA4062762C23Cf3cB642C839b8](https://etherscan.io/address/0x0A497AC4261E37FA4062762C23Cf3cB642C839b8)
 - **ETHVault**: [0xF7fedF4A250157010807E6eA60258E3B768149Ff](https://etherscan.io/address/0xF7fedF4A250157010807E6eA60258E3B768149Ff)
 - **WETHVault**: [0xaD3f379AaED8Eca895209Af446F2e34f07145dbC](https://etherscan.io/address/0xaD3f379AaED8Eca895209Af446F2e34f07145dbC)
@@ -178,52 +220,53 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 ```js
 async function getIndicativeQuote(req, res) {
   try {
-    const { from_token_id, to_token_id, amount, session_id } = req.query;
+    const { from_token_id, to_token_id, amount, session_id } = req.query
 
     // Generate a session ID if not provided
-    const sessionId = session_id || generateSessionId();
+    const sessionId = session_id || generateSessionId()
 
     // Fetch token information from Solver API
-    const tokensResponse = await fetch('https://api.solver.example/v1/market-maker/tokens');
-    const tokensData = await tokensResponse.json();
+    const tokensResponse = await fetch('https://api.solver.example/v1/market-maker/tokens')
+    const tokensData = await tokensResponse.json()
 
     // Find the from token and to token
-    const fromToken = tokensData.data.tokens.find(token => token.token_id === from_token_id);
-    const toToken = tokensData.data.tokens.find(token => token.token_id === to_token_id);
+    const fromToken = tokensData.data.tokens.find((token) => token.token_id === from_token_id)
+    const toToken = tokensData.data.tokens.find((token) => token.token_id === to_token_id)
 
     if (!fromToken || !toToken) {
       return res.status(400).json({
         session_id: sessionId,
         pmm_receiving_address: '',
         indicative_quote: '0',
-        error: 'Token not found'
-      });
+        error: 'Token not found',
+      })
     }
 
     // Calculate the quote (implementation specific to your PMM)
     // Note: Treat amount as BigInt
-    const amountBigInt = BigInt(amount);
-    const quote = calculateQuote(fromToken, toToken, amountBigInt);
+    const amountBigInt = BigInt(amount)
+    const quote = calculateQuote(fromToken, toToken, amountBigInt)
 
     // Get the receiving address for this token pair
-    const pmmReceivingAddress = getPMMReceivingAddress(fromToken.network_id);
+    const pmmReceivingAddress = getPMMReceivingAddress(fromToken.network_id)
 
     return res.status(200).json({
       session_id: sessionId,
       pmm_receiving_address: pmmReceivingAddress,
       indicative_quote: quote.toString(),
-      error: ''
-    });
+      error: '',
+    })
   } catch (error) {
     return res.status(500).json({
       session_id: req.query.session_id || '',
       pmm_receiving_address: '',
       indicative_quote: '0',
-      error: error.message
-    });
+      error: error.message,
+    })
   }
 }
 ```
+
 </details>
 
 ### 3.2. Endpoint: `/commitment-quote`
@@ -288,39 +331,39 @@ async function getCommitmentQuote(req, res) {
       user_deposit_tx,
       user_deposit_vault,
       trade_deadline,
-      script_deadline
-    } = req.query;
+      script_deadline,
+    } = req.query
 
     // Validate the session exists
-    const session = await sessionRepository.findById(session_id);
+    const session = await sessionRepository.findById(session_id)
     if (!session) {
       return res.status(400).json({
         trade_id,
         commitment_quote: '0',
-        error: 'Session not found'
-      });
+        error: 'Session not found',
+      })
     }
 
     // Fetch token information from Solver API
-    const tokensResponse = await fetch('https://api.solver.example/v1/market-maker/tokens');
-    const tokensData = await tokensResponse.json();
+    const tokensResponse = await fetch('https://api.solver.example/v1/market-maker/tokens')
+    const tokensData = await tokensResponse.json()
 
     // Find the from token and to token
-    const fromToken = tokensData.data.tokens.find(token => token.token_id === from_token_id);
-    const toToken = tokensData.data.tokens.find(token => token.token_id === to_token_id);
+    const fromToken = tokensData.data.tokens.find((token) => token.token_id === from_token_id)
+    const toToken = tokensData.data.tokens.find((token) => token.token_id === to_token_id)
 
     if (!fromToken || !toToken) {
       return res.status(400).json({
         trade_id,
         commitment_quote: '0',
-        error: 'Token not found'
-      });
+        error: 'Token not found',
+      })
     }
 
     // Calculate the final quote (implementation specific to your PMM)
     // Note: Treat numeric values as BigInt
-    const amountBigInt = BigInt(amount);
-    const quote = calculateFinalQuote(fromToken, toToken, amountBigInt, trade_deadline);
+    const amountBigInt = BigInt(amount)
+    const quote = calculateFinalQuote(fromToken, toToken, amountBigInt, trade_deadline)
 
     // Store the trade in the database
     await tradeRepository.create({
@@ -335,23 +378,24 @@ async function getCommitmentQuote(req, res) {
       userDepositVault: user_deposit_vault,
       tradeDeadline: trade_deadline,
       scriptDeadline: script_deadline,
-      commitmentQuote: quote.toString()
-    });
+      commitmentQuote: quote.toString(),
+    })
 
     return res.status(200).json({
       trade_id,
       commitment_quote: quote.toString(),
-      error: ''
-    });
+      error: '',
+    })
   } catch (error) {
     return res.status(500).json({
       trade_id: req.query.trade_id || '',
       commitment_quote: '0',
-      error: error.message
-    });
+      error: error.message,
+    })
   }
 }
 ```
+
 </details>
 
 ### 3.3. Endpoint: `/liquidation-quote`
@@ -417,39 +461,39 @@ async function getLiquidationQuote(req, res) {
       user_deposit_tx,
       user_deposit_vault,
       trade_deadline,
-      script_deadline
-    } = req.query;
+      script_deadline,
+    } = req.query
 
     // Validate the session exists
-    const session = await sessionRepository.findById(session_id);
+    const session = await sessionRepository.findById(session_id)
     if (!session) {
       return res.status(400).json({
         trade_id,
         liquidation_quote: '0',
-        error: 'Session not found'
-      });
+        error: 'Session not found',
+      })
     }
 
     // Fetch token information from Solver API
-    const tokensResponse = await fetch('https://api.solver.example/v1/market-maker/tokens');
-    const tokensData = await tokensResponse.json();
+    const tokensResponse = await fetch('https://api.solver.example/v1/market-maker/tokens')
+    const tokensData = await tokensResponse.json()
 
     // Find the from token and to token
-    const fromToken = tokensData.data.tokens.find(token => token.token_id === from_token_id);
-    const toToken = tokensData.data.tokens.find(token => token.token_id === to_token_id);
+    const fromToken = tokensData.data.tokens.find((token) => token.token_id === from_token_id)
+    const toToken = tokensData.data.tokens.find((token) => token.token_id === to_token_id)
 
     if (!fromToken || !toToken) {
       return res.status(400).json({
         trade_id,
         liquidation_quote: '0',
-        error: 'Token not found'
-      });
+        error: 'Token not found',
+      })
     }
 
     // Calculate the firm liquidation quote (implementation specific to your PMM)
     // Note: Treat numeric values as BigInt
-    const amountBigInt = BigInt(amount);
-    const quote = calculateLiquidationQuote(fromToken, toToken, amountBigInt, trade_deadline);
+    const amountBigInt = BigInt(amount)
+    const quote = calculateLiquidationQuote(fromToken, toToken, amountBigInt, trade_deadline)
 
     // Store the trade in the database
     await tradeRepository.create({
@@ -464,23 +508,24 @@ async function getLiquidationQuote(req, res) {
       userDepositVault: user_deposit_vault,
       tradeDeadline: trade_deadline,
       scriptDeadline: script_deadline,
-      liquidationQuote: quote.toString()
-    });
+      liquidationQuote: quote.toString(),
+    })
 
     return res.status(200).json({
       trade_id,
       liquidation_quote: quote.toString(),
-      error: ''
-    });
+      error: '',
+    })
   } catch (error) {
     return res.status(500).json({
       trade_id: req.query.trade_id || '',
       liquidation_quote: '0',
-      error: error.message
-    });
+      error: error.message,
+    })
   }
 }
 ```
+
 </details>
 
 ### 3.4. Endpoint: `/settlement-signature`
@@ -529,35 +574,35 @@ GET /settlement-signature?trade_id=0x3d09b8eb94466bffa126aeda68c8c0f330633a7d005
 ```js
 async function getSettlementSignature(req, res) {
   try {
-    const { trade_id, committed_quote, trade_deadline, script_deadline } = req.query;
+    const { trade_id, committed_quote, trade_deadline, script_deadline } = req.query
 
     // Fetch the trade from the database
-    const trade = await tradeRepository.findById(trade_id);
+    const trade = await tradeRepository.findById(trade_id)
     if (!trade) {
       return res.status(400).json({
         trade_id,
         signature: '',
         deadline: 0,
-        error: 'Trade not found'
-      });
+        error: 'Trade not found',
+      })
     }
 
     // Fetch trade details from Solver API
-    const tradeDetailsResponse = await fetch(`https://api.solver.example/v1/market-maker/trades/${trade_id}`);
-    const tradeDetails = await tradeDetailsResponse.json();
+    const tradeDetailsResponse = await fetch(`https://api.solver.example/v1/market-maker/trades/${trade_id}`)
+    const tradeDetails = await tradeDetailsResponse.json()
 
     // Calculate a deadline (30 minutes from now)
-    const deadline = Math.floor(Date.now() / 1000) + 1800;
+    const deadline = Math.floor(Date.now() / 1000) + 1800
 
     // Get PMM data
-    const pmmId = process.env.PMM_ID; // Your PMM ID
+    const pmmId = process.env.PMM_ID // Your PMM ID
 
     // Get the presigns and trade data from tradeDetails
-    const { from_token, to_token } = tradeDetails.data;
+    const { from_token, to_token } = tradeDetails.data
 
     // Create a commitment info hash
     // Note: Treat numeric values as BigInt
-    const committedQuoteBigInt = BigInt(committed_quote);
+    const committedQuoteBigInt = BigInt(committed_quote)
     const commitInfoHash = createCommitInfoHash(
       pmmId,
       trade.pmmReceivingAddress,
@@ -565,28 +610,29 @@ async function getSettlementSignature(req, res) {
       to_token.address,
       committedQuoteBigInt,
       deadline
-    );
+    )
 
     // Sign the commitment with your private key
-    const privateKey = process.env.PMM_PRIVATE_KEY;
-    const signature = signMessage(privateKey, trade_id, commitInfoHash);
+    const privateKey = process.env.PMM_PRIVATE_KEY
+    const signature = signMessage(privateKey, trade_id, commitInfoHash)
 
     return res.status(200).json({
       trade_id,
       signature,
       deadline,
-      error: ''
-    });
+      error: '',
+    })
   } catch (error) {
     return res.status(500).json({
       trade_id: req.query.trade_id || '',
       signature: '',
       deadline: 0,
-      error: error.message
-    });
+      error: error.message,
+    })
   }
 }
 ```
+
 </details>
 
 ### 3.5. Endpoint: `/ack-settlement`
@@ -636,39 +682,40 @@ trade_id=0x024be4dae899989e0c3d9b4459e5811613bcd04016dc56529f16a19d2a7724c0&trad
 ```js
 async function ackSettlement(req, res) {
   try {
-    const { trade_id, trade_deadline, script_deadline, chosen } = req.body;
+    const { trade_id, trade_deadline, script_deadline, chosen } = req.body
 
     // Fetch the trade from the database
-    const trade = await tradeRepository.findById(trade_id);
+    const trade = await tradeRepository.findById(trade_id)
     if (!trade) {
       return res.status(400).json({
         trade_id,
         status: 'error',
-        error: 'Trade not found'
-      });
+        error: 'Trade not found',
+      })
     }
 
     // Update trade status based on whether it was chosen
     await tradeRepository.update(trade_id, {
       chosen: chosen === 'true',
       tradeDeadline: trade_deadline,
-      scriptDeadline: script_deadline
-    });
+      scriptDeadline: script_deadline,
+    })
 
     return res.status(200).json({
       trade_id,
       status: 'acknowledged',
-      error: ''
-    });
+      error: '',
+    })
   } catch (error) {
     return res.status(500).json({
       trade_id: req.body.trade_id || '',
       status: 'error',
-      error: error.message
-    });
+      error: error.message,
+    })
   }
 }
 ```
+
 </details>
 
 ### 3.6. Endpoint: `/signal-payment`
@@ -718,45 +765,46 @@ trade_id=0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328&tota
 ```js
 async function signalPayment(req, res) {
   try {
-    const { trade_id, total_fee_amount, trade_deadline, script_deadline } = req.body;
+    const { trade_id, total_fee_amount, trade_deadline, script_deadline } = req.body
 
     // Fetch the trade from the database
-    const trade = await tradeRepository.findById(trade_id);
+    const trade = await tradeRepository.findById(trade_id)
     if (!trade) {
       return res.status(400).json({
         trade_id,
         status: 'error',
-        error: 'Trade not found'
-      });
+        error: 'Trade not found',
+      })
     }
 
     // Update trade with fee amount
     await tradeRepository.update(trade_id, {
       totalFeeAmount: total_fee_amount,
       tradeDeadline: trade_deadline,
-      scriptDeadline: script_deadline
-    });
+      scriptDeadline: script_deadline,
+    })
 
     // Queue the payment task
     await paymentQueue.add({
       tradeId: trade_id,
-      totalFeeAmount: total_fee_amount
-    });
+      totalFeeAmount: total_fee_amount,
+    })
 
     return res.status(200).json({
       trade_id,
       status: 'acknowledged',
-      error: ''
-    });
+      error: '',
+    })
   } catch (error) {
     return res.status(500).json({
       trade_id: req.body.trade_id || '',
       status: 'error',
-      error: error.message
-    });
+      error: error.message,
+    })
   }
 }
 ```
+
 </details>
 
 ## 4. Solver API Endpoints for PMMs
@@ -791,79 +839,81 @@ GET /v1/market-maker/tokens
 
 ```json
 {
-    "data": {
-        "supported_networks": [
-            {
-                "network_id": "bitcoin_testnet",
-                "name": "Bitcoin Testnet",
-                "symbol": "tBTC",
-                "type": "BTC",
-                "logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/btc_network.svg"
-            },
-            {
-                "network_id": "ethereum_sepolia",
-                "name": "Ethereum Sepolia",
-                "symbol": "ETH",
-                "type": "EVM",
-                "logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/eth_network.svg"
-            }
-        ],
-        "tokens": [
-            {
-                "id": 2,
-                "network_id": "bitcoin_testnet",
-                "token_id": "tBTC",
-                "network_name": "Bitcoin Testnet",
-                "network_symbol": "tBTC",
-                "network_type": "BTC",
-                "token_name": "Bitcoin Testnet",
-                "token_symbol": "tBTC",
-                "token_address": "native",
-                "token_decimals": 8,
-                "token_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/tbtc.svg",
-                "network_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/btc_network.svg",
-                "active": true,
-                "created_at": "2024-10-28T07:24:33.179Z",
-                "updated_at": "2024-11-07T04:40:46.454Z"
-            },
-            {
-                "id": 11,
-                "network_id": "ethereum_sepolia",
-                "token_id": "ETH",
-                "network_name": "Ethereum Sepolia",
-                "network_symbol": "ETH",
-                "network_type": "EVM",
-                "token_name": "Ethereum Sepolia",
-                "token_symbol": "ETH",
-                "token_address": "native",
-                "token_decimals": 18,
-                "token_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/eth.svg",
-                "network_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/eth_network.svg",
-                "active": true,
-                "created_at": "2024-11-22T08:36:59.175Z",
-                "updated_at": "2024-11-22T08:36:59.175Z"
-            }
-        ],
-        "pairs": [
-            {
-                "from_token_id": "ETH",
-                "to_token_id": "tBTC",
-                "is_active": true
-            },
-            {
-                "from_token_id": "tBTC",
-                "to_token_id": "ETH",
-                "is_active": true
-            }
-        ]
-    }
+  "data": {
+    "supported_networks": [
+      {
+        "network_id": "bitcoin_testnet",
+        "name": "Bitcoin Testnet",
+        "symbol": "tBTC",
+        "type": "BTC",
+        "logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/btc_network.svg"
+      },
+      {
+        "network_id": "ethereum_sepolia",
+        "name": "Ethereum Sepolia",
+        "symbol": "ETH",
+        "type": "EVM",
+        "logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/eth_network.svg"
+      }
+    ],
+    "tokens": [
+      {
+        "id": 2,
+        "network_id": "bitcoin_testnet",
+        "token_id": "tBTC",
+        "network_name": "Bitcoin Testnet",
+        "network_symbol": "tBTC",
+        "network_type": "BTC",
+        "token_name": "Bitcoin Testnet",
+        "token_symbol": "tBTC",
+        "token_address": "native",
+        "token_decimals": 8,
+        "token_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/tbtc.svg",
+        "network_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/btc_network.svg",
+        "active": true,
+        "created_at": "2024-10-28T07:24:33.179Z",
+        "updated_at": "2024-11-07T04:40:46.454Z"
+      },
+      {
+        "id": 11,
+        "network_id": "ethereum_sepolia",
+        "token_id": "ETH",
+        "network_name": "Ethereum Sepolia",
+        "network_symbol": "ETH",
+        "network_type": "EVM",
+        "token_name": "Ethereum Sepolia",
+        "token_symbol": "ETH",
+        "token_address": "native",
+        "token_decimals": 18,
+        "token_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/eth.svg",
+        "network_logo_uri": "https://storage.googleapis.com/Optimex-static-35291d79/images/tokens/eth_network.svg",
+        "active": true,
+        "created_at": "2024-11-22T08:36:59.175Z",
+        "updated_at": "2024-11-22T08:36:59.175Z"
+      }
+    ],
+    "pairs": [
+      {
+        "from_token_id": "ETH",
+        "to_token_id": "tBTC",
+        "is_active": true
+      },
+      {
+        "from_token_id": "tBTC",
+        "to_token_id": "ETH",
+        "is_active": true
+      }
+    ]
+  }
 }
 ```
+
 </details>
 
 ### 4.2. Endpoint: `/v1/market-maker/submit-settlement-tx`
 
 #### Description
+
 Allows the PMM to submit settlement transaction hashes for trades. This endpoint is essential for completing the trade settlement process and must be called after making payments.
 
 #### Request Parameters
@@ -889,17 +939,18 @@ Allows the PMM to submit settlement transaction hashes for trades. This endpoint
 - `signed_at` (integer): UNIX timestamp (seconds) when you signed this submission.
 - `settlement_tx` (string): Should be hex format with a `0x` prefix
 
-	- **For EVM Chains:**
-		- Use the transaction hash directly without additional encoding
-		- Example: `settlement_tx`: [0x7a87d2c423e13533b5ae0ecc5af900a7b697048103f4f6e32d19edde5e707355](https://etherscan.io/tx/0x7a87d2c423e13533b5ae0ecc5af900a7b697048103f4f6e32d19edde5e707355)
+  - **For EVM Chains:**
 
-	- **For Bitcoin or Solana:**
-		- Must encode raw_tx string using the `l2Encode` function
-		- Example raw_tx string: `3d83c7846d6e5b04279175a9592705a15373f3029b866d5224cc0744489fe403`
-		- After encoding
-		  ```
-		  "settlement_tx": "0x33643833633738343664366535623034323739313735613935393237303561313533373366333032396238363664353232346363303734343438396665343033"
-		  ```
+    - Use the transaction hash directly without additional encoding
+    - Example: `settlement_tx`: [0x7a87d2c423e13533b5ae0ecc5af900a7b697048103f4f6e32d19edde5e707355](https://etherscan.io/tx/0x7a87d2c423e13533b5ae0ecc5af900a7b697048103f4f6e32d19edde5e707355)
+
+  - **For Bitcoin or Solana:**
+    - Must encode raw_tx string using the `l2Encode` function
+    - Example raw_tx string: `3d83c7846d6e5b04279175a9592705a15373f3029b866d5224cc0744489fe403`
+    - After encoding
+      ```
+      "settlement_tx": "0x33643833633738343664366535623034323739313735613935393237303561313533373366333032396238363664353232346363303734343438396665343033"
+      ```
 
 <details>
 <summary><strong>Bitcoin l2Encode</strong></summary>
@@ -919,6 +970,7 @@ export const l2Encode = (info: string) => {
   return ensureHexPrefix(ethers.hexlify(toUtf8Bytes(info)))
 }
 ```
+
 </details>
 
 #### Example Request
@@ -1035,9 +1087,7 @@ GET /v1/market-maker/trades/0xfc24b9bc1299b50896027cb4c85d041c911e062147ffaf7ae9
     "user_deposit_tx": "0x202186375a3b8d55de4d8d1afb7f6a5bec8978cef3b705e6cb379729d03b16c7",
     "deposit_vault": "0xf7fedf4a250157010807e6ea60258e3b768149ff",
     "payment_bundle": {
-      "trade_ids": [
-        "0xfc24b9bc1299b50896027cb4c85d041c911e062147ffaf7ae9c7e51b670086c2"
-      ],
+      "trade_ids": ["0xfc24b9bc1299b50896027cb4c85d041c911e062147ffaf7ae9c7e51b670086c2"],
       "settlement_tx": "3d83c7846d6e5b04279175a9592705a15373f3029b866d5224cc0744489fe403",
       "signature": "0x479a5a89e7a871026b60307351ea650fc667890b25d3d02df7ed2e93f94db90d7c3f8dbd823220896b8ad49b13a90851199236e82a644ffbe99e53503929fe151b",
       "start_index": 0,
@@ -1054,6 +1104,7 @@ GET /v1/market-maker/trades/0xfc24b9bc1299b50896027cb4c85d041c911e062147ffaf7ae9
   }
 }
 ```
+
 </details>
 
 ## 5. PMM Making Payment
@@ -1063,53 +1114,47 @@ GET /v1/market-maker/trades/0xfc24b9bc1299b50896027cb4c85d041c911e062147ffaf7ae9
 In case the target chain is EVM-based, the transaction should emit the event from the `l1 payment contract` with the correct values for pmmAmountOut and protocolFee.
 
 ```js
-const { ethers } = require('ethers');
+const { ethers } = require('ethers')
 
 async function makeEVMPayment(tradeId, toAddress, amount, token, protocolFeeAmount) {
   try {
     // Get the private key from your secure storage
-    const privateKey = process.env.PMM_EVM_PRIVATE_KEY;
+    const privateKey = process.env.PMM_EVM_PRIVATE_KEY
 
     // Set up the provider and signer
-    const rpcUrl = getRpcUrlForNetwork(token.networkId);
-    const provider = new ethers.JsonRpcProvider(rpcUrl);
-    const signer = new ethers.Wallet(privateKey, provider);
+    const rpcUrl = getRpcUrlForNetwork(token.networkId)
+    const provider = new ethers.JsonRpcProvider(rpcUrl)
+    const signer = new ethers.Wallet(privateKey, provider)
 
     // Get the payment contract address
-    const paymentAddress = getPaymentAddressForNetwork(token.networkId);
+    const paymentAddress = getPaymentAddressForNetwork(token.networkId)
 
     // Create the contract instance
     const paymentAbi = [
       // ABI for the payment contract
-      "function payment(bytes32 tradeId, address token, address recipient, uint256 amount, uint256 feeAmount, uint256 deadline) payable returns (bool)"
-    ];
-    const paymentContract = new ethers.Contract(paymentAddress, paymentAbi, signer);
+      'function payment(bytes32 tradeId, address token, address recipient, uint256 amount, uint256 feeAmount, uint256 deadline) payable returns (bool)',
+    ]
+    const paymentContract = new ethers.Contract(paymentAddress, paymentAbi, signer)
 
     // Calculate the deadline (30 minutes from now)
-    const deadline = Math.floor(Date.now() / 1000) + 30 * 60;
+    const deadline = Math.floor(Date.now() / 1000) + 30 * 60
 
     // If the token is native, we need to set the value
-    const value = token.tokenAddress === 'native' ? amount : 0;
-    const tokenAddress = token.tokenAddress === 'native' ? ethers.ZeroAddress : token.tokenAddress;
+    const value = token.tokenAddress === 'native' ? amount : 0
+    const tokenAddress = token.tokenAddress === 'native' ? ethers.ZeroAddress : token.tokenAddress
 
     // Submit the transaction
-    const tx = await paymentContract.payment(
-      tradeId,
-      tokenAddress,
-      toAddress,
-      amount,
-      protocolFeeAmount,
-      deadline,
-      { value }
-    );
+    const tx = await paymentContract.payment(tradeId, tokenAddress, toAddress, amount, protocolFeeAmount, deadline, {
+      value,
+    })
 
-    console.log(`Transfer transaction sent: ${tx.hash}`);
+    console.log(`Transfer transaction sent: ${tx.hash}`)
 
     // Return the transaction hash with the 0x prefix
-    return `0x${tx.hash.replace(/^0x/, '')}`;
+    return `0x${tx.hash.replace(/^0x/, '')}`
   } catch (error) {
-    console.error('EVM payment error:', error);
-    throw error;
+    console.error('EVM payment error:', error)
+    throw error
   }
 }
 ```
@@ -1119,11 +1164,12 @@ async function makeEVMPayment(tradeId, toAddress, amount, token, protocolFeeAmou
 In case the target chain is Bitcoin, the transaction should have at least N + 1 outputs, with the first N outputs being the settlement UTXOs for trades, and one of them being the change UTXO for the user with the correct amount. The output N + 1 is the OP_RETURN output with the hash of tradeIds.
 
 ```js
+import { getTradeIdsHash } from '@optimex-xyz/market-maker-sdk'
+
+import axios from 'axios'
 import * as bitcoin from 'bitcoinjs-lib'
 import { ECPairFactory } from 'ecpair'
 import * as ecc from 'tiny-secp256k1'
-import axios from 'axios'
-import { getTradeIdsHash } from '@optimex-xyz/market-maker-sdk'
 
 async function makeBitcoinPayment(params) {
   const { toAddress, amount, token, tradeId } = params
@@ -1180,9 +1226,7 @@ async function makeBitcoinPayment(params) {
 
   // Check if we have enough balance
   if (totalInput < amount) {
-    throw new Error(
-      `Insufficient balance. Need ${amount} satoshis, but only have ${totalInput} satoshis`
-    )
+    throw new Error(`Insufficient balance. Need ${amount} satoshis, but only have ${totalInput} satoshis`)
   }
 
   // Get fee rate
@@ -1207,10 +1251,7 @@ async function makeBitcoinPayment(params) {
   // Add OP_RETURN output with trade ID hash
   const tradeIdsHash = getTradeIdsHash([tradeId])
   psbt.addOutput({
-    script: bitcoin.script.compile([
-      bitcoin.opcodes.OP_RETURN,
-      Buffer.from(tradeIdsHash.slice(2), 'hex')
-    ]),
+    script: bitcoin.script.compile([bitcoin.opcodes.OP_RETURN, Buffer.from(tradeIdsHash.slice(2), 'hex')]),
     value: 0n,
   })
 
@@ -1237,5 +1278,4 @@ async function makeBitcoinPayment(params) {
 
   return response.data // Transaction ID
 }
-
 ```
