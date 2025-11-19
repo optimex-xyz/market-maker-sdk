@@ -7,6 +7,10 @@ on:
     paths-ignore:
       - 'package.json' # Ignore changes to package.json to avoid infinite loops
 
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
@@ -78,9 +82,7 @@ jobs:
           fi
 
       - name: Publish to NPM
-        run: npm publish --tag dev
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public --tag dev
 
       - name: Send Telegram Notification
         uses: appleboy/telegram-action@master
