@@ -2,6 +2,9 @@
 
 The liquidation process uses the **Morpho Liquidation Gateway** contract instead of the standard **Payment** contract. However, **the flow when calling the contract is similar to the normal swap payment flow**, following the same sequential steps from initial quote to final settlement.
 
+**IMPORTANT NOTE for PMM Operators:**
+- **Liquidation Receiving Address**: The PMM's receiving address for liquidation collateral tokens is configured manually (not part of the API response). Once set, **this address MUST NOT be changed during active liquidation operations** to ensure proper settlement and payment flows.
+
 ## Table of Contents
 
 - [Quick Flow Overview](#quick-flow-overview)
