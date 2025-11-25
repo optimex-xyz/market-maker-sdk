@@ -3,20 +3,30 @@
 The liquidation process uses the **Morpho Liquidation Gateway** contract instead of the standard **Payment** contract. However, **the flow when calling the contract is similar to the normal swap payment flow**, following the same sequential steps from initial quote to final settlement.
 
 **IMPORTANT NOTE for PMM Operators:**
+
 - **Liquidation Receiving Address**: The PMM's receiving address for liquidation collateral tokens is configured manually (not part of the API response). Once set, **this address MUST NOT be changed during active liquidation operations** to ensure proper settlement and payment flows.
 
 ## Table of Contents
 
-- [Quick Flow Overview](#quick-flow-overview)
-- [API Endpoints](#api-endpoints)
-  - [1. Indicative Quote](#1-indicative-quote---initial-quote-request)
-  - [2. Liquidation Quote](#2-liquidation-quote---liquidation-commitment-quote-liquidation-specific) (Liquidation-Specific)
-  - [3. Settlement Signature](#3-settlement-signature---settlement-authorization)
-  - [4. Ack Settlement](#4-ack-settlement---selection-acknowledgment)
-  - [5. Signal Payment](#5-signal-payment---payment-execution-signal)
-- [Settlement & Submission](#settlement--submission)
-- [Smart Contract Integration](#smart-contract-integration)
-- [Error Handling](#error-handling)
+- [PMM Liquidation Flow](#pmm-liquidation-flow)
+  - [Table of Contents](#table-of-contents)
+  - [Quick Flow Overview](#quick-flow-overview)
+  - [API Endpoints](#api-endpoints)
+    - [1. `/indicative-quote` - Initial Quote Request](#1-indicative-quote---initial-quote-request)
+    - [2. `/liquidation-quote` - Liquidation Commitment Quote (Liquidation-Specific)](#2-liquidation-quote---liquidation-commitment-quote-liquidation-specific)
+    - [3. `/settlement-signature` - Settlement Authorization](#3-settlement-signature---settlement-authorization)
+    - [4. `/ack-settlement` - Selection Acknowledgment](#4-ack-settlement---selection-acknowledgment)
+    - [5. `/signal-payment` - Payment Execution Signal](#5-signal-payment---payment-execution-signal)
+  - [Settlement \& Submission](#settlement--submission)
+    - [Endpoint: `/submit-settlement-tx`](#endpoint-submit-settlement-tx)
+  - [Smart Contract Integration](#smart-contract-integration)
+    - [Contract Addresses](#contract-addresses)
+    - [Payment Function](#payment-function)
+    - [Implementation Example](#implementation-example)
+  - [Error Handling](#error-handling)
+    - [Dummy Transaction Format](#dummy-transaction-format)
+    - [Common Error Codes](#common-error-codes)
+    - [Error Handling Flow](#error-handling-flow)
 
 ---
 
@@ -81,7 +91,7 @@ sequenceDiagram
         Solver-->>PMM: success
         deactivate Solver
 
-        PMM->>Blockchain: Execute liquidation via MorphoLiquidationGateway            
+        PMM->>Blockchain: Execute liquidation via MorphoLiquidationGateway
     end
 ```
 
@@ -99,6 +109,7 @@ sequenceDiagram
 **Method:** `GET`
 
 **Key Parameters:**
+
 - `swap_type`: "0" (Optimistic) or "1" (Basic)
 - `from_token_id`: Source token ID
 - `to_token_id`: Destination token ID
@@ -120,6 +131,7 @@ sequenceDiagram
 ```
 
 **Key Fields:**
+
 - `pmm_receiving_address`: Where user will send the input tokens
 - `indicative_quote`: Estimated output amount
 - `quote_timeout`: When this quote expires (0 if no timeout)
@@ -135,6 +147,7 @@ sequenceDiagram
 **Method:** `GET`
 
 **Key Parameters:**
+
 - `session_id`: Session identifier
 - `trade_id`: Unique trade identifier
 - `from_token_id`, `to_token_id`, `amount`: Trade details
@@ -157,6 +170,7 @@ sequenceDiagram
 ```
 
 **Key Fields:**
+
 - `liquidation_quote`: **Firm committed quote** - PMM must honor this price
 - This is a binding commitment to execute the liquidation at this rate
 
@@ -172,6 +186,7 @@ sequenceDiagram
 **Method:** `GET`
 
 **Parameters:**
+
 - `trade_id`: Unique trade identifier
 - `committed_quote`: The agreed quote value (base 10 string)
 - `trade_deadline`: Expected payment deadline (UNIX timestamp)
@@ -189,6 +204,7 @@ sequenceDiagram
 ```
 
 **Key Fields:**
+
 - `signature`: PMM's signature authorizing the settlement
 - `deadline`: PMM's expected payment deadline
 - This signature will be used to finalize the trade on-chain
@@ -228,6 +244,7 @@ sequenceDiagram
 ```
 
 **Key Fields:**
+
 - `chosen`: "true" if PMM is selected, "false" if not
 - If chosen, PMM should prepare to execute the liquidation
 - If not chosen, PMM can release reserved liquidity
@@ -267,6 +284,7 @@ sequenceDiagram
 ```
 
 **PMM Actions After Signal:**
+
 1. **Prepare settlement transaction** using the liquidation contract
 2. **Submit to solver** via `/submit-settlement-tx` endpoint:
    - Include `trade_ids`, `pmm_id`, `settlement_tx`
@@ -327,6 +345,7 @@ After receiving the payment signal, PMM must submit the settlement transaction t
 **Staging Environment:**
 
 - **Network:** Sepolia Testnet
+
   - **MorphoLiquidationGateway Contract:** [0x390Bd58173F7C0433f8fa9b0fF08913A261d0Ba7](https://sepolia.etherscan.io/address/0x390Bd58173F7C0433f8fa9b0fF08913A261d0Ba7#code)
 
 - **Network:** Optimex Testnet
@@ -336,12 +355,12 @@ After receiving the payment signal, PMM must submit the settlement transaction t
 **Production Environment:**
 
 - **Network:** Ethereum Mainnet
+
   - **MorphoLiquidationGateway Contract:** [0x4be396E85c09972728C114F781Aa0e84A5f908E5](https://etherscan.io/address/0x4be396E85c09972728C114F781Aa0e84A5f908E5)
 
 - **Network:** Optimex Mainnet
   - `Signer`: [0xCF9786F123F1071023dB8049808C223e94c384be](https://scan.optimex.xyz/address/0xCF9786F123F1071023dB8049808C223e94c384be)
   - `Router`: [0x1e878cCa765a8aAFEBecCa672c767441b4859634](https://scan.optimex.xyz/address/0x1e878cCa765a8aAFEBecCa672c767441b4859634)
-
 
 ### Payment Function
 
@@ -368,21 +387,30 @@ Here's how PMM executes the liquidation payment:
 ```typescript
 import { MorphoLiquidationGateway__factory } from '@optimex-xyz/market-maker-sdk'
 
-// 1. Get liquidation contract address
+// Step 1: Get trade data and prepare transaction parameters
+const trade = await tradeService.findTradeById(tradeId)
 const liquidAddress = await protocolService.getAssetChainConfig(
   networkId,
   AssetChainContractRole.MorphoLiquidationGateway
 )
-
-// 2. Get payment metadata from trade
 const externalCall = trade.metadata.paymentMetadata // From /liquidation-quote request
 
-// 3. Execute liquidation payment
+// Step 2: Handle token approval if needed (not for native tokens)
+if (tokenAddress !== 'native') {
+  await transactionService.handleTokenApproval(
+    networkId,
+    tokenAddress,
+    liquidAddress,
+    amount
+  )
+}
+
+// Step 3: Execute liquidation payment with automatic gas management
 const txResult = await transactionService.executeContractMethod(
   MorphoLiquidationGateway__factory,
   liquidAddress,
   'payment',
-  [tokenAddress, amount, externalCall], // Match the solidity signature
+  [tokenAddress, amount, externalCall], // Matches solidity function signature
   networkId,
   {
     description: `Liquidation payment for trade ${tradeId}`,
@@ -390,16 +418,42 @@ const txResult = await transactionService.executeContractMethod(
   }
 )
 
-// 4. Submit settlement transaction to solver
+// Transaction Flow Summary:
+// executeContractMethod()
+//   ↓
+// estimateContractGas() ← Gas estimation with 40% buffer for liquidation
+//   ↓
+// applyGasBuffer() ← Apply buffer percentage
+//   ↓
+// getOptimalGasPrice() ← Get current gas prices (EIP-1559 or Legacy)
+//   ↓
+// applyGasPriceBuffer() ← Apply 30% gas price buffer for network volatility
+//   ↓
+// executeTransaction() ← Prepare final transaction with all parameters
+//   ↓
+// wallet.sendTransaction() ← ⭐ BROADCAST TO BLOCKCHAIN
+
+// Step 4: Submit settlement transaction hash to solver
 await submitSettlementTx({
   trade_ids: [tradeId],
   pmm_id: 'pmm001',
-  settlement_tx: txResult.hash,
+  settlement_tx: txResult.hash, // Transaction hash returned from broadcast
   signature: settlementSignature,
   start_index: 0,
   signed_at: Math.floor(Date.now() / 1000),
 })
 ```
+
+**Key Points:**
+
+- **Automatic Gas Management**: The transaction service automatically estimates gas with a 40% buffer for liquidation transactions
+- **Gas Price Optimization**: Uses EIP-1559 with 30% price buffer or legacy gas pricing based on network support
+- **Token Approval**: Automatically handles ERC20 token approvals before payment execution
+- **Error Handling**: Returns padded error codes as transaction hashes when execution fails (see Error Handling section)
+
+**Full Implementation Reference:**
+
+- [Complete EVMLiquidationTransferStrategy Implementation](https://gist.github.com/Phathdt/6bcc76e39cefbd9e1c55bc6867fcb100)
 
 ---
 
