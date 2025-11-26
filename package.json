@@ -40,7 +40,9 @@
     "lint-staged": "lint-staged",
     "ctix": "node generate-indexes.js",
     "generate-types": "node generate-types.js",
-    "commit": "cz"
+    "commit": "cz",
+    "sign-settlement": "ts-node scripts/sign-settlement.ts",
+    "verify-signature": "ts-node scripts/verify-signature.ts"
   },
   "dependencies": {
     "axios": "^1.9.0",
@@ -68,6 +70,7 @@
     "lint-staged": "^15.5.1",
     "prettier": "^3.5.3",
     "simple-git-hooks": "^2.13.0",
+    "ts-node": "^10.9.2",
     "tsup": "^8.4.0",
     "typechain": "^8.3.2",
     "typescript": "^5.8.3",

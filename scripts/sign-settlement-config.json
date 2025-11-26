@@ -1,0 +1,8 @@
+{
+  "rpcUrl": "https://network-api-dev.bitdex.xyz/ethereum_sepolia/rpc/zwD70RMT9DrE8L5SaMnJNMF8m70Gum",
+  "privateKey": "YOUR_PRIVATE_KEY_HERE",
+  "pmmId": "pmm1_test",
+  "tradeId": "0x9be59f6639db04063a1c9825c0e1e83eb95e53564d6a432579de88c4f2509a63",
+  "paymentTxHash": "0x08c379a000000000000000000000000000000000000000000000000000000000",
+  "signedAt": 1764138821
+}
