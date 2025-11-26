@@ -1,5 +1,5 @@
 {
-  "rpcUrl": "https://network-api-dev.bitdex.xyz/ethereum_sepolia/rpc/zwD70RMT9DrE8L5SaMnJNMF8m70Gum",
+  "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com",
   "signature": "0x39f6e566bfc8f9a18d6f298922aff8a398e42860eed1d2590f7493199499fede5833d3ec086d2952cfb934922be72fb58d75adef938020fbef18262af0ab007f1b",
   "tradeId": "0x9be59f6639db04063a1c9825c0e1e83eb95e53564d6a432579de88c4f2509a63",
   "paymentTxHash": "0x08c379a000000000000000000000000000000000000000000000000000000000",
