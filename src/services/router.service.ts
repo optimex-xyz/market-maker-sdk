@@ -73,6 +73,11 @@ export class RouterService implements ConfigObserver {
     const contract = await this.getContract()
     return await contract.management()
   }
+
+  async getAffiliateInfo(tradeId: BytesLike): Promise<ITypes.AffiliateStructOutput> {
+    const contract = await this.getContract()
+    return await contract.getAffiliateInfo(tradeId)
+  }
 }
 
 // Export a singleton instance

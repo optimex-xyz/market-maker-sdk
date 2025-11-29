@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export { ERC20__factory } from "./ERC20__factory";
+export { MorphoLiquidationGateway__factory } from "./MorphoLiquidationGateway__factory";
 export { Payment__factory } from "./Payment__factory";
 export { ProtocolFetcherProxy__factory } from "./ProtocolFetcherProxy__factory";
 export { Router__factory } from "./Router__factory";
