@@ -1,16 +1,17 @@
 name: Build and Publish Production Package
 
-permissions:
-  contents: write
-  pull-requests: write
-
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to publish (e.g. 0.1.0)'
+        description: "Version to publish (e.g. 0.1.0)"
         required: true
         type: string
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: write
+  pull-requests: write
 
 jobs:
   build-and-publish:
@@ -25,8 +26,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org/'
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org/"
 
       - name: Get package info
         id: package
