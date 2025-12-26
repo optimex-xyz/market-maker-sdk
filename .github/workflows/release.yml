@@ -10,7 +10,7 @@ on:
 
 permissions:
   id-token: write # Required for OIDC
-  contents: read
+  contents: write
 
 jobs:
   build-and-publish:
@@ -43,6 +43,13 @@ jobs:
           echo "Using manually specified version: $MANUAL_VERSION"
           echo "new_version=${MANUAL_VERSION}" >> $GITHUB_OUTPUT
 
+          # Determine npm dist-tag based on version
+          if [[ "$MANUAL_VERSION" =~ (alpha|beta|rc|next) ]]; then
+            echo "npm_tag=beta" >> $GITHUB_OUTPUT
+          else
+            echo "npm_tag=latest" >> $GITHUB_OUTPUT
+          fi
+
       - name: Install dependencies
         run: yarn install
 
@@ -62,13 +69,15 @@ jobs:
 
       - name: Commit updated package.json
         run: |
-          # Disable husky temporarily for this commit
           git config --local core.hooksPath /dev/null
-
           git add package.json
           git commit -m "chore(release): bump version to ${{ steps.version.outputs.new_version }} [skip ci]"
           git push "https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" HEAD:main
           echo "Changes committed and pushed"
+
+      - name: Restore git hooks
+        run: |
+          git config --local --unset core.hooksPath || true
 
       - name: Create version tag
         run: |
@@ -82,12 +91,14 @@ jobs:
           name: Release v${{ steps.version.outputs.new_version }}
           generate_release_notes: true
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(steps.version.outputs.new_version, 'alpha') || contains(steps.version.outputs.new_version, 'beta') || contains(steps.version.outputs.new_version, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Publish to NPM (with OIDC provenance)
-        run: NODE_AUTH_TOKEN="" npm publish --access public --provenance
+        run: npm publish --access public --provenance --tag ${{ steps.version.outputs.npm_tag }}
+        env:
+          NODE_AUTH_TOKEN: "" # Explicitly disable token
 
       - name: Send Telegram Notification
         uses: appleboy/telegram-action@v1.0.1
@@ -99,6 +110,7 @@ jobs:
 
             📌 Package: ${{ steps.package.outputs.name }}
             📌 Version: ${{ steps.version.outputs.new_version }}
+            📌 Tag: ${{ steps.version.outputs.npm_tag }}
             📌 Environment: production
 
             👤 Triggered by: ${{ github.actor }}

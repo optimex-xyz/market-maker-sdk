@@ -15,16 +15,16 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
           persist-credentials: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org/"
 
       - name: Get current package info
@@ -81,8 +81,10 @@ jobs:
             echo "Version is already $CURRENT_PKG_VERSION, no update needed"
           fi
 
-      - name: Publish to NPM
-        run: npm publish --tag dev
+      - name: Publish to NPM (with OIDC provenance)
+        run: npm publish --access public --provenance --tag dev
+        env:
+          NODE_AUTH_TOKEN: "" # Explicitly disable token
 
       - name: Send Telegram Notification
         uses: appleboy/telegram-action@master
