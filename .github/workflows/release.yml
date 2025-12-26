@@ -122,10 +122,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
-      - name: Publish to NPM
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish to NPM (with OIDC provenance)
+        run: npm publish --provenance --access public
 
       - name: Send Telegram Notification
         uses: appleboy/telegram-action@master
