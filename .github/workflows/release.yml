@@ -8,111 +8,11 @@ on:
         required: true
         type: string
 
-permissions:
-  id-token: write # Required for OIDC
-  contents: write
-
 jobs:
-  build-and-publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GH_PAT }}
-          persist-credentials: true
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org/"
-
-      - name: Get package info
-        id: package
-        run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "name=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
-          echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Use manually specified version
-        id: version
-        run: |
-          MANUAL_VERSION="${{ github.event.inputs.version }}"
-          echo "Using manually specified version: $MANUAL_VERSION"
-          echo "new_version=${MANUAL_VERSION}" >> $GITHUB_OUTPUT
-
-          # Determine npm dist-tag based on version
-          if [[ "$MANUAL_VERSION" =~ (alpha|beta|rc|next) ]]; then
-            echo "npm_tag=beta" >> $GITHUB_OUTPUT
-          else
-            echo "npm_tag=latest" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Build package
-        run: yarn build
-
-      - name: Configure Git
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-
-      - name: Update version in package.json
-        run: |
-          echo "Current version in package.json: $(node -p "require('./package.json').version")"
-          echo "Setting new version: ${{ steps.version.outputs.new_version }}"
-          npm version ${{ steps.version.outputs.new_version }} --no-git-tag-version
-
-      - name: Commit updated package.json
-        run: |
-          git config --local core.hooksPath /dev/null
-          git add package.json
-          git commit -m "chore(release): bump version to ${{ steps.version.outputs.new_version }} [skip ci]"
-          git push "https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" HEAD:main
-          echo "Changes committed and pushed"
-
-      - name: Restore git hooks
-        run: |
-          git config --local --unset core.hooksPath || true
-
-      - name: Create version tag
-        run: |
-          git tag -a v${{ steps.version.outputs.new_version }} -m "Release v${{ steps.version.outputs.new_version }}"
-          git push "https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" --tags
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.new_version }}
-          name: Release v${{ steps.version.outputs.new_version }}
-          generate_release_notes: true
-          draft: false
-          prerelease: ${{ contains(steps.version.outputs.new_version, 'alpha') || contains(steps.version.outputs.new_version, 'beta') || contains(steps.version.outputs.new_version, 'rc') }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-
-      - name: Publish to NPM (with OIDC provenance)
-        run: npm publish --access public --provenance --tag ${{ steps.version.outputs.npm_tag }}
-        env:
-          NODE_AUTH_TOKEN: "" # Explicitly disable token
-
-      - name: Send Telegram Notification
-        uses: appleboy/telegram-action@v1.0.1
-        with:
-          to: ${{ secrets.BF_DEVOPS_CHANNEL_ID }}
-          token: ${{ secrets.BF_MONITOR_BOT }}
-          message: |
-            🚀 NPM Package Published
-
-            📌 Package: ${{ steps.package.outputs.name }}
-            📌 Version: ${{ steps.version.outputs.new_version }}
-            📌 Tag: ${{ steps.version.outputs.npm_tag }}
-            📌 Environment: production
-
-            👤 Triggered by: ${{ github.actor }}
-
-            🔗 Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  publish:
+    uses: ./.github/workflows/publish.yml
+    with:
+      environment: production
+      version: ${{ inputs.version }}
+      npm_tag: ${{ contains(inputs.version, 'alpha') || contains(inputs.version, 'beta') || contains(inputs.version, 'rc') && 'beta' || 'latest' }}
+    secrets: inherit

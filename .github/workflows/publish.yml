@@ -1,0 +1,123 @@
+name: Publish Package
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+      npm_tag:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org/"
+
+      - name: Get package info
+        id: package
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          COMMIT_SHORT_SHA="$(git rev-parse --short HEAD)"
+          echo "name=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+          echo "commit_sha=${COMMIT_SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Calculate version
+        id: version
+        run: |
+          if [ "${{ inputs.environment }}" = "production" ]; then
+            # Production: use manual version
+            NEW_VERSION="${{ inputs.version }}"
+            echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          else
+            # Dev/Staging: calculate next version
+            CURRENT_VERSION="${{ steps.package.outputs.current_version }}"
+            BASE_VERSION=$(echo $CURRENT_VERSION | sed -E 's/(-dev-[a-f0-9]+|-staging-[a-f0-9]+)?$//')
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
+            NEW_MINOR=$((MINOR + 1))
+            NEXT_VERSION="${MAJOR}.${NEW_MINOR}.0"
+
+            if [ "${{ inputs.environment }}" = "dev" ]; then
+              DEV_VERSION="${NEXT_VERSION}-dev-${{ steps.package.outputs.commit_sha }}"
+            else
+              DEV_VERSION="${NEXT_VERSION}-staging-${{ steps.package.outputs.commit_sha }}"
+            fi
+
+            echo "new_version=${DEV_VERSION}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build package
+        run: yarn build
+
+      - name: Update version
+        run: npm version ${{ steps.version.outputs.new_version }} --no-git-tag-version
+
+      - name: Commit and tag (production only)
+        if: inputs.environment == 'production'
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git config --local core.hooksPath /dev/null
+          git add package.json
+          git commit -m "chore(release): bump version to ${{ steps.version.outputs.new_version }} [skip ci]"
+          git push "https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" HEAD:main
+          git tag -a v${{ steps.version.outputs.new_version }} -m "Release v${{ steps.version.outputs.new_version }}"
+          git push "https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" --tags
+
+      - name: Create GitHub Release (production only)
+        if: inputs.environment == 'production'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: Release v${{ steps.version.outputs.new_version }}
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.new_version, 'alpha') || contains(steps.version.outputs.new_version, 'beta') || contains(steps.version.outputs.new_version, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Publish to NPM
+        run: npm publish --access public --provenance --tag ${{ inputs.npm_tag }}
+        env:
+          NODE_AUTH_TOKEN: ""
+
+      - name: Send Telegram Notification
+        uses: appleboy/telegram-action@v1.0.1
+        with:
+          to: ${{ secrets.BF_DEVOPS_CHANNEL_ID }}
+          token: ${{ secrets.BF_MONITOR_BOT }}
+          message: |
+            🚀 NPM Package Published
+
+            📌 Package: ${{ steps.package.outputs.name }}
+            📌 Version: ${{ steps.version.outputs.new_version }}
+            📌 Tag: ${{ inputs.npm_tag }}
+            📌 Environment: ${{ inputs.environment }}
+
+            👤 Triggered by: ${{ github.actor }}
+
+            🔗 Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

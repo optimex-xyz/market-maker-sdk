@@ -3,103 +3,14 @@ name: Build and Publish Dev Package
 on:
   push:
     branches:
-      - "develop"
+      - develop
     paths-ignore:
-      - "package.json" # Ignore changes to package.json to avoid infinite loops
-
-permissions:
-  id-token: write # Required for OIDC
-  contents: read
+      - package.json
 
 jobs:
-  build-and-publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GH_PAT }}
-          persist-credentials: true
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org/"
-
-      - name: Get current package info
-        id: package
-        run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          COMMIT_SHORT_SHA="$(git rev-parse --short HEAD)"
-          echo "name=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
-          echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
-          echo "commit_sha=${COMMIT_SHORT_SHA}" >> $GITHUB_OUTPUT
-
-      - name: Calculate next minor version
-        id: bump
-        run: |
-          # Extract current version
-          CURRENT_VERSION="${{ steps.package.outputs.current_version }}"
-
-          # Remove any dev suffix if present
-          BASE_VERSION=$(echo $CURRENT_VERSION | sed -E 's/(-dev-[a-f0-9]+)?$//')
-          echo "Base version: $BASE_VERSION"
-
-          # Extract major, minor, patch
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
-          echo "Current: Major=$MAJOR, Minor=$MINOR, Patch=$PATCH"
-
-          # Simply increment minor version by 1 and always set patch to 0
-          NEW_MINOR=$((MINOR + 1))
-          NEXT_VERSION="${MAJOR}.${NEW_MINOR}.0"
-
-          # Create dev version with commit SHA
-          DEV_VERSION="${NEXT_VERSION}-dev-${{ steps.package.outputs.commit_sha }}"
-
-          echo "next_version=${NEXT_VERSION}" >> $GITHUB_OUTPUT
-          echo "dev_version=${DEV_VERSION}" >> $GITHUB_OUTPUT
-          echo "Next version will be: ${NEXT_VERSION} (dev: ${DEV_VERSION})"
-
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Build package
-        run: yarn build
-
-      - name: Update version for dev
-        run: |
-          # Get current version in package.json
-          CURRENT_PKG_VERSION=$(node -p "require('./package.json').version")
-
-          # Check if version needs to be updated
-          if [ "$CURRENT_PKG_VERSION" != "${{ steps.bump.outputs.dev_version }}" ]; then
-            npm version ${{ steps.bump.outputs.dev_version }} --no-git-tag-version
-            echo "Updated version to ${{ steps.bump.outputs.dev_version }}"
-          else
-            echo "Version is already $CURRENT_PKG_VERSION, no update needed"
-          fi
-
-      - name: Publish to NPM (with OIDC provenance)
-        run: npm publish --access public --provenance --tag dev
-        env:
-          NODE_AUTH_TOKEN: "" # Explicitly disable token
-
-      - name: Send Telegram Notification
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.BF_DEVOPS_CHANNEL_ID }}
-          token: ${{ secrets.BF_MONITOR_BOT }}
-          message: |
-            📦 NPM Package Published
-
-            📌 Package: ${{ steps.package.outputs.name }}
-            📌 Current version: ${{ steps.package.outputs.current_version }}
-            📌 Next version will be: ${{ steps.bump.outputs.next_version }}
-            📌 Dev version: ${{ steps.bump.outputs.dev_version }}
-            📌 Environment: dev
-
-            👤 Triggered by: ${{ github.actor }}
-
-            🔗 Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  publish:
+    uses: ./.github/workflows/publish.yml
+    with:
+      environment: dev
+      npm_tag: dev
+    secrets: inherit
