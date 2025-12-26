@@ -10,8 +10,6 @@
 >   - For PMMs older version you can update to v0.8.0 without needing to change anything
 >   - If you need to use the Router, please use the values provided in the environment configuration section
 
-> **Note**: If you prefer using the SDK instead of direct API integration, please refer to the [PMM SDK Integration Guide](sdk-integration.md).
-
 A comprehensive guide for implementing Private Market Makers (PMMs) in the cross-chain trading network. This documentation covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
 
 ## Table of Contents
