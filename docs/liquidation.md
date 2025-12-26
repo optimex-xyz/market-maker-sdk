@@ -477,14 +477,22 @@ Total length = 66 characters (including 0x prefix)
 
 ### Common Error Codes
 
-| Error Code   | Error Name                           | Description                                                       |
-| ------------ | ------------------------------------ | ----------------------------------------------------------------- |
-| `0xadb068de` | NotAuthorizedValidator(address)      | Invalid validator signature during forceClose                     |
-| `0x5ebb051b` | NotEnoughPaymentAmount()             | PMM payment insufficient for liquidation                          |
-| `0xf645eedf` | ECDSAInvalidSignature()              | Validator signature is incorrect                                  |
-| `0xfce698f7` | ECDSAInvalidSignatureLength(uint256) | Invalid signature length                                          |
-| `0xd78bce0c` | ECDSAInvalidSignatureS(bytes32)      | Wrong signature s value                                           |
-| `0x08c379a0` | Error(string)                        | Generic error (e.g., position becomes healthy during liquidation) |
+| Error Code   | Error Name                           | Description                                                              |
+| ------------ | ------------------------------------ | ------------------------------------------------------------------------ |
+| `0x1f2a2005` | ZeroAmount()                         | Payment amount is zero                                                   |
+| `0x11d5c560` | InvalidValidator(address)            | The signature is not signed by validator                                 |
+| `0x2c5211c6` | InvalidAmount()                      | Payment amount is insufficient to cover the liquidation process          |
+| `0xf902523f` | TokenMismatch(address,address)       | The collateral token in the position is not oBTC                         |
+| `0x44552f2a` | InvalidPositionId(bytes32)           | Optimex position ID is invalid or does not exist                         |
+| `0x438857be` | InvalidBorrowShares()                | Cannot finalize a position that still has outstanding debt               |
+| `0x04976396` | IncompleteConsumption()              | Liquidation process did not consume the entire payment amount            |
+| `0x37d5916a` | PreLiqDisabled(bytes32)              | Pre-liquidation is not enabled for this market                           |
+| `0x62294153` | Liquidatable()                       | Position is eligible for hard liquidation, not pre-liquidation           |
+| `0x422a59ca` | NotPreLiquidatable()                 | Position does not meet pre-liquidation criteria                          |
+| `0xf645eedf` | ECDSAInvalidSignature()              | Validator signature is invalid or incorrectly formatted                  |
+| `0xfce698f7` | ECDSAInvalidSignatureLength(uint256) | Signature length does not match expected format                          |
+| `0xd78bce0c` | ECDSAInvalidSignatureS(bytes32)      | Signature 's' parameter value is invalid                                 |
+| `0x08c379a0` | Error(string)                        | Generic error (e.g., position became healthy during liquidation attempt) |
 
 ### Error Handling Flow
 
