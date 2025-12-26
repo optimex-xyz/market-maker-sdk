@@ -8,12 +8,13 @@ on:
         required: true
         type: string
 
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -24,7 +25,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org/"
 
       - name: Get package info
@@ -74,56 +75,19 @@ jobs:
           git tag -a v${{ steps.version.outputs.new_version }} -m "Release v${{ steps.version.outputs.new_version }}"
           git push "https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" --tags
 
-      - name: Generate changelog
-        run: |
-          LAST_TAG=$(git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=0 --exclude="v${{ steps.version.outputs.new_version }}" 2>/dev/null || echo "")
-
-          echo "## What's Changed" > CHANGELOG.md
-
-          if [ -z "$LAST_TAG" ]; then
-            # If no previous tags, use all commits
-            LOG_RANGE=""
-          else
-            # Get commits since last tag
-            LOG_RANGE="${LAST_TAG}..HEAD"
-          fi
-
-          git log $LOG_RANGE --pretty=format:"%s (%h)" --no-merges | grep -v "chore(release): bump version" > /tmp/filtered_commits.txt
-
-          # Features
-          echo -e "\n### Features" >> CHANGELOG.md
-          cat /tmp/filtered_commits.txt | grep -E "^feat(\([^)]+\))?:" | sed 's/^/* /' >> CHANGELOG.md || echo "* No new features" >> CHANGELOG.md
-
-          # Fixes
-          echo -e "\n### Bug Fixes" >> CHANGELOG.md
-          cat /tmp/filtered_commits.txt | grep -E "^fix(\([^)]+\))?:" | sed 's/^/* /' >> CHANGELOG.md || echo "* No bug fixes" >> CHANGELOG.md
-
-          echo -e "\n### Maintenance" >> CHANGELOG.md
-          cat /tmp/filtered_commits.txt | grep -E "^(chore|ci|build|refactor)(\([^)]+\))?:" | sed 's/^/* /' >> CHANGELOG.md || echo "* No maintenance changes" >> CHANGELOG.md
-
-          # Other changes
-          echo -e "\n### Other Changes" >> CHANGELOG.md
-          cat /tmp/filtered_commits.txt | grep -v -E "^(feat|fix|chore|ci|build|refactor)(\([^)]+\))?:" | sed 's/^/* /' >> CHANGELOG.md || echo "* No other changes" >> CHANGELOG.md
-
-          sed -i '/\* No .* changes$/ { N; /^\n$/ d; }' CHANGELOG.md
-
-          cat CHANGELOG.md
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.new_version }}
           name: Release v${{ steps.version.outputs.new_version }}
-          body_path: CHANGELOG.md
+          generate_release_notes: true
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Publish to NPM (with OIDC provenance)
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ""
+        run: NODE_AUTH_TOKEN="" npm publish --access public --provena
 
       - name: Send Telegram Notification
         uses: appleboy/telegram-action@v1.0.1
