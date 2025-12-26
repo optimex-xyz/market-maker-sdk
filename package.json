@@ -1,6 +1,6 @@
 {
   "name": "@optimex-xyz/market-maker-sdk",
-  "version": "0.10.0-beta8",
+  "version": "0.10.0-beta9",
   "private": false,
   "publishConfig": {
     "access": "public"
