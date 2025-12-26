@@ -15,14 +15,14 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
           persist-credentials: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org/"
@@ -110,7 +110,7 @@ jobs:
           cat CHANGELOG.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.new_version }}
           name: Release v${{ steps.version.outputs.new_version }}
@@ -122,9 +122,11 @@ jobs:
 
       - name: Publish to NPM (with OIDC provenance)
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ""
 
       - name: Send Telegram Notification
-        uses: appleboy/telegram-action@master
+        uses: appleboy/telegram-action@v1
         with:
           to: ${{ secrets.BF_DEVOPS_CHANNEL_ID }}
           token: ${{ secrets.BF_MONITOR_BOT }}
