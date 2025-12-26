@@ -11,8 +11,8 @@ export enum OptimexEvmNetwork {
 }
 
 export enum OptimexL2Network {
-  Testnet = 'optimex_testnet',
-  Mainnet = 'optimex',
+  Testnet = 'base_sepolia',
+  Mainnet = 'base',
 }
 
 export enum OptimexBtcNetwork {
