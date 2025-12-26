@@ -18,25 +18,25 @@ export interface ConfigObserver {
 const environments: Record<Environment, EnvironmentConfig> = {
   development: {
     backendUrl: 'https://api-dev.bitdex.xyz',
-    rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
-    protocolFetcherProxyAddress: '0x0267Fc04eE866b31907dEe123aBdCdB67d03B297',
+    rpcUrl: 'https://base-sepolia-rpc.publicnode.com',
+    protocolFetcherProxyAddress: '0x7E11D5523a2e94CEB6e19ab2f5350dBA769D6F25',
     isTestnet: true,
   },
   staging: {
     backendUrl: 'https://api-stg.bitdex.xyz',
-    rpcUrl: 'https://rpc-bitfi-p00c4t1rul.t.conduit.xyz',
+    rpcUrl: 'https://base-sepolia-rpc.publicnode.com',
     protocolFetcherProxyAddress: '0x7c07151ca4DFd93F352Ab9B132A95866697c38c2',
     isTestnet: true,
   },
   prelive: {
     backendUrl: 'https://pre-api.optimex.xyz',
-    rpcUrl: 'https://rpc.optimex.xyz',
+    rpcUrl: 'https://base-rpc.publicnode.com',
     protocolFetcherProxyAddress: '0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b',
     isTestnet: false,
   },
   production: {
     backendUrl: 'https://api.optimex.xyz',
-    rpcUrl: 'https://rpc.optimex.xyz',
+    rpcUrl: 'https://base-rpc.publicnode.com',
     protocolFetcherProxyAddress: '0xFDEd4CEf9aE1E03D0BeF161262a266c1c157a32b',
     isTestnet: false,
   },
