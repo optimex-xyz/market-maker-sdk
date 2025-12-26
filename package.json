@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/optimex-xyz/market-maker-sdk.git"
+    "url": "https://github.com/optimex-xyz/market-maker-sdk.git"
   },
   "homepage": "https://github.com/optimex-xyz/market-maker-sdk#readme",
   "files": [
