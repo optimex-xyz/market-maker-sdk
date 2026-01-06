@@ -25,7 +25,7 @@ const environments: Record<Environment, EnvironmentConfig> = {
   staging: {
     backendUrl: 'https://api-stg.bitdex.xyz',
     rpcUrl: 'https://base-sepolia-rpc.publicnode.com',
-    protocolFetcherProxyAddress: '0x7c07151ca4DFd93F352Ab9B132A95866697c38c2',
+    protocolFetcherProxyAddress: 'x7408fDD8f5c195dDD8F6af133d88A82D914D4ac9',
     isTestnet: true,
   },
   prelive: {
