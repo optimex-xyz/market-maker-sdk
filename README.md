@@ -205,16 +205,16 @@ These are the APIs that **PMMs must implement** for Solver integration. These en
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `from_token_id` | string | ✅ | Source token identifier |
-| `to_token_id` | string | ✅ | Destination token identifier |
-| `amount` | string | ✅ | Amount to trade (base 10, handles large numbers) |
-| `session_id` | string | ❌ | Unique session identifier for tracking |
-| `deposited` | boolean | ❌ | Whether user deposit is confirmed |
-| `trade_timeout` | string | ❌ | Deadline for user to receive tokens (UNIX timestamp) |
-| `script_timeout` | string | ❌ | Hard timeout - trade won't process after this (UNIX timestamp) |
-| `from_user_address` | string | ❌ | User's source address (where input tokens come from) |
-| `user_receiving_address` | string | ❌ | User's receiving address (where output tokens go) |
-| `user_refund_pubkey` | string | ❌ | User's public key for refunds |
+| `from_token_id` | string | Yes | Source token identifier |
+| `to_token_id` | string | Yes | Destination token identifier |
+| `amount` | string | Yes | Amount to trade (base 10, handles large numbers) |
+| `session_id` | string | Optional | Unique session identifier for tracking |
+| `deposited` | boolean | Optional | Whether user deposit is confirmed |
+| `trade_timeout` | string | Optional | Deadline for user to receive tokens (UNIX timestamp) |
+| `script_timeout` | string | Optional | Hard timeout - trade won't process after this (UNIX timestamp) |
+| `from_user_address` | string | Optional | User's source address (where input tokens come from) |
+| `user_receiving_address` | string | Optional | User's receiving address (where output tokens go) |
+| `user_refund_pubkey` | string | Optional | User's public key for refunds |
 
 #### Example Request
 
@@ -355,17 +355,17 @@ async function getIndicativeQuote(req, res) {
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `session_id` | string | ✅ | Session identifier from indicative quote |
-| `trade_id` | string | ✅ | Unique trade identifier (hex format) |
-| `from_token_id` | string | ✅ | Source token identifier |
-| `to_token_id` | string | ✅ | Destination token identifier |
-| `amount` | string | ✅ | Trade amount (base 10, treat as BigInt) |
-| `from_user_address` | string | ✅ | User's source address |
-| `to_user_address` | string | ✅ | User's receiving address |
-| `user_deposit_tx` | string | ✅ | Transaction hash of user's deposit |
-| `user_deposit_vault` | string | ✅ | Vault where deposit is held |
-| `trade_deadline` | string | ✅ | Expected payment deadline (UNIX timestamp, BigInt) |
-| `script_deadline` | string | ✅ | Withdrawal deadline if unpaid (UNIX timestamp, BigInt) |
+| `session_id` | string | Yes | Session identifier from indicative quote |
+| `trade_id` | string | Yes | Unique trade identifier (hex format) |
+| `from_token_id` | string | Yes | Source token identifier |
+| `to_token_id` | string | Yes | Destination token identifier |
+| `amount` | string | Yes | Trade amount (base 10, treat as BigInt) |
+| `from_user_address` | string | Yes | User's source address |
+| `to_user_address` | string | Yes | User's receiving address |
+| `user_deposit_tx` | string | Yes | Transaction hash of user's deposit |
+| `user_deposit_vault` | string | Yes | Vault where deposit is held |
+| `trade_deadline` | string | Yes | Expected payment deadline (UNIX timestamp, BigInt) |
+| `script_deadline` | string | Yes | Withdrawal deadline if unpaid (UNIX timestamp, BigInt) |
 
 #### Example Request
 
@@ -508,10 +508,10 @@ async function getCommitmentQuote(req, res) {
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `trade_id` | string | ✅ | Unique trade identifier (hex format) |
-| `committed_quote` | string | ✅ | Committed quote value (base 10, treat as BigInt) |
-| `trade_deadline` | string | ✅ | Payment deadline (UNIX timestamp) |
-| `script_deadline` | string | ✅ | Withdrawal deadline if unpaid (UNIX timestamp) |
+| `trade_id` | string | Yes | Unique trade identifier (hex format) |
+| `committed_quote` | string | Yes | Committed quote value (base 10, treat as BigInt) |
+| `trade_deadline` | string | Yes | Payment deadline (UNIX timestamp) |
+| `script_deadline` | string | Yes | Withdrawal deadline if unpaid (UNIX timestamp) |
 
 #### Example Request
 
@@ -699,10 +699,10 @@ function getPmmAddressByNetworkType(token) {
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `trade_id` | string | ✅ | Unique trade identifier (hex format) |
-| `trade_deadline` | string | ✅ | Payment deadline (UNIX timestamp) |
-| `script_deadline` | string | ✅ | Withdrawal deadline if unpaid (UNIX timestamp) |
-| `chosen` | string | ✅ | `"true"` if PMM selected, `"false"` if not |
+| `trade_id` | string | Yes | Unique trade identifier (hex format) |
+| `trade_deadline` | string | Yes | Payment deadline (UNIX timestamp) |
+| `script_deadline` | string | Yes | Withdrawal deadline if unpaid (UNIX timestamp) |
+| `chosen` | string | Yes | `"true"` if PMM selected, `"false"` if not |
 
 #### Example Request
 
@@ -796,10 +796,10 @@ async function ackSettlement(req, res) {
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `trade_id` | string | ✅ | Unique trade identifier (hex format) |
-| `total_fee_amount` | string | ✅ | Total fee amount to submit (base 10, treat as BigInt) |
-| `trade_deadline` | string | ✅ | Payment deadline (UNIX timestamp) |
-| `script_deadline` | string | ✅ | Withdrawal deadline if unpaid (UNIX timestamp) |
+| `trade_id` | string | Yes | Unique trade identifier (hex format) |
+| `total_fee_amount` | string | Yes | Total fee amount to submit (base 10, treat as BigInt) |
+| `trade_deadline` | string | Yes | Payment deadline (UNIX timestamp) |
+| `script_deadline` | string | Yes | Withdrawal deadline if unpaid (UNIX timestamp) |
 
 #### Example Request
 

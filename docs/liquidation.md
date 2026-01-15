@@ -128,7 +128,7 @@ sequenceDiagram
 | `amount` | string | Amount to trade (base 10 string) |
 | `trade_timeout` | string | Deadline for user to receive tokens (UNIX timestamp) |
 | `script_timeout` | string | Hard timeout for the trade (UNIX timestamp) |
-| `deposited` | boolean | Whether deposit is confirmed (optional) |
+| `deposited` | boolean | Optional - Whether deposit is confirmed |
 
 **Response:**
 
@@ -167,7 +167,7 @@ sequenceDiagram
 | `from_token_id` | string | Source token identifier |
 | `to_token_id` | string | Destination token identifier |
 | `amount` | string | Amount to trade (base 10, treat as BigInt) |
-| `payment_metadata` | string | Hex string encoded data for smart contract payment method |
+| `payment_metadata` | string | Optional - Hex string encoded data for smart contract payment method |
 | `from_user_address` | string | User's source address |
 | `to_user_address` | string | User's receiving address |
 | `user_deposit_tx` | string | Transaction hash of user's deposit |
