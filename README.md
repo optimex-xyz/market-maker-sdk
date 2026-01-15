@@ -1,16 +1,14 @@
 # PMM API Integration Documentation
 
-> **CHANGELOG (v0.8.0)**:
->
-> - **Breaking Changes:**
->   - Update to get router contract from protocol fetcher
->   - Use consistent trade_id across all protocol
->   - Add `user_receiving_address`, `user_refund_pubkey`, `from_user_address` to `indicative_quote` api requirement as optional fields.
-> - **Upgrade Notes:**
->   - For PMMs older version you can update to v0.8.0 without needing to change anything
->   - If you need to use the Router, please use the values provided in the environment configuration section
-
 A comprehensive guide for implementing Private Market Makers (PMMs) in the cross-chain trading network. This documentation covers the required integration points between PMMs and our solver backend, enabling cross-chain liquidity provision and settlement.
+
+> **Latest Release: v0.8.0**
+>
+> - ✅ Router contract now fetched from protocol fetcher
+> - ✅ Consistent `trade_id` across all protocols
+> - ✅ Added optional fields: `user_receiving_address`, `user_refund_pubkey`, `from_user_address`
+> - ✅ Backward compatible - no breaking changes for existing integrations
+> - 📖 For Router usage, see [Environment Configuration](#21-api-environments)
 
 ## Table of Contents
 
@@ -29,29 +27,20 @@ A comprehensive guide for implementing Private Market Makers (PMMs) in the cross
       - [Example Request](#example-request)
       - [Expected Response](#expected-response)
     - [3.2. Endpoint: `/commitment-quote`](#32-endpoint-commitment-quote)
-      - [Description](#description-1)
       - [Request Parameters](#request-parameters-1)
       - [Example Request](#example-request-1)
       - [Expected Response](#expected-response-1)
-    - [3.3. Endpoint: `/liquidation-quote`](#33-endpoint-liquidation-quote)
-      - [Description](#description-2)
+    - [3.3. Endpoint: `/settlement-signature`](#33-endpoint-settlement-signature)
       - [Request Parameters](#request-parameters-2)
       - [Example Request](#example-request-2)
       - [Expected Response](#expected-response-2)
-    - [3.4. Endpoint: `/settlement-signature`](#34-endpoint-settlement-signature)
-      - [Description](#description-3)
+    - [3.4. Endpoint: `/ack-settlement`](#34-endpoint-ack-settlement)
       - [Request Parameters](#request-parameters-3)
       - [Example Request](#example-request-3)
       - [Expected Response](#expected-response-3)
-    - [3.5. Endpoint: `/ack-settlement`](#35-endpoint-ack-settlement)
-      - [Description](#description-4)
+    - [3.5. Endpoint: `/signal-payment`](#35-endpoint-signal-payment)
       - [Request Parameters](#request-parameters-4)
       - [Example Request](#example-request-4)
-      - [Expected Response](#expected-response-4)
-    - [3.6. Endpoint: `/signal-payment`](#36-endpoint-signal-payment)
-      - [Description](#description-5)
-      - [Request Parameters](#request-parameters-5)
-      - [Example Request](#example-request-5)
       - [Expected Response](#expected-response-5)
   - [4. Solver API Endpoints for PMMs](#4-solver-api-endpoints-for-pmms)
     - [4.1. Endpoint: `/v1/market-maker/tokens`](#41-endpoint-v1market-makertokens)
@@ -96,12 +85,14 @@ A comprehensive guide for implementing Private Market Makers (PMMs) in the cross
 
 ## 1. Overview
 
-The PMM integration with Optimex involves bidirectional API communication:
+The PMM integration with Optimex involves **bidirectional API communication**:
 
-1. **PMM-Provided APIs**: Endpoints that PMMs must implement to receive requests from the Solver
-2. **Solver-Provided APIs**: Endpoints that the Solver provides for PMMs to call
+- **PMM-Provided APIs**: Endpoints that PMMs must implement to receive requests from the Solver
+- **Solver-Provided APIs**: Endpoints that the Solver provides for PMMs to call
 
 ### 1.1. Integration Flow
+
+The complete trade lifecycle consists of three phases:
 
 ```mermaid
 sequenceDiagram
@@ -110,39 +101,43 @@ sequenceDiagram
     participant PMM
     participant Chain
 
-    Note over User,Chain: Phase 1: Indicative Quote
+    rect rgb(200, 220, 255)
+    Note over User,Chain: Phase 1: Price Discovery
     User->>Solver: Request quote
     Solver->>PMM: GET /indicative-quote
-    PMM-->>Solver: Return indicative quote
-    Solver-->>User: Show quote
+    PMM-->>Solver: Return indicative quote + receiving address
+    Solver-->>User: Display quote
+    end
 
-    Note over User,Chain: Phase 2: Commitment
-    User->>Solver: Accept quote
+    rect rgb(200, 255, 220)
+    Note over User,Chain: Phase 2: Commitment (after deposit)
+    User->>Solver: Accept quote & deposit
     Solver->>PMM: GET /commitment-quote
-    PMM-->>Solver: Return commitment quote
+    PMM-->>Solver: Return firm commitment quote
+    end
 
-    Note over User,Chain: Phase 3: Settlement
+    rect rgb(255, 240, 200)
+    Note over User,Chain: Phase 3: Settlement & Execution
     Solver->>PMM: GET /settlement-signature
-    PMM-->>Solver: Return signature
+    PMM-->>Solver: Sign settlement terms
     Solver->>PMM: POST /ack-settlement
-    PMM-->>Solver: Acknowledge settlement
+    PMM-->>Solver: Acknowledge selection
     Solver->>PMM: POST /signal-payment
-    PMM-->>Solver: Acknowledge signal
-    PMM->>Chain: Execute settlement (transfer)
-    PMM->>Solver: POST /v1/market-maker/submit-settlement-tx
-    Solver-->>PMM: Confirm settlement submission
+    PMM->>Chain: Execute settlement
+    PMM->>Solver: POST /submit-settlement-tx (submit tx hash)
+    end
 ```
 
 ## 2. Quick Start
 
 ### 2.1. API Environments
 
-| Environment  | Description                                                                 |
-| ------------ | --------------------------------------------------------------------------- |
-| `dev`        | internal environment with test networks and development services            |
-| `staging`    | Staging environment with test networks and staging services                 |
-| `prelive`    | Pre production environment with mainnet networks for testing before release |
-| `production` | Production environment with mainnet networks and production services        |
+| Environment  | Network Type      | Use Case                                           |
+| ------------ | ----------------- | -------------------------------------------------- |
+| `dev`        | Test Networks     | Internal development and testing                  |
+| `staging`    | Test Networks     | Integration testing & QA before staging release    |
+| `prelive`    | Mainnet (Testing) | Final validation on mainnet before production     |
+| `production` | Mainnet (Live)    | Production - Live trading with real assets        |
 
 <details>
 <summary><strong>Staging Contracts</strong></summary>
@@ -186,28 +181,40 @@ sequenceDiagram
 
 ## 3. PMM Backend APIs
 
-These are the APIs that PMMs must implement for Solver integration. These endpoints allow Solvers to communicate with your PMM service.
+These are the APIs that **PMMs must implement** for Solver integration. These endpoints handle the complete trade lifecycle from quote to settlement.
+
+| Endpoint | Method | Phase | Purpose |
+|----------|--------|-------|---------|
+| `/indicative-quote` | GET | Discovery | Initial price quote before deposit |
+| `/commitment-quote` | GET | Commitment | Firm quote after user deposits |
+| `/settlement-signature` | GET | Settlement | PMM signs settlement authorization |
+| `/ack-settlement` | POST | Settlement | Acknowledge if PMM was selected |
+| `/signal-payment` | POST | Settlement | Signal to execute payment |
+
+> **📝 For Liquidation Flows:** See [Liquidation Documentation](./docs/liquidation.md) for the `/liquidation-quote` endpoint which replaces `/commitment-quote` for liquidation trades.
+
+---
 
 ### 3.1. Endpoint: `/indicative-quote`
 
-#### Description
-
-Provides an indicative quote for the given token pair and trade amount. The quote is used for informational purposes before a commitment is made.
+**Purpose:** Provides an indicative quote for the given token pair and trade amount. Used for informational purposes before a commitment is made.
 
 #### Request Parameters
 
-- **HTTP Method**: `GET`
-- **Query Parameters**:
-  - `from_token_id` (string): The ID of the source token.
-  - `to_token_id` (string): The ID of the destination token.
-  - `amount` (string): The amount of the source token to be traded, represented as a string in base 10 to accommodate large numbers.
-  - `session_id` (string, optional): A unique identifier for the session.
-  - `deposited` (boolean, optional): Whether the deposit has been confirmed. This allows the PMM to decide the returned quote.
-  - `trade_timeout` (string, optional): The deadline when user is expected to receive tokens from PMM in UNIX timestamp. We expect the trade to be completed before this timeout. But if not, some actions can still be taken.
-  - `script_timeout` (string, optional): The hard timeout for the trade, UNIX timestamp. After this timeout, the trade will not be processed further.
-  - `from_user_address` (string, optional): The user's address from which the input token will be sent from.
-  - `user_receiving_address` (string, optional): The user's address to which the output token will be sent to.
-  - `user_refund_pubkey` (string, optional): The user's public key to which the refund will be sent.
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `from_token_id` | string | ✅ | Source token identifier |
+| `to_token_id` | string | ✅ | Destination token identifier |
+| `amount` | string | ✅ | Amount to trade (base 10, handles large numbers) |
+| `session_id` | string | ❌ | Unique session identifier for tracking |
+| `deposited` | boolean | ❌ | Whether user deposit is confirmed |
+| `trade_timeout` | string | ❌ | Deadline for user to receive tokens (UNIX timestamp) |
+| `script_timeout` | string | ❌ | Hard timeout - trade won't process after this (UNIX timestamp) |
+| `from_user_address` | string | ❌ | User's source address (where input tokens come from) |
+| `user_receiving_address` | string | ❌ | User's receiving address (where output tokens go) |
+| `user_refund_pubkey` | string | ❌ | User's public key for refunds |
 
 #### Example Request
 
@@ -217,22 +224,25 @@ GET /indicative-quote?from_token_id=ETH&to_token_id=BTC&amount=10000000000000000
 
 #### Expected Response
 
-- **HTTP Status**: `200 OK`
-- **Response Body** (JSON):
+**HTTP Status:** `200 OK`
+
+**Response Body:**
 
 ```json
 {
   "session_id": "12345",
   "pmm_receiving_address": "0xReceivingAddress",
   "indicative_quote": "123456789000000000",
-  "error": "" // Empty if no error
+  "error": ""
 }
 ```
 
-- `session_id` (string): The session ID associated with the request.
-- `pmm_receiving_address` (string): The receiving address where the user will send the `from_token`.
-- `indicative_quote` (string): The indicative quote value, represented as a string. Should be treated as a BigInt in your implementation.
-- `error` (string): Error message, if any (empty if no error).
+| Field | Type | Description |
+|-------|------|-------------|
+| `session_id` | string | Session identifier for tracking this quote |
+| `pmm_receiving_address` | string | Where user will send the input tokens |
+| `indicative_quote` | string | Estimated output amount (treat as BigInt) |
+| `error` | string | Error message if applicable (empty if successful) |
 
 <details>
 <summary><strong>Example Implementation</strong></summary>
@@ -337,25 +347,25 @@ async function getIndicativeQuote(req, res) {
 
 ### 3.2. Endpoint: `/commitment-quote`
 
-#### Description
-
-Provides a commitment quote for a specific trade, representing a firm commitment to proceed under the quoted conditions.
+**Purpose:** Provides a firm commitment quote for a specific trade after user deposits. This is a binding quote that must be honored.
 
 #### Request Parameters
 
-- **HTTP Method**: `GET`
-- **Query Parameters**:
-  - `session_id` (string): A unique identifier for the session.
-  - `trade_id` (string): The unique identifier for the trade. Example format: `0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328`.
-  - `from_token_id` (string): The ID of the source token.
-  - `to_token_id` (string): The ID of the destination token.
-  - `amount` (string): The amount of the source token to be traded, in base 10. This should be treated as a BigInt in your implementation.
-  - `from_user_address` (string): The address of the user initiating the trade.
-  - `to_user_address` (string): The address where the user will receive the `to_token`.
-  - `user_deposit_tx` (string): The transaction hash where the user deposited their funds.
-  - `user_deposit_vault` (string): The vault where the user's deposit is kept.
-  - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment. Should be treated as a BigInt in your implementation.
-  - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid. Should be treated as a BigInt in your implementation.
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `session_id` | string | ✅ | Session identifier from indicative quote |
+| `trade_id` | string | ✅ | Unique trade identifier (hex format) |
+| `from_token_id` | string | ✅ | Source token identifier |
+| `to_token_id` | string | ✅ | Destination token identifier |
+| `amount` | string | ✅ | Trade amount (base 10, treat as BigInt) |
+| `from_user_address` | string | ✅ | User's source address |
+| `to_user_address` | string | ✅ | User's receiving address |
+| `user_deposit_tx` | string | ✅ | Transaction hash of user's deposit |
+| `user_deposit_vault` | string | ✅ | Vault where deposit is held |
+| `trade_deadline` | string | ✅ | Expected payment deadline (UNIX timestamp, BigInt) |
+| `script_deadline` | string | ✅ | Withdrawal deadline if unpaid (UNIX timestamp, BigInt) |
 
 #### Example Request
 
@@ -365,20 +375,23 @@ GET /commitment-quote?session_id=12345&trade_id=0x3bfe2fc4889a98a39b31b348e7b212
 
 #### Expected Response
 
-- **HTTP Status**: `200 OK`
-- **Response Body** (JSON):
+**HTTP Status:** `200 OK`
+
+**Response Body:**
 
 ```json
 {
   "trade_id": "0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328",
   "commitment_quote": "987654321000000000",
-  "error": "" // Empty if no error
+  "error": ""
 }
 ```
 
-- `trade_id` (string): The trade ID associated with the request.
-- `commitment_quote` (string): The committed quote value, represented as a string. Should be treated as a BigInt in your implementation.
-- `error` (string): Error message, if any (empty if no error).
+| Field | Type | Description |
+|-------|------|-------------|
+| `trade_id` | string | Trade identifier from request |
+| `commitment_quote` | string | **Firm committed quote amount** (treat as BigInt) - PMM must honor this |
+| `error` | string | Error message if applicable (empty if successful) |
 
 <details>
 <summary><strong>Example Implementation</strong></summary>
@@ -485,175 +498,20 @@ async function getCommitmentQuote(req, res) {
 
 </details>
 
-### 3.3. Endpoint: `/liquidation-quote`
+### 3.3. Endpoint: `/settlement-signature`
 
-#### Description
-
-Provides a firm commitment quote for a liquidation trade. This endpoint is called after the user deposits funds and represents a binding commitment to execute the liquidation at the quoted rate.
+**Purpose:** Returns a signature from the PMM to confirm the settlement quote, required to finalize the trade.
 
 #### Request Parameters
 
-- **HTTP Method**: `GET`
-- **Query Parameters**:
-  - `session_id` (string): Session identifier from the indicative quote.
-  - `trade_id` (string): Unique trade identifier.
-  - `from_token_id` (string): The ID of the source token.
-  - `to_token_id` (string): The ID of the destination token.
-  - `amount` (string): The amount of the source token to be traded, in base 10. This should be treated as a BigInt in your implementation.
-  - `payment_metadata` (string, optional): Hex string encoded data for smart contract payment method.
-  - `from_user_address` (string): The user's address from which the input token will be sent.
-  - `to_user_address` (string): The user's address to which the output token will be sent.
-  - `user_deposit_tx` (string): Transaction hash of user's deposit.
-  - `user_deposit_vault` (string): Vault containing user's deposit.
-  - `trade_deadline` (string): Expected payment deadline (UNIX timestamp).
-  - `script_deadline` (string): Withdrawal deadline if unpaid (UNIX timestamp).
+**Query Parameters:**
 
-#### Example Request
-
-```
-GET /liquidation-quote?session_id=12345&trade_id=0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328&from_token_id=ETH&to_token_id=BTC&amount=1000000000000000000&from_user_address=0xUserAddress&to_user_address=bc1p68q6hew27ljf4ghvlnwqz0fq32qg7tsgc7jr5levfy8r74p5k52qqphk07&user_deposit_tx=0xDepositTxHash&user_deposit_vault=VaultData&trade_deadline=1696012800&script_deadline=1696016400
-```
-
-#### Expected Response
-
-- **HTTP Status**: `200 OK`
-- **Response Body** (JSON):
-
-```json
-{
-  "trade_id": "0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328",
-  "liquidation_quote": "987654321000000000",
-  "error": ""
-}
-```
-
-- `trade_id` (string): The trade ID associated with the request.
-- `liquidation_quote` (string): **Firm committed quote** - PMM must honor this price. Should be treated as a BigInt in your implementation.
-- `error` (string): Error message, if any (empty if no error).
-
-<details>
-<summary><strong>Example Implementation</strong></summary>
-
-```js
-import { tokenService } from '@optimex-xyz/market-maker-sdk'
-
-// Session store (use Redis in production)
-const sessionStore = new Map()
-
-async function getLiquidationQuote(req, res) {
-  try {
-    const {
-      session_id,
-      trade_id,
-      from_token_id,
-      to_token_id,
-      amount,
-      payment_metadata,
-      from_user_address,
-      to_user_address,
-      user_deposit_tx,
-      user_deposit_vault,
-      trade_deadline,
-      script_deadline,
-    } = req.query
-
-    // Validate the session exists
-    const session = sessionStore.get(session_id)
-    if (!session) {
-      return res.status(400).json({
-        trade_id,
-        liquidation_quote: '0',
-        error: 'Session expired during processing',
-      })
-    }
-
-    // Fetch token information using SDK tokenService
-    const [fromToken, toToken] = await Promise.all([
-      tokenService.getTokenByTokenId(from_token_id),
-      tokenService.getTokenByTokenId(to_token_id),
-    ])
-
-    if (!fromToken) {
-      return res.status(400).json({
-        trade_id,
-        liquidation_quote: '0',
-        error: `From token not found: ${from_token_id}`,
-      })
-    }
-    if (!toToken) {
-      return res.status(400).json({
-        trade_id,
-        liquidation_quote: '0',
-        error: `To token not found: ${to_token_id}`,
-      })
-    }
-
-    // Validate commitment amount (implement your own validation logic)
-    validateCommitmentAmount(BigInt(amount), fromToken)
-
-    // Delete any existing trade with the same ID (handle retries)
-    await tradeRepository.delete(trade_id)
-
-    // Calculate the firm liquidation quote (implementation specific to your PMM)
-    const quote = await calculateBestQuote({
-      amountIn: amount,
-      fromTokenId: from_token_id,
-      toTokenId: to_token_id,
-      isCommitment: true, // Use commitment pricing for liquidation
-    })
-
-    // Store the trade in the database with LENDING trade type
-    await tradeRepository.create({
-      tradeId: trade_id,
-      fromTokenId: from_token_id,
-      toTokenId: to_token_id,
-      fromUser: from_user_address,
-      toUser: to_user_address,
-      amount: amount,
-      fromNetworkId: fromToken.networkId,
-      toNetworkId: toToken.networkId,
-      userDepositTx: user_deposit_tx,
-      userDepositVault: user_deposit_vault,
-      tradeDeadline: trade_deadline,
-      scriptDeadline: script_deadline,
-      tradeType: 'LENDING', // Liquidation trades use LENDING type
-      metadata: {
-        paymentMetadata: payment_metadata, // Store payment metadata for liquidation
-      },
-      commitmentQuote: quote.toString(),
-    })
-
-    return res.status(200).json({
-      trade_id,
-      liquidation_quote: quote.toString(),
-      error: '',
-    })
-  } catch (error) {
-    return res.status(500).json({
-      trade_id: req.query.trade_id || '',
-      liquidation_quote: '0',
-      error: error.message,
-    })
-  }
-}
-```
-
-</details>
-
-### 3.4. Endpoint: `/settlement-signature`
-
-#### Description
-
-Returns a signature from the PMM to confirm the settlement quote, required to finalize the trade.
-
-#### Request Parameters
-
-- **HTTP Method**: `GET`
-- **Query Parameters**:
-  - `trade_id` (string): The unique identifier for the trade. Example format: `0x3d09b8eb94466bffa126aeda68c8c0f330633a7d0058f57269d795530415498a`.
-  - `committed_quote` (string): The committed quote value in base 10. This should be treated as a BigInt in your implementation.
-  - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
-  - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `trade_id` | string | ✅ | Unique trade identifier (hex format) |
+| `committed_quote` | string | ✅ | Committed quote value (base 10, treat as BigInt) |
+| `trade_deadline` | string | ✅ | Payment deadline (UNIX timestamp) |
+| `script_deadline` | string | ✅ | Withdrawal deadline if unpaid (UNIX timestamp) |
 
 #### Example Request
 
@@ -663,22 +521,25 @@ GET /settlement-signature?trade_id=0x3d09b8eb94466bffa126aeda68c8c0f330633a7d005
 
 #### Expected Response
 
-- **HTTP Status**: `200 OK`
-- **Response Body** (JSON):
+**HTTP Status:** `200 OK`
+
+**Response Body:**
 
 ```json
 {
   "trade_id": "0x3d09b8eb94466bffa126aeda68c8c0f330633a7d0058f57269d795530415498a",
   "signature": "0xSignatureData",
   "deadline": 1696012800,
-  "error": "" // Empty if no error
+  "error": ""
 }
 ```
 
-- `trade_id` (string): The trade ID associated with the request.
-- `signature` (string): The signature provided by the PMM.
-- `deadline` (integer): The UNIX timestamp (in seconds) indicating the PMM's expected payment deadline.
-- `error` (string): Error message, if any (empty if no error).
+| Field | Type | Description |
+|-------|------|-------------|
+| `trade_id` | string | Trade identifier from request |
+| `signature` | string | PMM's cryptographic signature authorizing settlement |
+| `deadline` | integer | PMM's expected payment deadline (UNIX timestamp) |
+| `error` | string | Error message if applicable (empty if successful) |
 
 <details>
 <summary><strong>Example Implementation</strong></summary>
@@ -828,20 +689,20 @@ function getPmmAddressByNetworkType(token) {
 
 </details>
 
-### 3.5. Endpoint: `/ack-settlement`
+### 3.4. Endpoint: `/ack-settlement`
 
-#### Description
-
-Used by the solver to acknowledge to the PMM about a successful settlement, indicating whether the PMM is selected.
+**Purpose:** Solver notifies the PMM whether it was selected to execute the settlement. PMM can prepare or release liquidity accordingly.
 
 #### Request Parameters
 
-- **HTTP Method**: `POST`
-- **Form Parameters**:
-  - `trade_id` (string): The unique identifier for the trade. Example format: `0x024be4dae899989e0c3d9b4459e5811613bcd04016dc56529f16a19d2a7724c0`.
-  - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
-  - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
-  - `chosen` (string): `"true"` if the PMM is selected, `"false"` otherwise.
+**Form Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `trade_id` | string | ✅ | Unique trade identifier (hex format) |
+| `trade_deadline` | string | ✅ | Payment deadline (UNIX timestamp) |
+| `script_deadline` | string | ✅ | Withdrawal deadline if unpaid (UNIX timestamp) |
+| `chosen` | string | ✅ | `"true"` if PMM selected, `"false"` if not |
 
 #### Example Request
 
@@ -854,20 +715,23 @@ trade_id=0x024be4dae899989e0c3d9b4459e5811613bcd04016dc56529f16a19d2a7724c0&trad
 
 #### Expected Response
 
-- **HTTP Status**: `200 OK`
-- **Response Body** (JSON):
+**HTTP Status:** `200 OK`
+
+**Response Body:**
 
 ```json
 {
   "trade_id": "0x024be4dae899989e0c3d9b4459e5811613bcd04016dc56529f16a19d2a7724c0",
   "status": "acknowledged",
-  "error": "" // Empty if no error
+  "error": ""
 }
 ```
 
-- `trade_id` (string): The trade ID associated with the request.
-- `status` (string): Status of the acknowledgment (always `"acknowledged"`).
-- `error` (string): Error message, if any (empty if no error).
+| Field | Type | Description |
+|-------|------|-------------|
+| `trade_id` | string | Trade identifier from request |
+| `status` | string | Always `"acknowledged"` if successful |
+| `error` | string | Error message if applicable (empty if successful) |
 
 <details>
 <summary><strong>Example Implementation</strong></summary>
@@ -922,20 +786,20 @@ async function ackSettlement(req, res) {
 
 </details>
 
-### 3.6. Endpoint: `/signal-payment`
+### 3.5. Endpoint: `/signal-payment`
 
-#### Description
-
-Used by the solver to signal the chosen PMM to start submitting their payment.
+**Purpose:** Solver signals the selected PMM to start submitting payment transactions. After receiving this signal, PMM must execute settlement before the deadline.
 
 #### Request Parameters
 
-- **HTTP Method**: `POST`
-- **Form Parameters**:
-  - `trade_id` (string): The unique identifier for the trade. Example format: `0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328`.
-  - `trade_deadline` (string): The UNIX timestamp (in seconds) by which the user expects to receive payment.
-  - `script_deadline` (string): The UNIX timestamp (in seconds) after which the user can withdraw their deposit if not paid.
-  - `total_fee_amount` (string): The amount of total fee the PMM has to submit, in base 10. This should be treated as a BigInt in your implementation.
+**Form Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `trade_id` | string | ✅ | Unique trade identifier (hex format) |
+| `total_fee_amount` | string | ✅ | Total fee amount to submit (base 10, treat as BigInt) |
+| `trade_deadline` | string | ✅ | Payment deadline (UNIX timestamp) |
+| `script_deadline` | string | ✅ | Withdrawal deadline if unpaid (UNIX timestamp) |
 
 #### Example Request
 
@@ -948,20 +812,28 @@ trade_id=0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328&tota
 
 #### Expected Response
 
-- **HTTP Status**: `200 OK`
-- **Response Body** (JSON):
+**HTTP Status:** `200 OK`
+
+**Response Body:**
 
 ```json
 {
   "trade_id": "0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328",
   "status": "acknowledged",
-  "error": "" // Empty if no error
+  "error": ""
 }
 ```
 
-- `trade_id` (string): The trade ID associated with the request.
-- `status` (string): Status of the acknowledgment (always `"acknowledged"`).
-- `error` (string): Error message, if any (empty if no error).
+| Field | Type | Description |
+|-------|------|-------------|
+| `trade_id` | string | Trade identifier from request |
+| `status` | string | Always `"acknowledged"` if successful |
+| `error` | string | Error message if applicable (empty if successful) |
+
+**Next Steps After Signal:**
+1. Queue payment execution to appropriate network (EVM/BTC/Solana)
+2. Execute settlement transaction before deadline
+3. Submit settlement via `/v1/market-maker/submit-settlement-tx`
 
 <details>
 <summary><strong>Example Implementation</strong></summary>

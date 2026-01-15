@@ -1,10 +1,18 @@
 # PMM Liquidation Flow
 
-The liquidation process uses the **Morpho Liquidation Gateway** contract instead of the standard **Payment** contract. However, **the flow when calling the contract is similar to the normal swap payment flow**, following the same sequential steps from initial quote to final settlement.
+Liquidation is a specialized trade type where PMMs help liquidate under-collateralized positions. The flow is **similar to standard swaps**, but uses the **Morpho Liquidation Gateway** contract for settlement.
 
-**IMPORTANT NOTE for PMM Operators:**
+## Key Differences from Standard Swaps
 
-- **Liquidation Receiving Address**: The PMM's receiving address for liquidation collateral tokens is configured manually (not part of the API response). Once set, **this address MUST NOT be changed during active liquidation operations** to ensure proper settlement and payment flows.
+| Aspect | Standard Swap | Liquidation |
+|--------|---------------|-------------|
+| Endpoint | `/commitment-quote` | **`/liquidation-quote`** |
+| Database Type | `SWAP` | `LENDING` |
+| Contract | Payment | **MorphoLiquidationGateway** |
+| Metadata | Optional | **Required** (`payment_metadata`) |
+| Receiving Address | Dynamic (from API) | **Pre-configured** (manual setup) |
+
+> ⚠️ **Critical:** The PMM's liquidation receiving address is configured **manually** and **MUST NOT be changed** during active liquidation operations. This ensures proper settlement and payment flows.
 
 ## Table of Contents
 
@@ -32,13 +40,15 @@ The liquidation process uses the **Morpho Liquidation Gateway** contract instead
 
 ## Quick Flow Overview
 
-1. **Indicative Quote** - Initial price discovery
-2. **Liquidation Quote** - Firm commitment quote (liquidation-specific)
-3. **Settlement Signature** - PMM signs the settlement
-4. **Ack Settlement** - Solver notifies if PMM is chosen
-5. **Signal Payment** - Solver signals PMM to execute payment
-6. **Settlement Submission** - PMM submits settlement transaction
-7. **Contract Execution** - Liquidation executed via MorphoLiquidationGateway
+The liquidation flow consists of **5 main phases** (same as swaps, but with `/liquidation-quote` instead of `/commitment-quote`):
+
+| # | Phase | Endpoint | PMM Action |
+|---|-------|----------|-----------|
+| 1️⃣ | Price Discovery | `GET /indicative-quote` | Return quote + receiving address |
+| 2️⃣ | Liquidation Quote | `GET /liquidation-quote` | **Commit firm liquidation price** |
+| 3️⃣ | Authorization | `GET /settlement-signature` | Sign settlement terms |
+| 4️⃣ | Selection | `POST /ack-settlement` | Receive selection result |
+| 5️⃣ | Execution | `POST /signal-payment` → `/submit-settlement-tx` | Execute & submit liquidation |
 
 ```mermaid
 sequenceDiagram
@@ -102,21 +112,23 @@ sequenceDiagram
 ### 1. `/indicative-quote` - Initial Quote Request
 
 <details>
-<summary><strong>Click to expand</strong> - Shared with Swap flow</summary>
+<summary><strong>Shared with Swap flow</strong> - Click to expand for details</summary>
 
 **Purpose:** Solver requests an indicative quote before the user makes a deposit. This helps estimate the trade parameters.
 
 **Method:** `GET`
 
-**Key Parameters:**
+**Query Parameters:**
 
-- `swap_type`: "0" (Optimistic) or "1" (Basic)
-- `from_token_id`: Source token ID
-- `to_token_id`: Destination token ID
-- `amount`: Amount to trade (base 10 string)
-- `trade_timeout`: Deadline for user to receive tokens (UNIX timestamp)
-- `script_timeout`: Hard timeout for the trade (UNIX timestamp)
-- `deposited`: Whether deposit is confirmed (optional)
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `swap_type` | string | "0" (Optimistic) or "1" (Basic) |
+| `from_token_id` | string | Source token ID |
+| `to_token_id` | string | Destination token ID |
+| `amount` | string | Amount to trade (base 10 string) |
+| `trade_timeout` | string | Deadline for user to receive tokens (UNIX timestamp) |
+| `script_timeout` | string | Hard timeout for the trade (UNIX timestamp) |
+| `deposited` | boolean | Whether deposit is confirmed (optional) |
 
 **Response:**
 
@@ -130,11 +142,11 @@ sequenceDiagram
 }
 ```
 
-**Key Fields:**
-
-- `pmm_receiving_address`: Where user will send the input tokens
-- `indicative_quote`: Estimated output amount
-- `quote_timeout`: When this quote expires (0 if no timeout)
+| Field | Type | Description |
+|-------|------|-------------|
+| `pmm_receiving_address` | string | Where user will send the input tokens |
+| `indicative_quote` | string | Estimated output amount |
+| `quote_timeout` | integer | When this quote expires (0 if no timeout) |
 
 </details>
 
@@ -146,18 +158,22 @@ sequenceDiagram
 
 **Method:** `GET`
 
-**Key Parameters:**
+**Query Parameters:**
 
-- `session_id`: Session identifier
-- `trade_id`: Unique trade identifier
-- `from_token_id`, `to_token_id`, `amount`: Trade details
-- `payment_metadata`: Hex string encoded data for smart contract payment method
-- `from_user_address`: User's source address
-- `to_user_address`: User's receiving address
-- `user_deposit_tx`: Transaction hash of user's deposit
-- `user_deposit_vault`: Vault containing user's deposit
-- `trade_deadline`: Expected payment deadline (UNIX timestamp)
-- `script_deadline`: Withdrawal deadline if unpaid (UNIX timestamp)
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `session_id` | string | Session identifier |
+| `trade_id` | string | Unique trade identifier |
+| `from_token_id` | string | Source token identifier |
+| `to_token_id` | string | Destination token identifier |
+| `amount` | string | Amount to trade (base 10, treat as BigInt) |
+| `payment_metadata` | string | Hex string encoded data for smart contract payment method |
+| `from_user_address` | string | User's source address |
+| `to_user_address` | string | User's receiving address |
+| `user_deposit_tx` | string | Transaction hash of user's deposit |
+| `user_deposit_vault` | string | Vault containing user's deposit |
+| `trade_deadline` | string | Expected payment deadline (UNIX timestamp) |
+| `script_deadline` | string | Withdrawal deadline if unpaid (UNIX timestamp) |
 
 **Response:**
 
@@ -169,28 +185,30 @@ sequenceDiagram
 }
 ```
 
-**Key Fields:**
-
-- `liquidation_quote`: **Firm committed quote** - PMM must honor this price
-- This is a binding commitment to execute the liquidation at this rate
+| Field | Type | Description |
+|-------|------|-------------|
+| `liquidation_quote` | string | **Firm committed quote** - PMM must honor this price (treat as BigInt) |
+| `error` | string | Error message if applicable (empty if successful) |
 
 ---
 
 ### 3. `/settlement-signature` - Settlement Authorization
 
 <details>
-<summary><strong>Click to expand</strong> - Shared with Swap flow</summary>
+<summary><strong>Shared with Swap flow</strong> - Click to expand for details</summary>
 
 **Purpose:** PMM provides a cryptographic signature to authorize the settlement at the committed quote.
 
 **Method:** `GET`
 
-**Parameters:**
+**Query Parameters:**
 
-- `trade_id`: Unique trade identifier
-- `committed_quote`: The agreed quote value (base 10 string)
-- `trade_deadline`: Expected payment deadline (UNIX timestamp)
-- `script_deadline`: Withdrawal deadline (UNIX timestamp)
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `trade_id` | string | Unique trade identifier |
+| `committed_quote` | string | The agreed quote value (base 10 string, treat as BigInt) |
+| `trade_deadline` | string | Expected payment deadline (UNIX timestamp) |
+| `script_deadline` | string | Withdrawal deadline (UNIX timestamp) |
 
 **Response:**
 
@@ -203,11 +221,10 @@ sequenceDiagram
 }
 ```
 
-**Key Fields:**
-
-- `signature`: PMM's signature authorizing the settlement
-- `deadline`: PMM's expected payment deadline
-- This signature will be used to finalize the trade on-chain
+| Field | Type | Description |
+|-------|------|-------------|
+| `signature` | string | PMM's signature authorizing the settlement |
+| `deadline` | integer | PMM's expected payment deadline (UNIX timestamp) |
 
 </details>
 
@@ -216,11 +233,20 @@ sequenceDiagram
 ### 4. `/ack-settlement` - Selection Acknowledgment
 
 <details>
-<summary><strong>Click to expand</strong> - Shared with Swap flow</summary>
+<summary><strong>Shared with Swap flow</strong> - Click to expand for details</summary>
 
-**Purpose:** Solver notifies the PMM whether it was selected to execute the liquidation (solver may query multiple PMMs).
+**Purpose:** Solver notifies the PMM whether it was selected to execute the liquidation.
 
 **Method:** `POST`
+
+**Form Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `trade_id` | string | Unique trade identifier |
+| `trade_deadline` | string | Expected payment deadline (UNIX timestamp) |
+| `script_deadline` | string | Withdrawal deadline if unpaid (UNIX timestamp) |
+| `chosen` | string | "true" if PMM selected, "false" if not |
 
 **Request Body:**
 
@@ -243,11 +269,9 @@ sequenceDiagram
 }
 ```
 
-**Key Fields:**
-
-- `chosen`: "true" if PMM is selected, "false" if not
-- If chosen, PMM should prepare to execute the liquidation
-- If not chosen, PMM can release reserved liquidity
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | Always "acknowledged" if successful |
 
 </details>
 
@@ -256,11 +280,20 @@ sequenceDiagram
 ### 5. `/signal-payment` - Payment Execution Signal
 
 <details>
-<summary><strong>Click to expand</strong> - Shared with Swap flow</summary>
+<summary><strong>Shared with Swap flow</strong> - Click to expand for details</summary>
 
 **Purpose:** Solver signals the chosen PMM to start submitting the liquidation payment transaction.
 
 **Method:** `POST`
+
+**Form Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `trade_id` | string | Unique trade identifier |
+| `total_fee_amount` | string | Total fee amount to submit (base 10, treat as BigInt) |
+| `trade_deadline` | string | Expected payment deadline (UNIX timestamp) |
+| `script_deadline` | string | Withdrawal deadline if unpaid (UNIX timestamp) |
 
 **Request Body:**
 
@@ -285,11 +318,9 @@ sequenceDiagram
 
 **PMM Actions After Signal:**
 
-1. **Prepare settlement transaction** using the liquidation contract
-2. **Submit to solver** via `/submit-settlement-tx` endpoint:
-   - Include `trade_ids`, `pmm_id`, `settlement_tx`
-   - Provide signature and timestamp
-3. **Execute payment** before the deadline
+1. Prepare settlement transaction using the liquidation contract
+2. Submit to solver via `/submit-settlement-tx` endpoint
+3. Execute payment before the deadline
 
 </details>
 
@@ -303,11 +334,22 @@ After receiving the payment signal, PMM must submit the settlement transaction t
 
 **Method:** `POST`
 
+**Request Body Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `trade_ids` | array | Array of trade identifiers being settled |
+| `pmm_id` | string | PMM identifier |
+| `settlement_tx` | string | Raw transaction data for the settlement |
+| `signature` | string | PMM's signature for the settlement |
+| `start_index` | integer | Starting index for batch processing (typically 0) |
+| `signed_at` | integer | UNIX timestamp when signature was created |
+
 **Request Body:**
 
 ```json
 {
-  "trade_ids": ["0x"],
+  "trade_ids": ["0x..."],
   "pmm_id": "pmm001",
   "settlement_tx": "0xRawTransactionData",
   "signature": "0xSignatureData",
@@ -316,19 +358,9 @@ After receiving the payment signal, PMM must submit the settlement transaction t
 }
 ```
 
-**Field Descriptions:**
-
-- `trade_ids`: Array of trade identifiers being settled
-- `pmm_id`: PMM identifier
-- `settlement_tx`: Raw transaction data for the settlement
-- `signature`: PMM's signature for the settlement
-- `start_index`: Starting index for batch processing (typically 0)
-- `signed_at`: UNIX timestamp when signature was created
-
 **Expected Response:**
 
-- **HTTP Status:** `200 OK`
-- **Response Body:**
+**HTTP Status:** `200 OK`
 
 ```json
 {
@@ -342,25 +374,21 @@ After receiving the payment signal, PMM must submit the settlement transaction t
 
 ### Contract Addresses
 
-**Staging Environment:**
+**Staging Environment (Testnet)**
 
-- **Network:** Sepolia Testnet
+| Network | Contract | Address |
+|---------|----------|---------|
+| Sepolia | MorphoLiquidationGateway | [0x390Bd58173F7C0433f8fa9b0fF08913A261d0Ba7](https://sepolia.etherscan.io/address/0x390Bd58173F7C0433f8fa9b0fF08913A261d0Ba7#code) |
+| Optimex Testnet | Signer | [0xA89F5060B810F3b6027D7663880c43ee77A865C7](https://scan-testnet.optimex.xyz/address/0xA89F5060B810F3b6027D7663880c43ee77A865C7) |
+| Optimex Testnet | Router | [0x31C88ebd9E430455487b6a5c8971e8eF63e97ED4](https://scan-testnet.optimex.xyz/address/0x31C88ebd9E430455487b6a5c8971e8eF63e97ED4) |
 
-  - **MorphoLiquidationGateway Contract:** [0x390Bd58173F7C0433f8fa9b0fF08913A261d0Ba7](https://sepolia.etherscan.io/address/0x390Bd58173F7C0433f8fa9b0fF08913A261d0Ba7#code)
+**Production Environment (Mainnet)**
 
-- **Network:** Optimex Testnet
-  - `Signer`: [0xA89F5060B810F3b6027D7663880c43ee77A865C7](https://scan-testnet.optimex.xyz/address/0xA89F5060B810F3b6027D7663880c43ee77A865C7)
-  - `Router`: [0x31C88ebd9E430455487b6a5c8971e8eF63e97ED4](https://scan-testnet.optimex.xyz/address/0x31C88ebd9E430455487b6a5c8971e8eF63e97ED4)
-
-**Production Environment:**
-
-- **Network:** Ethereum Mainnet
-
-  - **MorphoLiquidationGateway Contract:** [0x4be396E85c09972728C114F781Aa0e84A5f908E5](https://etherscan.io/address/0x4be396E85c09972728C114F781Aa0e84A5f908E5)
-
-- **Network:** Optimex Mainnet
-  - `Signer`: [0xCF9786F123F1071023dB8049808C223e94c384be](https://scan.optimex.xyz/address/0xCF9786F123F1071023dB8049808C223e94c384be)
-  - `Router`: [0x1e878cCa765a8aAFEBecCa672c767441b4859634](https://scan.optimex.xyz/address/0x1e878cCa765a8aAFEBecCa672c767441b4859634)
+| Network | Contract | Address |
+|---------|----------|---------|
+| Ethereum Mainnet | MorphoLiquidationGateway | [0x4be396E85c09972728C114F781Aa0e84A5f908E5](https://etherscan.io/address/0x4be396E85c09972728C114F781Aa0e84A5f908E5) |
+| Optimex Mainnet | Signer | [0xCF9786F123F1071023dB8049808C223e94c384be](https://scan.optimex.xyz/address/0xCF9786F123F1071023dB8049808C223e94c384be) |
+| Optimex Mainnet | Router | [0x1e878cCa765a8aAFEBecCa672c767441b4859634](https://scan.optimex.xyz/address/0x1e878cCa765a8aAFEBecCa672c767441b4859634) |
 
 ### Payment Function
 
@@ -374,11 +402,13 @@ function payment(
 )
 ```
 
-**Parameters:**
+**Function Parameters:**
 
-- `token`: Address of the token being paid (or "zeroAddress" for native chain tokens)
-- `amount`: Amount of tokens to pay
-- `externalCall`: Encoded call data for the liquidation execution (provided in `payment_metadata` from `/liquidation-quote`)
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `token` | address | Token address being paid (or `0x0` for native tokens) |
+| `amount` | uint256 | Amount of tokens to pay |
+| `externalCall` | bytes | Encoded call data for liquidation execution (from `payment_metadata`) |
 
 ### Implementation Example
 
@@ -459,21 +489,23 @@ await submitSettlementTx({
 
 ## Error Handling
 
-When settlement simulation reverts, PMM must create a dummy settlement transaction using the 4-byte error code from the contract revert, padded to match normal Ethereum transaction size.
+When settlement simulation reverts, PMM must create a dummy settlement transaction using the 4-byte error code from the contract revert.
 
 ### Dummy Transaction Format
 
-**Formula:**
+**Pattern:**
 
 ```
 Dummy Transaction = 0x + [4-byte-error-code] + [56 zeros padding]
-Total length = 66 characters (including 0x prefix)
+Total Length: 66 characters (including 0x prefix)
 ```
 
 **Example:**
 
-- **Error code:** `0xadb068de`
-- **Dummy settlement tx:** `0xadb068de00000000000000000000000000000000000000000000000000000000`
+| Component | Value |
+|-----------|-------|
+| Error code | `0xadb068de` |
+| Dummy tx | `0xadb068de00000000000000000000000000000000000000000000000000000000` |
 
 ### Common Error Codes
 
@@ -496,10 +528,8 @@ Total length = 66 characters (including 0x prefix)
 
 ### Error Handling Flow
 
-1. **Simulate settlement transaction** before submission
-2. **If simulation reverts:**
-   - Extract 4-byte error code from revert data
-   - Pad error code with 56 zeros
-   - Submit dummy transaction with error code
-3. **If simulation succeeds:**
-   - Submit actual settlement transaction
+**Step 1:** Simulate settlement transaction before submission
+
+**Step 2:** Check simulation result
+- ✅ **Success:** Submit actual settlement transaction hash
+- ❌ **Reverts:** Extract 4-byte error code → pad with 56 zeros → submit dummy transaction
