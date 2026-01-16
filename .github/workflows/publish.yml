@@ -2,126 +2,70 @@ name: Publish Package
 
 on:
   push:
-    branches:
-      - develop
-      - staging
+    branches: [main, develop]
     paths-ignore:
-      - package.json
-
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to publish (e.g. 0.1.0)"
-        required: true
-        type: string
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
 
 permissions:
-  id-token: write
   contents: write
+  pull-requests: write
+  id-token: write
 
 jobs:
-  build-and-publish:
+  # Release Please for main branch - creates Release PR
+  release-please:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: node
+
+  # Publish stable version when Release PR is merged
+  publish-stable:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GH_PAT }}
-          persist-credentials: true
-
-      - name: Determine environment
-        id: env
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "environment=production" >> $GITHUB_OUTPUT
-            echo "npm_tag=${{ contains(inputs.version, 'alpha') || contains(inputs.version, 'beta') || contains(inputs.version, 'rc') && 'beta' || 'latest' }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref_name }}" = "develop" ]; then
-            echo "environment=dev" >> $GITHUB_OUTPUT
-            echo "npm_tag=dev" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref_name }}" = "staging" ]; then
-            echo "environment=staging" >> $GITHUB_OUTPUT
-            echo "npm_tag=staging" >> $GITHUB_OUTPUT
-          fi
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org/"
+          node-version: '22'
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build package
+        run: yarn build
 
       - name: Get package info
         id: package
         run: |
           PACKAGE_NAME=$(node -p "require('./package.json').name")
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          COMMIT_SHORT_SHA="$(git rev-parse --short HEAD)"
+          VERSION=$(node -p "require('./package.json').version")
           echo "name=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
-          echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
-          echo "commit_sha=${COMMIT_SHORT_SHA}" >> $GITHUB_OUTPUT
-
-      - name: Calculate version
-        id: version
-        run: |
-          if [ "${{ steps.env.outputs.environment }}" = "production" ]; then
-            # Production: use manual version
-            NEW_VERSION="${{ inputs.version }}"
-            echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
-          else
-            # Dev/Staging: calculate next version
-            CURRENT_VERSION="${{ steps.package.outputs.current_version }}"
-            BASE_VERSION=$(echo $CURRENT_VERSION | sed -E 's/(-dev-[a-f0-9]+|-staging-[a-f0-9]+)?$//')
-            IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
-            NEW_MINOR=$((MINOR + 1))
-            NEXT_VERSION="${MAJOR}.${NEW_MINOR}.0"
-
-            if [ "${{ steps.env.outputs.environment }}" = "dev" ]; then
-              DEV_VERSION="${NEXT_VERSION}-dev-${{ steps.package.outputs.commit_sha }}"
-            else
-              DEV_VERSION="${NEXT_VERSION}-staging-${{ steps.package.outputs.commit_sha }}"
-            fi
-
-            echo "new_version=${DEV_VERSION}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Install dependencies
-        run: yarn install --ignore-scripts
-
-      - name: Build package
-        run: yarn build
-
-      - name: Update version
-        run: npm version ${{ steps.version.outputs.new_version }} --no-git-tag-version
-
-      - name: Commit and tag (production only)
-        if: steps.env.outputs.environment == 'production'
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git config --local core.hooksPath /dev/null
-          git add package.json
-          git commit -m "chore(release): bump version to ${{ steps.version.outputs.new_version }} [skip ci]"
-          git push "https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" HEAD:main
-          git tag -a v${{ steps.version.outputs.new_version }} -m "Release v${{ steps.version.outputs.new_version }}"
-          git push "https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git" --tags
-
-      - name: Create GitHub Release (production only)
-        if: steps.env.outputs.environment == 'production'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.new_version }}
-          name: Release v${{ steps.version.outputs.new_version }}
-          generate_release_notes: true
-          draft: false
-          prerelease: ${{ contains(steps.version.outputs.new_version, 'alpha') || contains(steps.version.outputs.new_version, 'beta') || contains(steps.version.outputs.new_version, 'rc') }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Publish to NPM
-        run: npm publish --access public --provenance --tag ${{ steps.env.outputs.npm_tag }}
+        run: npm publish --access public --provenance --tag latest
         env:
-          NODE_AUTH_TOKEN: ""
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Send Telegram Notification
+        if: success()
         uses: appleboy/telegram-action@v1.0.1
         with:
           to: ${{ secrets.BF_DEVOPS_CHANNEL_ID }}
@@ -130,9 +74,70 @@ jobs:
             🚀 NPM Package Published
 
             📌 Package: ${{ steps.package.outputs.name }}
-            📌 Version: ${{ steps.version.outputs.new_version }}
-            📌 Tag: ${{ steps.env.outputs.npm_tag }}
-            📌 Environment: ${{ steps.env.outputs.environment }}
+            📌 Version: ${{ steps.package.outputs.version }}
+            📌 Tag: latest
+
+            👤 Triggered by: ${{ github.actor }}
+
+            🔗 Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  # Publish beta version on develop branch
+  publish-beta:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build package
+        run: yarn build
+
+      - name: Get short commit hash
+        id: commit
+        run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Get package info
+        id: package
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "name=${PACKAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Publish beta version
+        run: |
+          SHORT_SHA=${{ steps.commit.outputs.short }}
+          CURRENT_VERSION=${{ steps.package.outputs.version }}
+          BETA_VERSION="${CURRENT_VERSION}-beta.${SHORT_SHA}"
+
+          npm version "$BETA_VERSION" --no-git-tag-version
+          echo "Publishing ${{ steps.package.outputs.name }}@${BETA_VERSION}"
+          npm publish --access public --provenance --tag beta
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Send Telegram Notification
+        if: success()
+        uses: appleboy/telegram-action@v1.0.1
+        with:
+          to: ${{ secrets.BF_DEVOPS_CHANNEL_ID }}
+          token: ${{ secrets.BF_MONITOR_BOT }}
+          message: |
+            🧪 NPM Beta Package Published
+
+            📌 Package: ${{ steps.package.outputs.name }}
+            📌 Version: ${{ steps.package.outputs.version }}-beta.${{ steps.commit.outputs.short }}
+            📌 Tag: beta
 
             👤 Triggered by: ${{ github.actor }}
 
