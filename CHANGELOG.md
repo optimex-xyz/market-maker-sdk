@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/optimex-xyz/market-maker-sdk/compare/v0.11.1...v0.11.2) (2026-01-16)
+
+
+### Bug Fixes
+
+* align publish workflow with working publish-2.yml config ([fa94a2b](https://github.com/optimex-xyz/market-maker-sdk/commit/fa94a2b93498791aa54f5a7d9eec64512dfe9962))
+
 ## [0.11.1](https://github.com/optimex-xyz/market-maker-sdk/compare/v0.11.0...v0.11.1) (2026-01-16)
 
 
