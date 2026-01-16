@@ -40,3 +40,11 @@ Thumbs.db
 
 /.env
 /repomix-output.txt
+
+.claude/
+claude_sessions/
+.opencode/
+AGENTS.md
+CLAUDE.md
+plans/
+release-manifest.json
