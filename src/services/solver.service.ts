@@ -39,7 +39,7 @@ const PMMFinalistSchema = z.object({
 const PaymentBundleSchema = z.object({
   tradeIds: z.array(z.string()).nullable(),
   settlementTx: z.string().optional().default(''),
-  signature: z.string().optional().default('0x'),
+  signature: z.string().optional(),
   startIndex: z.number().optional().default(0),
   pmmId: z.string().optional().default(''),
   signedAt: z.number().optional().default(0),
