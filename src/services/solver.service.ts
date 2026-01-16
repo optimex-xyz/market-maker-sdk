@@ -72,7 +72,7 @@ const TradeDetailResponseSchema = z.object({
     selectedPmmOperator: z.string(),
     selectedPmmSigDeadline: z.number(),
     commitmentRetries: z.number(),
-    pmmFailureStats: z.record(z.number()),
+    pmmFailureStats: z.record(z.string(), z.number()),
     commitedSignature: z.string(),
     minAmountOut: z.null(),
     userDepositTx: z.string(),

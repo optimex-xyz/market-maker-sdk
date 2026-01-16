@@ -67,7 +67,7 @@ export const TradeEventSchema = z.object({
   txId: z.string().nullable(),
   blockNumber: z.number(),
   timestamp: z.number(),
-  inputData: z.record(z.any()),
+  inputData: z.record(z.string(), z.any()),
   createdAt: z.string(),
   updatedAt: z.string(),
 })
@@ -77,7 +77,7 @@ export type TradeEvent = z.infer<typeof TradeEventSchema>
 export const TradeSchema = z.object({
   id: z.number(),
   tradeId: z.string(),
-  status: z.nativeEnum(TradeStatus),
+  status: z.enum(TradeStatus),
   tradeTimeout: z.number().nullable(),
   scriptTimeout: z.number().nullable(),
   timestamp: z.number().nullable(),
@@ -90,7 +90,7 @@ export const TradeSchema = z.object({
   settlementTxId: z.string().nullable(),
   toBridgeTxId: z.string().nullable(),
   fromBridgeTxId: z.string().nullable(),
-  swapType: z.nativeEnum(TradeType).nullable(),
+  swapType: z.enum(TradeType).nullable(),
   amountIn: z.string().nullable(),
   fromToken: TradeTokenSchema.nullable(),
   toToken: TradeTokenSchema.nullable(),
