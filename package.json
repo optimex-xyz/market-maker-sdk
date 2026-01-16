@@ -5,16 +5,21 @@
   "publishConfig": {
     "access": "public"
   },
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
   },
   "repository": {
     "type": "git",
@@ -32,7 +37,7 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "build": "tsdown",
     "typechain": "rm -rf ./src/contracts/contracts && typechain --target=ethers-v6 ./abi/**/**.json --out-dir ./src/contracts/contracts",
     "prepare": "simple-git-hooks",
     "lint": "eslint --ext .js,.ts,.tsx src/",
@@ -69,7 +74,7 @@
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.0",
     "simple-git-hooks": "^2.13.1",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.20.0-beta.3",
     "typechain": "^8.3.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.0"
