@@ -1,17 +1,15 @@
-import { JsonRpcProvider } from 'ethers'
+import { getContract } from 'viem'
 
 import { routerService } from './router.service'
 
+import { signerAbi } from '../abi'
 import { AppConfig, config, ConfigObserver } from '../config'
-import { Signer__factory } from '../contracts'
+import { viemClient } from '../viem'
 
 export class SignerService implements ConfigObserver {
-  private provider: JsonRpcProvider
   private readonly routerService = routerService
 
   constructor() {
-    this.provider = new JsonRpcProvider(config.getRpcUrl())
-
     // Register as an observer
     config.registerObserver(this)
   }
@@ -20,22 +18,26 @@ export class SignerService implements ConfigObserver {
    * Implementation of ConfigObserver interface
    * Updates service when config changes
    */
-  onConfigUpdate(newConfig: AppConfig): void {
-    this.provider = new JsonRpcProvider(newConfig.rpcUrl)
+  onConfigUpdate(_newConfig: AppConfig): void {
+    // No state to update - using viemClient which handles config updates
   }
 
   async getDomain() {
     const signerAddress = await this.routerService.getSigner()
 
-    const contract = Signer__factory.connect(signerAddress, this.provider)
+    const contract = getContract({
+      address: signerAddress as `0x${string}`,
+      abi: signerAbi,
+      client: viemClient.getClient(),
+    })
 
-    const domain = await contract.eip712Domain()
+    const domain = await contract.read.eip712Domain()
 
     return {
-      name: domain.name,
-      version: domain.version,
-      chainId: domain.chainId,
-      verifyingContract: domain.verifyingContract,
+      name: domain[1],
+      version: domain[2],
+      chainId: domain[3],
+      verifyingContract: domain[4],
     }
   }
 }

@@ -42,7 +42,7 @@ Thumbs.db
 /repomix-output.txt
 
 .claude/
-claude_sessions/
+.claude_sessions/
 .opencode/
 AGENTS.md
 CLAUDE.md

@@ -17,6 +17,8 @@ yarn.lock
 
 # Ignore specific path
 src/contracts
+src/abi
+src/types/contract
 
 *.json
 

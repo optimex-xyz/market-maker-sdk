@@ -9,6 +9,14 @@ function isContractsDir(dirPath) {
   return path.basename(dirPath) === 'contracts'
 }
 
+function isAbiDir(dirPath) {
+  return path.basename(dirPath) === 'abi'
+}
+
+function isContractDir(dirPath) {
+  return path.basename(dirPath) === 'contract'
+}
+
 function generateIndexContent(files) {
   const exports = files
     .map((file) => {
@@ -21,7 +29,7 @@ function generateIndexContent(files) {
 }
 
 function deleteIndexFiles(dirPath) {
-  if (isContractsDir(dirPath)) {
+  if (isContractsDir(dirPath) || isAbiDir(dirPath) || isContractDir(dirPath)) {
     return
   }
 
@@ -32,17 +40,17 @@ function deleteIndexFiles(dirPath) {
 
   const entries = fs.readdirSync(dirPath, { withFileTypes: true })
   entries
-    .filter(
-      (entry) =>
-        entry.isDirectory() && !isContractsDir(path.join(dirPath, entry.name))
-    )
+    .filter((entry) => {
+      const entryPath = path.join(dirPath, entry.name)
+      return entry.isDirectory() && !isContractsDir(entryPath) && !isAbiDir(entryPath)
+    })
     .forEach((dir) => {
       deleteIndexFiles(path.join(dirPath, dir.name))
     })
 }
 
 function processModule(dirPath) {
-  if (isContractsDir(dirPath)) {
+  if (isContractsDir(dirPath) || isAbiDir(dirPath) || isContractDir(dirPath)) {
     return
   }
 
@@ -63,7 +71,7 @@ function processModule(dirPath) {
     .map((dir) => {
       const subdirPath = path.join(dirPath, dir.name)
 
-      if (!isContractsDir(subdirPath)) {
+      if (!isContractsDir(subdirPath) && !isAbiDir(subdirPath)) {
         processModule(subdirPath)
       }
 
