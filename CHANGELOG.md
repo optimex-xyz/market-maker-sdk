@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/optimex-xyz/market-maker-sdk/compare/v0.11.0...v0.11.1) (2026-01-16)
+
+
+### Bug Fixes
+
+* use OIDC for npm provenance publishing ([e641700](https://github.com/optimex-xyz/market-maker-sdk/commit/e6417001c5bad80763255c19d5566a23dc24a8bd))
+
 ## [0.11.0](https://github.com/optimex-xyz/market-maker-sdk/compare/v0.10.8...v0.11.0) (2026-01-16)
 
 
