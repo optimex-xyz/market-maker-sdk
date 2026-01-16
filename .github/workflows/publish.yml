@@ -34,6 +34,9 @@ jobs:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,7 +49,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --ignore-scripts
 
       - name: Build package
         run: yarn build
@@ -62,7 +65,7 @@ jobs:
       - name: Publish to NPM
         run: npm publish --access public --provenance --tag latest
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ""
 
       - name: Send Telegram Notification
         if: success()
@@ -85,6 +88,9 @@ jobs:
   publish-beta:
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -97,7 +103,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --ignore-scripts
 
       - name: Build package
         run: yarn build
@@ -124,7 +130,7 @@ jobs:
           echo "Publishing ${{ steps.package.outputs.name }}@${BETA_VERSION}"
           npm publish --access public --provenance --tag beta
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ""
 
       - name: Send Telegram Notification
         if: success()
