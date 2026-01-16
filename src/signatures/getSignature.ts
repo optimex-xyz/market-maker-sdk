@@ -1,6 +1,13 @@
-import { AddressLike, BytesLike, Provider, Signer, TypedDataDomain, verifyTypedData, Wallet } from 'ethers'
+import {
+  recoverTypedDataAddress,
+  type Address,
+  type Hex,
+  type LocalAccount,
+  type PublicClient,
+  type WalletClient,
+} from 'viem'
 
-import defaultDomain from './domain'
+import defaultDomain, { type TypedDataDomain } from './domain'
 import {
   confirmDepositType,
   confirmPaymentType,
@@ -32,32 +39,62 @@ function getSignatureType(type: SignatureType): any {
 }
 
 export async function getSigner(
-  provider: Provider,
-  signerHelper: AddressLike,
-  tradeId: BytesLike,
-  infoHash: BytesLike,
+  provider: PublicClient,
+  signerHelper: Address,
+  tradeId: Hex,
+  infoHash: Hex,
   type: SignatureType,
-  signature: string
-) {
+  signature: Hex
+): Promise<Address> {
   const values = { tradeId: tradeId, infoHash: infoHash }
-  const contractDomain: TypedDataDomain = await defaultDomain(signerHelper, provider)
-  return verifyTypedData(contractDomain, getSignatureType(type), values, signature)
+  const contractDomain = await defaultDomain(signerHelper, provider)
+  const types = getSignatureType(type)
+
+  return await recoverTypedDataAddress({
+    domain: contractDomain as any,
+    types,
+    primaryType: Object.keys(types)[0],
+    message: values,
+    signature,
+  })
 }
 
 export async function getSignature(
-  Signer: Signer | Wallet,
-  provider: Provider,
-  signerHelper: AddressLike,
-  tradeId: BytesLike,
-  infoHash: BytesLike,
+  signer: LocalAccount | WalletClient,
+  provider: PublicClient,
+  signerHelper: Address,
+  tradeId: Hex,
+  infoHash: Hex,
   type: SignatureType,
   domain?: TypedDataDomain
-): Promise<string> {
-  const contractDomain: TypedDataDomain = await defaultDomain(signerHelper, provider)
+): Promise<Hex> {
+  const contractDomain = await defaultDomain(signerHelper, provider)
+  const types = getSignatureType(type)
+  const primaryType = Object.keys(types)[0]
 
   let values: any
   if (type === SignatureType.MakePayment) values = { infoHash }
   else values = { tradeId: tradeId, infoHash: infoHash }
 
-  return await Signer.signTypedData(domain ?? contractDomain, getSignatureType(type), values)
+  // Handle both LocalAccount and WalletClient
+  if ('signTypedData' in signer && typeof signer.signTypedData === 'function') {
+    // WalletClient
+    const walletClient = signer as WalletClient
+    return await walletClient.signTypedData({
+      account: walletClient.account!,
+      domain: (domain ?? contractDomain) as any,
+      types,
+      primaryType,
+      message: values,
+    })
+  } else {
+    // LocalAccount
+    const account = signer as LocalAccount
+    return await account.signTypedData({
+      domain: (domain ?? contractDomain) as any,
+      types,
+      primaryType,
+      message: values,
+    })
+  }
 }
