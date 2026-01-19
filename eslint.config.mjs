@@ -5,7 +5,7 @@ import unusedImports from 'eslint-plugin-unused-imports'
 
 export default [
   {
-    ignores: ['dist/**', "src/contracts/**", "generate-indexes.js", "commitlint.config.js", "tsup.config.ts"],
+    ignores: ['dist/**', "src/contracts/**", "generate-indexes.js", "commitlint.config.js", "tsdown.config.ts"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
