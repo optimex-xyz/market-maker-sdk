@@ -86,17 +86,11 @@ The SimplePMM Delegator architecture introduces a two-tier system that abstracts
 
 When the Solver calls PMM Delegator, it includes an `operator_pmm` parameter specifying which SimplePMM should handle the trade.
 
-```
-Solver Request → PMM Delegator
-                      │
-                      ▼
-              ┌───────────────┐
-              │ Read config   │
-              │ for operator  │
-              └───────┬───────┘
-                      │
-                      ▼
-              Route to specific SimplePMM
+```mermaid
+flowchart TD
+    A[Solver Request] --> B[PMM Delegator]
+    B --> C{Read config<br/>for operator}
+    C --> D[Route to specific SimplePMM]
 ```
 
 **PMM Delegator Config Example:**
@@ -130,37 +124,39 @@ Solver Request → PMM Delegator
 
 ### 2.1. Component Roles
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              SOLVER                                      │
-│                    (Optimex Trading Protocol)                           │
-└────────────────────────────┬────────────────────────────────────────────┘
-                             │
-                             │ Full PMM API
-                             │ (/indicative-quote, /commitment-quote,
-                             │  /settlement-signature, /ack-settlement,
-                             │  /signal-payment)
-                             ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          PMM DELEGATOR                                   │
-│                      (Virtual PMM Service)                              │
-│                                                                         │
-│  • Implements full PMM API for Solver                                   │
-│  • Aggregates quotes from multiple SimplePMMs                           │
-│  • Manages settlement signatures and protocol flow                      │
-│  • Delegates token transfers to SimplePMMs                              │
-│  • Submits settlement transactions to Solver                            │
-└──────────┬──────────────────┬──────────────────┬───────────────────────┘
-           │                  │                  │
-           │ SimplePMM API    │ SimplePMM API    │ SimplePMM API
-           ▼                  ▼                  ▼
-    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-    │  SimplePMM  │    │  SimplePMM  │    │  SimplePMM  │
-    │      A      │    │      B      │    │      C      │
-    │             │    │             │    │             │
-    │ • Quote     │    │ • Quote     │    │ • Quote     │
-    │ • Transfer  │    │ • Transfer  │    │ • Transfer  │
-    └─────────────┘    └─────────────┘    └─────────────┘
+```mermaid
+flowchart TB
+    subgraph Solver["SOLVER (Optimex Trading Protocol)"]
+        S[Full PMM API]
+    end
+
+    subgraph Delegator["PMM DELEGATOR (Virtual PMM Service)"]
+        D1[Implements full PMM API for Solver]
+        D2[Aggregates quotes from SimplePMMs]
+        D3[Manages settlement signatures]
+        D4[Delegates token transfers]
+        D5[Submits settlement to Solver]
+    end
+
+    subgraph SimplePMMs["SimplePMM Services"]
+        subgraph A["SimplePMM A"]
+            A1[Quote]
+            A2[Transfer]
+        end
+        subgraph B["SimplePMM B"]
+            B1[Quote]
+            B2[Transfer]
+        end
+        subgraph C["SimplePMM C"]
+            C1[Quote]
+            C2[Transfer]
+        end
+    end
+
+    S -->|"/indicative-quote<br/>/commitment-quote<br/>/settlement-signature<br/>/ack-settlement<br/>/signal-payment"| Delegator
+    Delegator -->|"SimplePMM API"| A
+    Delegator -->|"SimplePMM API"| B
+    Delegator -->|"SimplePMM API"| C
 ```
 
 ### 2.2. Communication Flow

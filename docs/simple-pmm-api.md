@@ -43,21 +43,10 @@ API specification for SimplePMM services that integrate with the PMM Delegator. 
 
 ### 1.1. Integration Architecture
 
-```
-┌──────────────────┐     Full PMM API      ┌──────────────────┐
-│                  │ ◄──────────────────── │                  │
-│   PMM Delegator  │                       │      Solver      │
-│                  │ ────────────────────► │                  │
-└────────┬─────────┘                       └──────────────────┘
-         │
-         │ SimplePMM API (2 endpoints)
-         ▼
-┌──────────────────┐
-│    SimplePMM     │
-│                  │
-│  • GET /quote    │
-│  • POST /trigger │
-└──────────────────┘
+```mermaid
+flowchart LR
+    Solver[Solver] <-->|"Full PMM API"| Delegator[PMM Delegator]
+    Delegator -->|"SimplePMM API<br/>(2 endpoints)"| SimplePMM[SimplePMM<br/>• GET /quote<br/>• POST /trigger]
 ```
 
 ### 1.2. API Summary
@@ -72,14 +61,10 @@ API specification for SimplePMM services that integrate with the PMM Delegator. 
 
 Solver specifies which SimplePMM handles each trade via `operator_pmm` parameter:
 
-```
-Solver: GET /indicative-quote?operator_pmm=operator_a&...
-                    │
-                    ▼
-PMM Delegator: Lookup "operator_a" in config
-                    │
-                    ▼
-SimplePMM Alpha: GET /quote?type=indicative&...
+```mermaid
+flowchart TD
+    A["Solver: GET /indicative-quote?operator_pmm=operator_a"] --> B["PMM Delegator: Lookup operator_a in config"]
+    B --> C["SimplePMM Alpha: GET /quote?type=indicative"]
 ```
 
 PMM Delegator only routes to the **specific SimplePMM** matching `operator_pmm`, not all registered SimplePMMs.
