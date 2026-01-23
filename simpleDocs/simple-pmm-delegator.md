@@ -11,16 +11,15 @@ This document describes the **PMM Delegator** and **SimplePMM** architecture, en
   - [1. Overview](#1-overview)
     - [1.1. Architecture Components](#11-architecture-components)
     - [1.2. Key Benefits](#12-key-benefits)
-    - [1.3. API Comparison](#13-api-comparison)
-    - [1.4. Operator-Based Routing](#14-operator-based-routing)
+    - [1.3. Operator-Based Routing](#13-operator-based-routing)
   - [2. System Architecture](#2-system-architecture)
-    - [2.1. Component Roles](#21-component-roles)
+    - [2.1. Component Diagram](#21-component-diagram)
     - [2.2. Communication Flow](#22-communication-flow)
-  - [3. Complete Trade Flow](#3-complete-trade-flow)
+  - [3. Trade Flow](#3-trade-flow)
     - [3.1. Flow Diagram](#31-flow-diagram)
     - [3.2. Phase Breakdown](#32-phase-breakdown)
   - [4. SimplePMM API Specification](#4-simplepmm-api-specification)
-    - [4.1. Endpoint: `GET /quote` (Unified Quote Endpoint)](#41-endpoint-get-quote-unified-quote-endpoint)
+    - [4.1. Endpoint: `GET /quote`](#41-endpoint-get-quote)
       - [Request Parameters](#request-parameters)
       - [Example Requests](#example-requests)
       - [Expected Response](#expected-response)
@@ -44,9 +43,16 @@ This document describes the **PMM Delegator** and **SimplePMM** architecture, en
     - [Common Error Responses](#common-error-responses)
     - [Error Response Format](#error-response-format)
     - [Retry Strategy](#retry-strategy)
-  - [9. Open Discussion Items](#9-open-discussion-items)
-    - [9.1. Critical Issues](#91-critical-issues)
-    - [9.2. Unresolved Questions](#92-unresolved-questions)
+  - [9. Design Decisions](#9-design-decisions)
+    - [9.1. Transaction Hash Format](#91-transaction-hash-format)
+    - [9.2. Callback Failure Recovery](#92-callback-failure-recovery)
+    - [9.3. Signature Uniqueness \& Replay Protection](#93-signature-uniqueness--replay-protection)
+    - [9.4. Operator Routing Rules](#94-operator-routing-rules)
+    - [9.5. Fee Distribution](#95-fee-distribution)
+    - [9.6. Configuration Management](#96-configuration-management)
+    - [9.7. Timeout Ordering](#97-timeout-ordering)
+    - [9.8. Failover Strategy](#98-failover-strategy)
+    - [9.9. Cross-Network Signing](#99-cross-network-signing)
 
 ---
 
@@ -56,86 +62,60 @@ The SimplePMM Delegator architecture introduces a two-tier system that abstracts
 
 ### 1.1. Architecture Components
 
-| Component         | Role                                       | Implements                    |
-| ----------------- | ------------------------------------------ | ----------------------------- |
-| **Solver**        | Orchestrates trades between users and PMMs | Optimex Protocol              |
-| **PMM Delegator** | Virtual PMM that delegates to SimplePMMs   | Full PMM API (README.md)      |
-| **SimplePMM**     | Simplified liquidity provider              | SimplePMM API (this document) |
+| Component         | Role                                     |
+| ----------------- | ---------------------------------------- |
+| **PMM Delegator** | Virtual PMM that delegates to SimplePMMs |
+| **SimplePMM**     | Simplified liquidity provider            |
 
 ### 1.2. Key Benefits
 
-- **Simplified Integration**: SimplePMMs only implement 2 endpoints instead of 5
+- **Simplified Integration**: SimplePMMs only implement 2 endpoints
 - **Unified Quote Endpoint**: Single `/quote` endpoint handles indicative, commitment, and liquidation quotes
-- **Operator-Based Routing**: Solver specifies which SimplePMM handles each trade via `operator_pmm`
-- **Abstracted Complexity**: PMM Delegator handles settlement signatures, acknowledgments, and solver communication
+- **Operator-Based Routing**: Delegator routes to specific SimplePMM via `operator_pmm`
 - **Flexible Liquidity**: Multiple SimplePMMs can be registered, each serving specific trades
 - **Reduced Risk**: SimplePMMs only need to manage token transfers, not protocol complexity
 
-### 1.3. API Comparison
+### 1.3. Operator-Based Routing
 
-| Full PMM API (5 endpoints)  | SimplePMM API (2 endpoints)   |
-| --------------------------- | ----------------------------- |
-| `GET /indicative-quote`     | `GET /quote?type=indicative`  |
-| `GET /commitment-quote`     | `GET /quote?type=commitment`  |
-| `GET /liquidation-quote`    | `GET /quote?type=liquidation` |
-| `GET /settlement-signature` | _(handled by Delegator)_      |
-| `POST /ack-settlement`      | _(handled by Delegator)_      |
-| `POST /signal-payment`      | `POST /trigger-transfer`      |
-
-### 1.4. Operator-Based Routing
-
-When the Solver calls PMM Delegator, it includes an `operator_pmm` parameter specifying which SimplePMM should handle the trade.
+PMM Delegator routes requests to specific SimplePMM based on `operator_pmm` parameter.
 
 ```mermaid
 flowchart TD
-    A[Solver Request] --> B[PMM Delegator]
+    A[Request with operator_pmm] --> B[PMM Delegator]
     B --> C{Read config<br/>for operator}
     C --> D[Route to specific SimplePMM]
 ```
 
 **PMM Delegator Config Example:**
 
-```json
-{
-  "simple_pmms": {
-    "operator_a": {
-      "name": "SimplePMM Alpha",
-      "base_url": "https://pmm-alpha.example.com",
-      "address": "0xAaaa..."
-    },
-    "operator_b": {
-      "name": "SimplePMM Beta",
-      "base_url": "https://pmm-beta.example.com",
-      "address": "0xBbbb..."
-    }
-  }
-}
+```yaml
+simple_pmms:
+  - id: "optimex-pmm-testnet"
+    http_endpoint: "https://pmm-dev.bitdex.xyz"
+    operator_address: "0x78Bdc100555672a193359bd3e9CD68F23015A051"
+  - id: "optimex-pmm-mainnet"
+    http_endpoint: "https://pmm.bitdex.xyz"
+    operator_address: "0xAaaa1234567890abcdef1234567890abcdef1234"
 ```
 
 **Routing Logic:**
 
-- Solver includes `operator_pmm=operator_a` in request
-- PMM Delegator looks up config for `operator_a`
-- Routes request to `https://pmm-alpha.example.com/quote`
+- Request includes `operator_pmm=optimex-pmm-testnet`
+- PMM Delegator looks up config for `optimex-pmm-testnet`
+- Routes request to `https://pmm-dev.bitdex.xyz/quote`
 
 ---
 
 ## 2. System Architecture
 
-### 2.1. Component Roles
+### 2.1. Component Diagram
 
 ```mermaid
 flowchart TB
-    subgraph Solver["SOLVER (Optimex Trading Protocol)"]
-        S[Full PMM API]
-    end
-
-    subgraph Delegator["PMM DELEGATOR (Virtual PMM Service)"]
-        D1[Implements full PMM API for Solver]
-        D2[Aggregates quotes from SimplePMMs]
-        D3[Manages settlement signatures]
-        D4[Delegates token transfers]
-        D5[Submits settlement to Solver]
+    subgraph Delegator["PMM DELEGATOR"]
+        D1[Routes to SimplePMMs]
+        D2[Manages trade state]
+        D3[Verifies signatures]
     end
 
     subgraph SimplePMMs["SimplePMM Services"]
@@ -147,96 +127,64 @@ flowchart TB
             B1[Quote]
             B2[Transfer]
         end
-        subgraph C["SimplePMM C"]
-            C1[Quote]
-            C2[Transfer]
-        end
     end
 
-    S -->|"/indicative-quote<br/>/commitment-quote<br/>/settlement-signature<br/>/ack-settlement<br/>/signal-payment"| Delegator
-    Delegator -->|"SimplePMM API"| A
-    Delegator -->|"SimplePMM API"| B
-    Delegator -->|"SimplePMM API"| C
+    Delegator -->|"GET /quote<br/>POST /trigger-transfer"| A
+    Delegator -->|"GET /quote<br/>POST /trigger-transfer"| B
+    A -->|"POST /submit-transfer"| Delegator
+    B -->|"POST /submit-transfer"| Delegator
 ```
 
 ### 2.2. Communication Flow
 
 | Direction  | From          | To            | Protocol                         |
 | ---------- | ------------- | ------------- | -------------------------------- |
-| Downstream | Solver        | PMM Delegator | Full PMM API (5 endpoints)       |
 | Downstream | PMM Delegator | SimplePMM     | SimplePMM API (2 endpoints)      |
 | Upstream   | SimplePMM     | PMM Delegator | Submit Transfer API (1 endpoint) |
-| Upstream   | PMM Delegator | Solver        | Submit Settlement API            |
 
 ---
 
-## 3. Complete Trade Flow
+## 3. Trade Flow
 
 ### 3.1. Flow Diagram
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Solver
     participant Delegator as PMM Delegator
     participant SimplePMM
     participant Blockchain
 
     rect rgb(200, 220, 255)
-    Note over User,Blockchain: Phase 1: Price Discovery
-    User->>Solver: Request quote (specify operator_pmm)
-    Solver->>Delegator: GET /indicative-quote?operator_pmm=xxx
-    Note right of Delegator: Lookup config<br/>Route to SimplePMM
-    Delegator->>SimplePMM: GET /quote (indicative)
+    Note over Delegator,Blockchain: Phase 1: Quote
+    Delegator->>SimplePMM: GET /quote?type=indicative
     SimplePMM-->>Delegator: quote + signature + timestamp
-    Delegator-->>Solver: indicative_quote, pmm_receiving_address
-    Solver-->>User: Display quote
     end
 
     rect rgb(200, 255, 220)
-    Note over User,Blockchain: Phase 2: Commitment
-    User->>Solver: Accept quote & deposit
-    Solver->>Delegator: GET /commitment-quote?operator_pmm=xxx
-    Note right of Delegator: Route to same<br/>SimplePMM
-    Delegator->>SimplePMM: GET /quote (commitment)
+    Note over Delegator,Blockchain: Phase 2: Commitment
+    Delegator->>SimplePMM: GET /quote?type=commitment
     SimplePMM-->>Delegator: commitment_quote + signature + timestamp
-    Delegator-->>Solver: commitment_quote
-    end
-
-    rect rgb(255, 240, 200)
-    Note over User,Blockchain: Phase 3: Settlement Authorization
-    Solver->>Delegator: GET /settlement-signature
-    Delegator-->>Solver: signature, deadline
-    Solver->>Delegator: POST /ack-settlement (chosen=true)
-    Delegator-->>Solver: acknowledged
     end
 
     rect rgb(255, 220, 220)
-    Note over User,Blockchain: Phase 4: Payment Execution
-    Solver->>Delegator: POST /signal-payment
-    Delegator-->>Solver: acknowledged
+    Note over Delegator,Blockchain: Phase 3: Payment Execution
     Delegator->>SimplePMM: POST /trigger-transfer
     SimplePMM-->>Delegator: acknowledged
     SimplePMM->>Blockchain: Transfer tokens to user
     SimplePMM->>Delegator: POST /submit-transfer (tx_hash + signature)
     Note right of Delegator: Verify signature<br/>matches quote signature
-    Delegator->>Solver: POST /submit-settlement-tx
-    Solver-->>Delegator: success
     end
 ```
 
 ### 3.2. Phase Breakdown
 
-| #   | Phase          | Solver → Delegator           | Delegator → SimplePMM        | SimplePMM Action              |
-| --- | -------------- | ---------------------------- | ---------------------------- | ----------------------------- |
-| 1   | Discovery      | `GET /indicative-quote`      | `GET /quote?type=indicative` | Return quote + signature      |
-| 2   | Commitment     | `GET /commitment-quote`      | `GET /quote?type=commitment` | Return firm quote + signature |
-| 3   | Authorization  | `GET /settlement-signature`  | —                            | Delegator handles internally  |
-| 4   | Acknowledgment | `POST /ack-settlement`       | —                            | Delegator handles internally  |
-| 5   | Signal         | `POST /signal-payment`       | `POST /trigger-transfer`     | Prepare for transfer          |
-| 6   | Execution      | —                            | —                            | Transfer tokens on-chain      |
-| 7   | Submission     | —                            | `POST /submit-transfer`      | Submit tx to Delegator        |
-| 8   | Settlement     | `POST /submit-settlement-tx` | —                            | Delegator submits to Solver   |
+| #   | Phase      | Delegator → SimplePMM        | SimplePMM Action              |
+| --- | ---------- | ---------------------------- | ----------------------------- |
+| 1   | Discovery  | `GET /quote?type=indicative` | Return quote + signature      |
+| 2   | Commitment | `GET /quote?type=commitment` | Return firm quote + signature |
+| 3   | Signal     | `POST /trigger-transfer`     | Prepare for transfer          |
+| 4   | Execution  | —                            | Transfer tokens on-chain      |
+| 5   | Submission | `POST /submit-transfer`      | Submit tx to Delegator        |
 
 ---
 
@@ -251,21 +199,9 @@ SimplePMMs must implement the following endpoints:
 
 ---
 
-### 4.1. Endpoint: `GET /quote` (Unified Quote Endpoint)
+### 4.1. Endpoint: `GET /quote`
 
-**Purpose:** Single unified endpoint that replaces the three separate endpoints in the full PMM API:
-
-| Full PMM API             | SimplePMM API                 |
-| ------------------------ | ----------------------------- |
-| `GET /indicative-quote`  | `GET /quote?type=indicative`  |
-| `GET /commitment-quote`  | `GET /quote?type=commitment`  |
-| `GET /liquidation-quote` | `GET /quote?type=liquidation` |
-
-This consolidation simplifies SimplePMM integration by:
-
-- Reducing endpoint count from 5 to 2
-- Using consistent request/response format across all quote types
-- Always returning signature + timestamp for verification
+**Purpose:** Single unified endpoint for all quote types.
 
 #### Request Parameters
 
@@ -334,7 +270,7 @@ GET /quote?type=liquidation&trade_id=0x3bfe...&from_token_id=ETH&to_token_id=BTC
 The SimplePMM signs the following message:
 
 ```
-#{simple_pmm_address} quote #{quote} for #{trade_id} at #{timestamp}
+{simple_pmm_address} quote {quote} for {trade_id} at {timestamp}
 ```
 
 **Example:**
@@ -348,62 +284,6 @@ For indicative quotes (no trade_id), use a session identifier:
 ```
 0x1234567890abcdef1234567890abcdef12345678 quote 987654321000000000 for session_abc123 at 1696000000
 ```
-
-<details>
-<summary><strong>Example Implementation</strong></summary>
-
-```typescript
-import { ethers } from 'ethers'
-
-interface QuoteRequest {
-  type: 'indicative' | 'commitment' | 'liquidation'
-  trade_id?: string
-  from_token_id: string
-  to_token_id: string
-  amount: string
-  to_user_address: string
-  trade_deadline?: string
-  script_deadline?: string
-  payment_metadata?: string
-}
-
-async function getQuote(req: QuoteRequest) {
-  const simplePmmAddress = process.env.SIMPLE_PMM_ADDRESS!
-  const privateKey = process.env.SIMPLE_PMM_PRIVATE_KEY!
-
-  // Calculate quote based on your pricing logic
-  const quote = await calculateQuote({
-    fromToken: req.from_token_id,
-    toToken: req.to_token_id,
-    amount: BigInt(req.amount),
-    type: req.type,
-  })
-
-  const timestamp = Math.floor(Date.now() / 1000)
-  const identifier = req.trade_id || `session_${generateSessionId()}`
-
-  // Create signature message
-  const message = `${simplePmmAddress} quote ${quote.toString()} for ${identifier} at ${timestamp}`
-
-  // Sign the message
-  const wallet = new ethers.Wallet(privateKey)
-  const signature = await wallet.signMessage(message)
-
-  // Calculate quote timeout (e.g., 1 hour for indicative, 30 min for commitment)
-  const quoteTimeout = req.type === 'indicative' ? timestamp + 3600 : timestamp + 1800
-
-  return {
-    simple_pmm_address: simplePmmAddress,
-    quote: quote.toString(),
-    signature,
-    timestamp,
-    quote_timeout: quoteTimeout,
-    error: '',
-  }
-}
-```
-
-</details>
 
 ---
 
@@ -475,77 +355,6 @@ Content-Type: application/json
 3. **Execute Transfer**: Send tokens to `to_user_address` before `trade_deadline`
 4. **Submit Result**: Call PMM Delegator's `/submit-transfer` endpoint with transaction details
 
-<details>
-<summary><strong>Example Implementation</strong></summary>
-
-```typescript
-import { ethers } from 'ethers'
-
-interface TriggerTransferRequest {
-  trade_id: string
-  from_token_id: string
-  to_token_id: string
-  amount_in: string
-  amount_out: string
-  to_user_address: string
-  trade_deadline: string
-  total_fee_amount: string
-  original_quote_signature: string
-  original_quote_timestamp: number
-}
-
-async function triggerTransfer(req: TriggerTransferRequest) {
-  const simplePmmAddress = process.env.SIMPLE_PMM_ADDRESS!
-
-  // Step 1: Verify the original quote signature
-  const message = `${simplePmmAddress} quote ${req.amount_out} for ${req.trade_id} at ${req.original_quote_timestamp}`
-  const recoveredAddress = ethers.verifyMessage(message, req.original_quote_signature)
-
-  if (recoveredAddress.toLowerCase() !== simplePmmAddress.toLowerCase()) {
-    return {
-      trade_id: req.trade_id,
-      status: 'error',
-      error: 'Invalid quote signature',
-    }
-  }
-
-  // Step 2: Queue the transfer for execution
-  await transferQueue.add({
-    tradeId: req.trade_id,
-    toToken: req.to_token_id,
-    amount: req.amount_out,
-    recipient: req.to_user_address,
-    deadline: parseInt(req.trade_deadline),
-    quoteSignature: req.original_quote_signature,
-    quoteTimestamp: req.original_quote_timestamp,
-  })
-
-  return {
-    trade_id: req.trade_id,
-    status: 'acknowledged',
-    error: '',
-  }
-}
-
-// Transfer execution worker
-async function executeTransfer(job: TransferJob) {
-  const { tradeId, toToken, amount, recipient, quoteSignature, quoteTimestamp } = job
-
-  // Execute the actual transfer based on network type
-  const txHash = await performTransfer(toToken, amount, recipient)
-
-  // Submit the transfer result to PMM Delegator
-  await submitTransferToDelegator({
-    trade_id: tradeId,
-    tx_hash: txHash,
-    signature: quoteSignature,
-    timestamp: quoteTimestamp,
-  })
-}
-```
-
-</details>
-
 ---
 
 ## 5. PMM Delegator API Specification
@@ -554,7 +363,7 @@ PMM Delegator exposes the following endpoint for SimplePMMs to submit completed 
 
 ### 5.1. Endpoint: `POST /submit-transfer`
 
-**Purpose:** SimplePMM submits the completed transfer transaction to the PMM Delegator for settlement with the Solver.
+**Purpose:** SimplePMM submits the completed transfer transaction to the PMM Delegator.
 
 #### Request Parameters
 
@@ -563,7 +372,7 @@ PMM Delegator exposes the following endpoint for SimplePMMs to submit completed 
 | Parameter    | Type    | Required | Description                                   |
 | ------------ | ------- | -------- | --------------------------------------------- |
 | `trade_id`   | string  | Yes      | Unique trade identifier                       |
-| `tx_hash`    | string  | Yes      | Transaction hash of the transfer (hex format) |
+| `tx_hash`    | string  | Yes      | Transaction hash of the transfer              |
 | `network_id` | string  | Yes      | Network where transfer was executed           |
 | `signature`  | string  | Yes      | Original quote signature for verification     |
 | `timestamp`  | integer | Yes      | Original quote timestamp for verification     |
@@ -600,77 +409,14 @@ Content-Type: application/json
 | Field      | Type   | Description                                       |
 | ---------- | ------ | ------------------------------------------------- |
 | `trade_id` | string | Trade identifier from request                     |
-| `status`   | string | `submitted` if successfully forwarded to Solver   |
+| `status`   | string | `submitted` if successfully processed             |
 | `error`    | string | Error message if applicable (empty if successful) |
 
 #### PMM Delegator Processing
 
 1. **Verify Signature**: Confirm signature matches the registered SimplePMM
 2. **Verify Trade**: Confirm trade exists and is pending settlement
-3. **Format for Solver**: Convert to Solver's `/submit-settlement-tx` format
-4. **Submit to Solver**: Forward settlement to complete the trade
-
-<details>
-<summary><strong>PMM Delegator Implementation</strong></summary>
-
-```typescript
-import { ethers } from 'ethers'
-
-interface SubmitTransferRequest {
-  trade_id: string
-  tx_hash: string
-  network_id: string
-  signature: string
-  timestamp: number
-}
-
-async function handleSubmitTransfer(req: SubmitTransferRequest) {
-  // Step 1: Get trade details
-  const trade = await tradeRepository.findById(req.trade_id)
-  if (!trade) {
-    return { trade_id: req.trade_id, status: 'error', error: 'Trade not found' }
-  }
-
-  // Step 2: Verify the SimplePMM signature
-  const simplePmmAddress = trade.assignedSimplePmm
-  const message = `${simplePmmAddress} quote ${trade.commitmentQuote} for ${req.trade_id} at ${req.timestamp}`
-  const recoveredAddress = ethers.verifyMessage(message, req.signature)
-
-  if (recoveredAddress.toLowerCase() !== simplePmmAddress.toLowerCase()) {
-    return { trade_id: req.trade_id, status: 'error', error: 'Invalid signature' }
-  }
-
-  // Step 3: Encode tx_hash for non-EVM chains
-  const settlementTx = encodeSettlementTx(req.tx_hash, req.network_id)
-
-  // Step 4: Submit to Solver
-  await solverClient.submitSettlementTx({
-    trade_ids: [req.trade_id],
-    pmm_id: process.env.PMM_DELEGATOR_ID,
-    settlement_tx: settlementTx,
-    signature: await signSettlement(req.trade_id),
-    start_index: 0,
-    signed_at: Math.floor(Date.now() / 1000),
-  })
-
-  // Step 5: Update trade status
-  await tradeRepository.updateStatus(req.trade_id, 'COMPLETED')
-
-  return { trade_id: req.trade_id, status: 'submitted', error: '' }
-}
-
-function encodeSettlementTx(txHash: string, networkId: string): string {
-  // EVM chains: use tx hash directly
-  if (isEvmNetwork(networkId)) {
-    return txHash.startsWith('0x') ? txHash : `0x${txHash}`
-  }
-
-  // Bitcoin/Solana: encode as hex
-  return '0x' + Buffer.from(txHash, 'utf8').toString('hex')
-}
-```
-
-</details>
+3. **Update State**: Mark trade as completed
 
 ---
 
@@ -726,8 +472,6 @@ Transfer Submission → same signature + timestamp
 PMM Delegator → verify signature matches SimplePMM address
                       ↓
               → verify trade exists with matching quote
-                      ↓
-              → submit to Solver
 ```
 
 ---
@@ -784,29 +528,98 @@ PMM Delegator → verify signature matches SimplePMM address
 
 ---
 
-## 9. Open Discussion Items
+## 9. Design Decisions
 
-> **Status:** These items need team discussion before production deployment.
+This section documents resolved design decisions for PMM Delegator architecture.
 
-### 9.1. Critical Issues
+### 9.1. Transaction Hash Format
 
-| # | Issue | Description | Impact |
-|---|-------|-------------|--------|
-| 1 | **Delegator→Solver Settlement** | When Delegator calls Solver's `/submit-settlement-tx`, whose signature and `pmm_id` should be used? Delegator's own credentials or SimplePMM's? | HIGH |
-| 2 | **Network Encoding** | Current `encodeSettlementTx` treats Bitcoin/Solana hex tx hash as UTF-8 before encoding. Need to handle already-hex strings correctly. | CRITICAL |
-| 3 | **Callback Failure Recovery** | If SimplePMM transfers tokens but `/submit-transfer` callback fails, trade is stuck. Need retry policy or Delegator polling mechanism. | HIGH |
-| 4 | **Signature Reuse Security** | Same signature flows through: quote → trigger-transfer → submit-transfer. Need explicit replay protection or context-bound signatures. | HIGH |
+**Decision:** Pass tx hash as-is without encoding.
 
-### 9.2. Unresolved Questions
+- SimplePMM submits `tx_hash` in native chain format
+- Delegator stores and processes unchanged
 
-1. **Delegator PMM Identity:** Does Delegator register with Solver as single PMM entity? What `pmm_id` is used in settlement?
+| Network  | Format                          | Example                              |
+| -------- | ------------------------------- | ------------------------------------ |
+| EVM      | `0x`-prefixed hex (66 chars)    | `0x7a87d2c4...707355`                |
+| Bitcoin  | Hex string (64 chars)           | `a1b2c3d4e5f6...`                    |
+| Solana   | Base58 signature                | `5UfDuX...`                          |
 
-2. **Multi-SimplePMM Routing:** Can Solver query multiple SimplePMMs for best quote, or must pre-select via `operator_pmm`?
+### 9.2. Callback Failure Recovery
 
-3. **Fee Distribution:** Does SimplePMM keep entire quote spread or share with Delegator? Fee structure not defined.
+**Decision:** SimplePMM implements retry with exponential backoff.
 
-4. **Configuration Management:** How to register/deregister SimplePMMs? API endpoints? Dynamic reload?
+1. SimplePMM MUST retry `/submit-transfer` on failure
+2. Retry intervals: 1s → 2s → 4s → 8s → 16s (max 5 retries)
+3. After max retries, log and alert for manual intervention
+4. Delegator MAY implement polling as secondary recovery
 
-5. **Timeout Relationships:** Expected ordering: `quote_timeout < trade_deadline < script_deadline`?
+### 9.3. Signature Uniqueness & Replay Protection
 
-6. **Failover Strategy:** If selected SimplePMM becomes unreachable after commitment, what happens?
+**Decision:** Timestamps provide natural replay protection.
+
+- Each quote has unique `timestamp` → unique signature
+- Message: `{address} quote {amount} for {trade_id} at {timestamp}`
+- Verification MUST match exact timestamp from original quote
+- No additional replay protection needed
+
+### 9.4. Operator Routing Rules
+
+**Decision:** Delegator routes based on `operator_pmm` parameter.
+
+| Scenario               | Behavior                          |
+| ---------------------- | --------------------------------- |
+| Valid `operator_pmm`   | Route to matching SimplePMM       |
+| Invalid `operator_pmm` | Return 400 error                  |
+
+### 9.5. Fee Distribution
+
+**Decision:** Fee structure is external to protocol.
+
+- SimplePMM keeps quote spread as profit
+- Fee sharing between SimplePMM and Delegator is off-chain business agreement
+- Protocol does not enforce fee distribution
+
+### 9.6. Configuration Management
+
+**Decision:** Static YAML configuration with reload support.
+
+```yaml
+simple_pmms:
+  - id: "optimex-pmm-testnet"
+    http_endpoint: "https://pmm-dev.bitdex.xyz"
+    operator_address: "0x78Bdc100555672a193359bd3e9CD68F23015A051"
+```
+
+- Configuration loaded at startup
+- Support SIGHUP for config reload without restart
+- No dynamic registration API in v1
+
+### 9.7. Timeout Ordering
+
+**Decision:** Enforce strict timeout hierarchy.
+
+```
+quote_timeout < trade_deadline < script_deadline
+```
+
+- `quote_timeout`: When quote expires (SimplePMM enforced)
+- `trade_deadline`: When payment must complete
+- `script_deadline`: When withdrawal is allowed
+
+### 9.8. Failover Strategy
+
+**Decision:** No automatic failover after commitment.
+
+- Once SimplePMM is committed via `operator_pmm`, trade is bound to that operator
+- If SimplePMM unreachable after commitment → trade fails
+- Future: Consider multi-operator redundancy
+
+### 9.9. Cross-Network Signing
+
+**Decision:** All SimplePMMs use EVM wallet for signing.
+
+- Each SimplePMM has `operatorAddress` (EVM address)
+- ALL signatures use EVM wallet, regardless of output chain
+- For BTC/Solana outputs: sign with EVM, execute on target chain
+- Submit target chain `tx_hash` to Delegator after transfer
