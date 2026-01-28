@@ -152,19 +152,21 @@ await submitTransfer(tradeId, tx.txid, 'bitcoin')
 
 ### 4.1. Verify Trade Details (Optional)
 
-Before executing a transfer, you can verify trade details:
+Before executing a transfer, you can verify trade details. Include your `operator_address` to get token IDs in your format:
 
 ```
-GET /trades/:tradeId
+GET /trades/:tradeId?operator_address=0xYourOperatorAddress
 ```
+
+> **Note:** Without `operator_address`, token IDs are returned in Solver format (e.g., `nep141:btc.omft.near`). With your operator address, PD reverse-maps to your token format (e.g., `btc`).
 
 **Response:**
 
 ```json
 {
   "trade_id": "0x3bfe...",
-  "from_token_id": "nep141:btc.omft.near",
-  "to_token_id": "nep141:eth.omft.near",
+  "from_token_id": "eth",
+  "to_token_id": "btc",
   "amount_in": "100000000",
   "amount_out": "2500000000000000000",
   "to_user_address": "0x1234...",

@@ -356,21 +356,37 @@ PMM Delegator exposes the following endpoints for SimplePMMs:
 
 **Path Parameters:**
 
-| Parameter  | Type   | Required | Description             |
-| ---------- | ------ | -------- | ----------------------- |
-| `trade_id` | string | Yes      | Unique trade identifier |
+| Parameter | Type   | Required | Description             |
+| --------- | ------ | -------- | ----------------------- |
+| `tradeId` | string | Yes      | Unique trade identifier |
+
+**Query Parameters:**
+
+| Parameter          | Type   | Required | Description                                     |
+| ------------------ | ------ | -------- | ----------------------------------------------- |
+| `operator_address` | string | No       | SimplePMM operator address for token ID mapping |
+
+> **Note:** When `operator_address` is provided, PD reverse-maps token IDs using that operator's `token_aliases` config. Without it, token IDs are returned in Solver format (e.g., `nep141:btc.omft.near`).
 
 #### Example Request
 
+**With operator_address (recommended for SimplePMM):**
 ```
-GET /trade/0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328
+GET /trades/0x3bfe...?operator_address=0x78Bdc100555672a193359bd3e9CD68F23015A051
 ```
+Returns: `from_token_id: "eth"`, `to_token_id: "btc"`
+
+**Without operator_address (Solver format):**
+```
+GET /trades/0x3bfe2fc4889a98a39b31b348e7b212ea3f2bea63fd1ea2e0c8ba326433677328
+```
+Returns: `from_token_id: "nep141:eth.omft.near"`, `to_token_id: "nep141:btc.omft.near"`
 
 #### Expected Response
 
 **HTTP Status:** `200 OK`
 
-**Response Body:**
+**Response Body (with operator_address):**
 
 ```json
 {
