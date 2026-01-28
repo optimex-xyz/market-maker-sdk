@@ -38,13 +38,12 @@
   "license": "MIT",
   "scripts": {
     "build": "tsdown",
-    "typechain": "rm -rf ./src/contracts/contracts && typechain --target=ethers-v6 ./abi/**/**.json --out-dir ./src/contracts/contracts",
     "prepare": "simple-git-hooks",
     "lint": "eslint --ext .js,.ts,.tsx src/",
     "format": "prettier --write \"src/**/*.{js,ts,tsx}\"",
     "lint-staged": "lint-staged",
     "ctix": "node generate-indexes.js",
-    "generate-types": "node generate-types.js",
+    "generate:abi": "rm -rf src/abi && rm -rf src/types/contract && node scripts/generate-abi.js",
     "commit": "git-cz"
   },
   "dependencies": {
@@ -52,8 +51,8 @@
     "bip174": "^3.0.0",
     "bitcoinjs-lib": "^7.0.1",
     "ecpair": "^3.0.0",
-    "ethers": "^6.16.0",
     "tiny-secp256k1": "^2.2.4",
+    "viem": "^2.44.4",
     "zod": "^4.3.5"
   },
   "devDependencies": {
@@ -61,7 +60,6 @@
     "@commitlint/config-conventional": "^20.3.1",
     "@eslint/js": "^9.39.2",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
-    "@typechain/ethers-v6": "^0.5.1",
     "@types/node": "^25.0.9",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
@@ -75,7 +73,6 @@
     "prettier": "^3.8.0",
     "simple-git-hooks": "^2.13.1",
     "tsdown": "^0.19.0",
-    "typechain": "^8.3.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.0"
   },

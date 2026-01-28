@@ -1,0 +1,1504 @@
+/**
+ * Router ABI - Auto-generated from abi/Router.json
+ * DO NOT EDIT MANUALLY - Run `yarn generate:abi` to regenerate
+ */
+
+export const routerAbi = [
+  {
+    "inputs": [
+      {
+        "internalType": "contract IManagement",
+        "name": "management_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "signer",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "AddressZero",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "BundlePaymentEmpty",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "DepositAlreadySubmitted",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "LengthMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RegisteredAlready",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "RouteNotSupported",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "Unauthorized",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "solver",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "Abort",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "mpc",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ConfirmDeposit",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "mpc",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ConfirmPayment",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "mpc",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ConfirmPresign",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "mpc",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ConfirmRefund",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "mpc",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ConfirmSettlement",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "MakePayment",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "mpc",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "msgError",
+        "type": "bytes"
+      }
+    ],
+    "name": "ReportFailure",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "solver",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "SelectPMM",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "solver",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "SubmitDeposit",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "solver",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "SubmitTradeInfo",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newManagement",
+        "type": "address"
+      }
+    ],
+    "name": "UpdatedManagement",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "handler",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "fromNetwork",
+        "type": "bytes"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "toNetwork",
+        "type": "bytes"
+      }
+    ],
+    "name": "UpdatedRoute",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "SIGNER",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "minAmountOut",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint64",
+            "name": "tradeTimeout",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes",
+            "name": "rfqInfoSignature",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ITypes.RFQInfo",
+        "name": "rfqInfo",
+        "type": "tuple"
+      }
+    ],
+    "name": "abort",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32[]",
+            "name": "tradeIds",
+            "type": "bytes32[]"
+          },
+          {
+            "internalType": "uint64",
+            "name": "signedAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "startIdx",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes",
+            "name": "paymentTxId",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "signature",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ITypes.BundlePayment",
+        "name": "bundle",
+        "type": "tuple"
+      }
+    ],
+    "name": "bundlePayment",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes[]",
+        "name": "depositFromList",
+        "type": "bytes[]"
+      }
+    ],
+    "name": "confirmDeposit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "confirmPayment",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "confirmPresign",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "releaseTxId",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "confirmSettlement",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getAffiliateInfo",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "aggregatedValue",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "schema",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ITypes.Affiliate",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "handler",
+        "type": "address"
+      }
+    ],
+    "name": "getCurrentEpoch",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getCurrentStage",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "stage",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "swapType",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getFailureInfo",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "stage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "msgError",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ITypes.FailureDetails",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getFeeDetails",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "totalAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "pFeeAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "aFeeAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint128",
+            "name": "pFeeRate",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "aFeeRate",
+            "type": "uint128"
+          }
+        ],
+        "internalType": "struct ITypes.FeeDetails",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "fromNetwork",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "toNetwork",
+        "type": "bytes"
+      }
+    ],
+    "name": "getHandler",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "handler",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "handlerType",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getHandlerOf",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "handler",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "handlerType",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "fromNetwork",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "toNetwork",
+        "type": "bytes"
+      }
+    ],
+    "name": "getHistoryCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getPMMSelection",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "minAmountOut",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint64",
+                "name": "tradeTimeout",
+                "type": "uint64"
+              },
+              {
+                "internalType": "bytes",
+                "name": "rfqInfoSignature",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct ITypes.RFQInfo",
+            "name": "rfqInfo",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "amountOut",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "selectedPMMId",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes[2]",
+                "name": "info",
+                "type": "bytes[2]"
+              },
+              {
+                "internalType": "uint64",
+                "name": "sigExpiry",
+                "type": "uint64"
+              }
+            ],
+            "internalType": "struct ITypes.SelectedPMMInfo",
+            "name": "pmmInfo",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ITypes.PMMSelection",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "handler",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "epochNo",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fromIdx",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "toIdx",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPendingTrades",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "handler",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "epochNo",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPendingTradesCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getRefundPresign",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "refundAddress",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "presigns",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct ITypes.RefundPresign",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "fromIdx",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "toIdx",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "fromNetwork",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "toNetwork",
+        "type": "bytes"
+      }
+    ],
+    "name": "getRegisteredHandlers",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "list",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getSettlementPresigns",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "pmmId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "pmmRecvAddress",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "presigns",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct ITypes.SettlementPresign[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getSolver",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getTradeData",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "sessionId",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "amountIn",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes[3]",
+                "name": "fromChain",
+                "type": "bytes[3]"
+              },
+              {
+                "internalType": "bytes[3]",
+                "name": "toChain",
+                "type": "bytes[3]"
+              }
+            ],
+            "internalType": "struct ITypes.TradeInfo",
+            "name": "tradeInfo",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[5]",
+                "name": "depositInfo",
+                "type": "bytes[5]"
+              },
+              {
+                "internalType": "address",
+                "name": "userEphemeralL2Address",
+                "type": "address"
+              },
+              {
+                "internalType": "uint64",
+                "name": "scriptTimeout",
+                "type": "uint64"
+              }
+            ],
+            "internalType": "struct ITypes.ScriptInfo",
+            "name": "scriptInfo",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ITypes.TradeData",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getTradeFinalization",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "bundlerHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "index",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "paymentTxId",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "releaseTxId",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "refundTxId",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bool",
+            "name": "isConfirmed",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct ITypes.TradeFinalization",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "management",
+    "outputs": [
+      {
+        "internalType": "contract IManagement",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "referenceIds",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "handlers",
+        "type": "address[]"
+      }
+    ],
+    "name": "migrate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "refundTxId",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "refund",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "msgError",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "referenceInfo",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "report",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "minAmountOut",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint64",
+                "name": "tradeTimeout",
+                "type": "uint64"
+              },
+              {
+                "internalType": "bytes",
+                "name": "rfqInfoSignature",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct ITypes.RFQInfo",
+            "name": "rfqInfo",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "amountOut",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "selectedPMMId",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes[2]",
+                "name": "info",
+                "type": "bytes[2]"
+              },
+              {
+                "internalType": "uint64",
+                "name": "sigExpiry",
+                "type": "uint64"
+              }
+            ],
+            "internalType": "struct ITypes.SelectedPMMInfo",
+            "name": "pmmInfo",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ITypes.PMMSelection",
+        "name": "info",
+        "type": "tuple"
+      }
+    ],
+    "name": "selectPMM",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newManagement",
+        "type": "address"
+      }
+    ],
+    "name": "setManagement",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "handler",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "fromNetwork",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "toNetwork",
+        "type": "bytes"
+      }
+    ],
+    "name": "setRoute",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "sessionId",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "amountIn",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes[3]",
+                "name": "fromChain",
+                "type": "bytes[3]"
+              },
+              {
+                "internalType": "bytes[3]",
+                "name": "toChain",
+                "type": "bytes[3]"
+              }
+            ],
+            "internalType": "struct ITypes.TradeInfo",
+            "name": "tradeInfo",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[5]",
+                "name": "depositInfo",
+                "type": "bytes[5]"
+              },
+              {
+                "internalType": "address",
+                "name": "userEphemeralL2Address",
+                "type": "address"
+              },
+              {
+                "internalType": "uint64",
+                "name": "scriptTimeout",
+                "type": "uint64"
+              }
+            ],
+            "internalType": "struct ITypes.ScriptInfo",
+            "name": "scriptInfo",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ITypes.TradeData",
+        "name": "tradeData",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "refundAddress",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "presigns",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct ITypes.RefundPresign",
+        "name": "refundPresign",
+        "type": "tuple"
+      }
+    ],
+    "name": "submitDeposit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "tradeId",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "sessionId",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "amountIn",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes[3]",
+                "name": "fromChain",
+                "type": "bytes[3]"
+              },
+              {
+                "internalType": "bytes[3]",
+                "name": "toChain",
+                "type": "bytes[3]"
+              }
+            ],
+            "internalType": "struct ITypes.TradeInfo",
+            "name": "tradeInfo",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes[5]",
+                "name": "depositInfo",
+                "type": "bytes[5]"
+              },
+              {
+                "internalType": "address",
+                "name": "userEphemeralL2Address",
+                "type": "address"
+              },
+              {
+                "internalType": "uint64",
+                "name": "scriptTimeout",
+                "type": "uint64"
+              }
+            ],
+            "internalType": "struct ITypes.ScriptInfo",
+            "name": "scriptInfo",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ITypes.TradeData",
+        "name": "tradeData",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "aggregatedValue",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "schema",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct ITypes.Affiliate",
+        "name": "affiliateInfo",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "pmmId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes",
+            "name": "pmmRecvAddress",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "presigns",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct ITypes.SettlementPresign[]",
+        "name": "settlementPresigns",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "refundAddress",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes[]",
+            "name": "presigns",
+            "type": "bytes[]"
+          }
+        ],
+        "internalType": "struct ITypes.RefundPresign",
+        "name": "refundPresign",
+        "type": "tuple"
+      }
+    ],
+    "name": "submitTrade",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+] as const;
+
+export type RouterAbi = typeof routerAbi;

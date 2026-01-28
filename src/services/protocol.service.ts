@@ -1,34 +1,43 @@
-import { ethers, JsonRpcProvider, keccak256, toUtf8Bytes } from 'ethers'
+import { getContract, keccak256, stringToHex } from 'viem'
 
+import { protocolFetcherProxyAbi } from '../abi'
 import { AppConfig, config, ConfigObserver } from '../config'
-import { ITypes, ProtocolFetcherProxy__factory } from '../contracts'
 import { AssetChainContractRole, L2ContractRole, OptimexEvmNetwork, OptimexL2Network } from '../shared'
+import type { MPCInfoStructOutput } from '../types/contract'
+import { viemClient } from '../viem'
 
 export class ProtocolService implements ConfigObserver {
-  private provider: JsonRpcProvider
-  private contract: ReturnType<typeof ProtocolFetcherProxy__factory.connect>
+  private protocolFetcherAddress: `0x${string}`
   public l2Network: OptimexL2Network
 
   constructor() {
-    this.provider = new JsonRpcProvider(config.getRpcUrl())
-    this.contract = ProtocolFetcherProxy__factory.connect(config.getProtocolFetcherAddress(), this.provider)
+    this.protocolFetcherAddress = config.getProtocolFetcherAddress() as `0x${string}`
     this.l2Network = config.isTestnet() ? OptimexL2Network.Testnet : OptimexL2Network.Mainnet
 
     // Register as an observer
     config.registerObserver(this)
   }
+
   /**
    * Implementation of ConfigObserver interface
    * Updates service when config changes
    */
   onConfigUpdate(newConfig: AppConfig): void {
-    this.provider = new JsonRpcProvider(newConfig.rpcUrl)
-    this.contract = ProtocolFetcherProxy__factory.connect(newConfig.protocolFetcherProxyAddress, this.provider)
+    this.protocolFetcherAddress = newConfig.protocolFetcherProxyAddress as `0x${string}`
     this.l2Network = newConfig.isTestnet ? OptimexL2Network.Testnet : OptimexL2Network.Mainnet
   }
 
-  async getCurrentPubkey(network: string): Promise<ITypes.MPCInfoStructOutput> {
-    return this.contract.getLatestMPCInfo(ethers.toUtf8Bytes(network))
+  private getContract() {
+    return getContract({
+      address: this.protocolFetcherAddress,
+      abi: protocolFetcherProxyAbi,
+      client: viemClient.getClient(),
+    })
+  }
+
+  async getCurrentPubkey(network: string): Promise<MPCInfoStructOutput> {
+    const contract = this.getContract()
+    return (await contract.read.getLatestMPCInfo([stringToHex(network)])) as MPCInfoStructOutput
   }
 
   async getPFeeRate({
@@ -42,27 +51,28 @@ export class ProtocolService implements ConfigObserver {
     toNetworkId: string
     toTokenId: string
   }): Promise<number> {
-    const feeRate = await this.contract.getPFeeRate([
-      ethers.toUtf8Bytes(fromNetworkId),
-      ethers.toUtf8Bytes(fromTokenId),
-      ethers.toUtf8Bytes(toNetworkId),
-      ethers.toUtf8Bytes(toTokenId),
+    const contract = this.getContract()
+    const feeRate = await contract.read.getPFeeRate([
+      [stringToHex(fromNetworkId), stringToHex(fromTokenId), stringToHex(toNetworkId), stringToHex(toTokenId)],
     ])
     return Number(feeRate.toString())
   }
 
   async getRouter(): Promise<string> {
-    return this.contract.router()
+    const contract = this.getContract()
+    return await contract.read.router()
   }
 
   async getAssetChainConfig(network: OptimexEvmNetwork, role: AssetChainContractRole) {
-    const hashRole = keccak256(toUtf8Bytes([network, role].join(':')))
-    return this.contract.getRoleMembers(hashRole)
+    const contract = this.getContract()
+    const hashRole = keccak256(stringToHex([network, role].join(':')))
+    return await contract.read.getRoleMembers([hashRole])
   }
 
   async getL2Config(role: L2ContractRole) {
-    const hashRole = keccak256(toUtf8Bytes([this.l2Network, role].join(':')))
-    return this.contract.getRoleMembers(hashRole)
+    const contract = this.getContract()
+    const hashRole = keccak256(stringToHex([this.l2Network, role].join(':')))
+    return await contract.read.getRoleMembers([hashRole])
   }
 }
 

@@ -1,12 +1,20 @@
-import { AddressLike, Provider, TypedDataDomain } from 'ethers'
+import { type Address, type PublicClient } from 'viem'
 
-export default async function defaultDomain(signerHelper: AddressLike, provider: Provider): Promise<TypedDataDomain> {
-  const chainId = (await provider.getNetwork()).chainId
+export interface TypedDataDomain {
+  name?: string
+  version?: string
+  chainId?: number | bigint
+  verifyingContract?: Address
+  salt?: `0x${string}`
+}
+
+export default async function defaultDomain(signerHelper: Address, provider: PublicClient): Promise<TypedDataDomain> {
+  const chain = await provider.getChainId()
   const domainContract: TypedDataDomain = {
     name: 'BitFi',
     version: 'Version 1',
-    chainId: chainId,
-    verifyingContract: signerHelper as string,
+    chainId: chain,
+    verifyingContract: signerHelper,
   }
   return domainContract
 }

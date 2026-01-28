@@ -1,26 +1,30 @@
-import { BytesLike, JsonRpcProvider } from 'ethers'
+import { getContract, type Hex } from 'viem'
 
 import { protocolService } from './protocol.service'
 
+import { routerAbi } from '../abi'
 import { AppConfig, config, ConfigObserver } from '../config'
-import { ITypes, Router__factory } from '../contracts'
+import type {
+  AffiliateInfoStructOutput,
+  FeeDetailsStructOutput,
+  PMMSelectionStructOutput,
+  SettlementPresignStructOutput,
+  TradeDataStructOutput,
+} from '../types/contract'
+import { viemClient } from '../viem'
 
 export class RouterService implements ConfigObserver {
-  private provider: JsonRpcProvider
-  private contract: ReturnType<typeof Router__factory.connect> | null = null
+  private routerAddress: `0x${string}` | null = null
 
   constructor() {
-    this.provider = new JsonRpcProvider(config.getRpcUrl())
-
     // Register as an observer
     config.registerObserver(this)
   }
 
-  onConfigUpdate(newConfig: AppConfig): void {
-    this.provider = new JsonRpcProvider(newConfig.rpcUrl)
-    // Reset contract to null so it will be re-initialized with new config
+  onConfigUpdate(_newConfig: AppConfig): void {
+    // Reset contract address to null so it will be re-initialized with new config
     // This ensures router address is fetched again from protocolService with updated config
-    this.contract = null
+    this.routerAddress = null
   }
 
   /**
@@ -28,55 +32,61 @@ export class RouterService implements ConfigObserver {
    * Useful when router address might have changed
    */
   public refreshContract(): void {
-    this.contract = null
+    this.routerAddress = null
   }
 
   private async getContract() {
-    if (!this.contract) {
-      const routerAddress = await protocolService.getRouter()
-      this.contract = Router__factory.connect(routerAddress, this.provider)
+    if (!this.routerAddress) {
+      const address = await protocolService.getRouter()
+      this.routerAddress = address as `0x${string}`
     }
-    return this.contract
+
+    return getContract({
+      address: this.routerAddress,
+      abi: routerAbi,
+      client: viemClient.getClient(),
+    })
   }
 
   async getSigner(): Promise<string> {
     const contract = await this.getContract()
-    return await contract.SIGNER()
+    return await contract.read.SIGNER()
   }
 
-  async getHandler(fromChain: BytesLike, toChain: BytesLike): Promise<[string, string]> {
+  async getHandler(fromChain: Hex, toChain: Hex): Promise<[string, string]> {
     const contract = await this.getContract()
-    return await contract.getHandler(fromChain, toChain)
+    const result = await contract.read.getHandler([fromChain, toChain])
+    return result as [string, string]
   }
 
-  async getPMMSelection(tradeId: BytesLike): Promise<ITypes.PMMSelectionStructOutput> {
+  async getPMMSelection(tradeId: Hex): Promise<PMMSelectionStructOutput> {
     const contract = await this.getContract()
-    return await contract.getPMMSelection(tradeId)
+    return (await contract.read.getPMMSelection([tradeId])) as PMMSelectionStructOutput
   }
 
-  async getSettlementPresigns(tradeId: BytesLike): Promise<ITypes.SettlementPresignStructOutput[]> {
+  async getSettlementPresigns(tradeId: Hex): Promise<SettlementPresignStructOutput[]> {
     const contract = await this.getContract()
-    return await contract.getSettlementPresigns(tradeId)
+    return (await contract.read.getSettlementPresigns([tradeId])) as SettlementPresignStructOutput[]
   }
 
-  async getFeeDetails(tradeId: BytesLike): Promise<ITypes.FeeDetailsStructOutput> {
+  async getFeeDetails(tradeId: Hex): Promise<FeeDetailsStructOutput> {
     const contract = await this.getContract()
-    return await contract.getFeeDetails(tradeId)
+    return (await contract.read.getFeeDetails([tradeId])) as FeeDetailsStructOutput
   }
 
-  async getTradeData(tradeId: BytesLike): Promise<ITypes.TradeDataStructOutput> {
+  async getTradeData(tradeId: Hex): Promise<TradeDataStructOutput> {
     const contract = await this.getContract()
-    return await contract.getTradeData(tradeId)
+    return (await contract.read.getTradeData([tradeId])) as TradeDataStructOutput
   }
 
   async getManagement(): Promise<string> {
     const contract = await this.getContract()
-    return await contract.management()
+    return await contract.read.management()
   }
 
-  async getAffiliateInfo(tradeId: BytesLike): Promise<ITypes.AffiliateStructOutput> {
+  async getAffiliateInfo(tradeId: Hex): Promise<AffiliateInfoStructOutput> {
     const contract = await this.getContract()
-    return await contract.getAffiliateInfo(tradeId)
+    return (await contract.read.getAffiliateInfo([tradeId])) as AffiliateInfoStructOutput
   }
 }
 
